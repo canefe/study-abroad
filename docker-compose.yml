@@ -1,27 +1,19 @@
 version: "3"
 
 services:
-    frontend:
+    nextjs:
         build:
-            context: ./frontend
+            context: .
         ports:
-            - "3000:80"
-        depends_on:
-            - backend
-        networks:
-            - app-network
-
-    backend:
-        build:
-            context: ./backend
-        ports:
-            - "3001:3001"
+            - "3000:3000"
         depends_on:
             - db
         networks:
             - app-network
         environment:
             - DATABASE_URL=postgres://user:password@db:5432/mydb
+        volumes:
+            - .:/app
 
     db:
         image: postgres:13
