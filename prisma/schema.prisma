@@ -54,15 +54,22 @@ model Session {
     user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+enum Role {
+    STUDENT
+    ADMIN
+}
+
 model User {
-    id            String    @id @default(cuid())
+    id            String         @id @default(cuid())
     name          String?
-    email         String?   @unique
+    email         String?        @unique
     emailVerified DateTime?
     image         String?
+    role          Role           @default(STUDENT)
     accounts      Account[]
     sessions      Session[]
     posts         Post[]
+    CourseChoice  CourseChoice[]
 }
 
 model VerificationToken {
@@ -71,4 +78,33 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+model University {
+    id       Int      @id @default(autoincrement())
+    name     String
+    location String
+    courses  Course[]
+}
+
+model CourseChoice {
+    id             Int    @id @default(autoincrement())
+    userId         String
+    homeCourseId   Int // The ID of the course at the home university
+    abroadCourseId Int // The ID of the course at the study abroad university
+    status         String // e.g., "pending", "approved", etc.
+
+    user         User   @relation(fields: [userId], references: [id])
+    homeCourse   Course @relation("HomeCourse", fields: [homeCourseId], references: [id])
+    abroadCourse Course @relation("AbroadCourse", fields: [abroadCourseId], references: [id])
+}
+
+model Course {
+    id           Int        @id @default(autoincrement())
+    name         String
+    universityId Int
+    university   University @relation(fields: [universityId], references: [id])
+
+    homeCourseChoices   CourseChoice[] @relation("HomeCourse")
+    abroadCourseChoices CourseChoice[] @relation("AbroadCourse")
 }
