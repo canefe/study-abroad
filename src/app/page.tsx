@@ -13,6 +13,10 @@ export default async function Home() {
 
   // redirect to /dashboard if user is logged in
   if (session?.user) {
+    console.log(session?.user);
+    if (session?.user.role === "ADMIN") {
+      redirect("/admin/dashboard");
+    }
     redirect("/dashboard");
   }
 
@@ -30,7 +34,11 @@ export default async function Home() {
 
             <div className="flex flex-col items-center justify-center gap-4">
               <p className="text-center text-2xl text-white">
-                {session && <span>Logged in as {session.user?.name}</span>}
+                {session && (
+                  <span>
+                    Logged in as {session.user?.name} {session.user?.role}
+                  </span>
+                )}
               </p>
               <Link
                 href={session ? "/api/auth/signout" : "/api/auth/signin"}
