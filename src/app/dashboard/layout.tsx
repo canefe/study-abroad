@@ -1,10 +1,11 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Footer } from "../_components/footer";
-import Header from "../_components/header";
-import AppSidebar from "../_components/sidebar";
+import { Footer } from "@/app/_components/footer";
+import Header from "@/app/_components/header";
+import AppSidebar from "@/app/_components/sidebar";
 import { getServerAuthSession } from "@/server/auth";
 import { redirect } from "next/navigation";
 import App from "next/app";
+import Breadcrumbs from "./_sections/breadcrumb";
 
 export default async function DashboardLayout({
   children,
@@ -18,10 +19,11 @@ export default async function DashboardLayout({
   return (
     <>
       <SidebarProvider>
-        <main className="w-full">
-          <Header />
-          <AppSidebar />
-          <div className="container mx-auto h-screen px-6 py-8">{children}</div>
+        <AppSidebar />
+        <SidebarTrigger />
+        <main className="px-3 py-6">
+          <Breadcrumbs />
+          <div className="h-screen min-h-screen">{children}</div>
 
           <Footer />
         </main>

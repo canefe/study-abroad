@@ -66,6 +66,7 @@ model User {
     emailVerified DateTime?
     image         String?
     role          Role           @default(STUDENT)
+    guid          String?        @unique
     accounts      Account[]
     sessions      Session[]
     posts         Post[]
@@ -90,9 +91,9 @@ model University {
 model CourseChoice {
     id             Int    @id @default(autoincrement())
     userId         String
-    homeCourseId   Int // The ID of the course at the home university
-    abroadCourseId Int // The ID of the course at the study abroad university
-    status         String // e.g., "pending", "approved", etc.
+    homeCourseId   Int
+    abroadCourseId Int
+    status         String
 
     user         User   @relation(fields: [userId], references: [id])
     homeCourse   Course @relation("HomeCourse", fields: [homeCourseId], references: [id])
