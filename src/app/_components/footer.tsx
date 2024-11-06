@@ -1,7 +1,9 @@
 export function Footer() {
   return (
-    <footer className="flex h-16 items-center justify-center bg-primary p-3 text-white">
-      <p className="text-sm">© 2024 All rights reserved.</p>
+    <footer className="fixed bottom-0 mx-5 flex w-full items-center justify-center p-3 text-white">
+      <div className="flex h-16 w-full items-center justify-center bg-primary">
+        <p className="text-sm">© 2024 All rights reserved.</p>
+      </div>
     </footer>
   );
 }
