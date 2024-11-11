@@ -82,22 +82,38 @@ model VerificationToken {
 }
 
 model University {
-    id       Int      @id @default(autoincrement())
-    name     String
-    location String
-    courses  Course[]
+    id           Int            @id @default(autoincrement())
+    name         String
+    location     String
+    courses      Course[]
+    CourseChoice CourseChoice[]
+}
+
+enum Semester {
+    SEMESTER_1
+    SEMESTER_2
+    FULL_YEAR
 }
 
 model CourseChoice {
-    id             Int    @id @default(autoincrement())
-    userId         String
-    homeCourseId   Int
-    abroadCourseId Int
-    status         String
+    id                   Int      @id @default(autoincrement())
+    userId               String
+    homeCourseId         Int
+    abroadUniversityId   Int
+    primaryCourseId      Int?
+    alternativeCourse1Id Int?
+    alternativeCourse2Id Int?
+    status               String
+    semester             Semester
+    year                 Int
+    feedback             String?
 
-    user         User   @relation(fields: [userId], references: [id])
-    homeCourse   Course @relation("HomeCourse", fields: [homeCourseId], references: [id])
-    abroadCourse Course @relation("AbroadCourse", fields: [abroadCourseId], references: [id])
+    user               User       @relation(fields: [userId], references: [id])
+    homeCourse         Course     @relation("HomeCourse", fields: [homeCourseId], references: [id])
+    abroadUniversity   University @relation(fields: [abroadUniversityId], references: [id])
+    primaryCourse      Course?    @relation("PrimaryCourse", fields: [primaryCourseId], references: [id])
+    alternativeCourse1 Course?    @relation("AlternativeCourse1", fields: [alternativeCourse1Id], references: [id])
+    alternativeCourse2 Course?    @relation("AlternativeCourse2", fields: [alternativeCourse2Id], references: [id])
 }
 
 model Course {
@@ -106,6 +122,8 @@ model Course {
     universityId Int
     university   University @relation(fields: [universityId], references: [id])
 
-    homeCourseChoices   CourseChoice[] @relation("HomeCourse")
-    abroadCourseChoices CourseChoice[] @relation("AbroadCourse")
+    homeCourseChoices         CourseChoice[] @relation("HomeCourse")
+    primaryCourseChoices      CourseChoice[] @relation("PrimaryCourse")
+    alternativeCourse1Choices CourseChoice[] @relation("AlternativeCourse1")
+    alternativeCourse2Choices CourseChoice[] @relation("AlternativeCourse2")
 }
