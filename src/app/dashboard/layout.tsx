@@ -13,6 +13,12 @@ export default async function DashboardLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const session = await getServerAuthSession();
   // check if the user is admin or not
+
+  // if no user at all, redirect to login
+  if (!session?.user) {
+    redirect("/");
+  }
+
   if (session?.user.role == "ADMIN") {
     // redirect to dashboard if user is not admin
     redirect("/admin/dashboard");
@@ -37,8 +43,8 @@ export default async function DashboardLayout({
             <div className="container">{children}</div>
           </div>
         </main>
-        <Footer />
       </SidebarProvider>
+      <Footer />
     </>
   );
 }

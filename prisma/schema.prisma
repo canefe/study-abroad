@@ -83,7 +83,7 @@ model VerificationToken {
 
 model University {
     id           Int            @id @default(autoincrement())
-    name         String
+    name         String         @unique
     location     String
     courses      Course[]
     CourseChoice CourseChoice[]

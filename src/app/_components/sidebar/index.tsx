@@ -21,20 +21,22 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { getServerAuthSession } from "@/server/auth";
 
 // Menu items. That checks ROLE and displays the menu items accordingly
 const items = [
+  /* 
+  ADMIN MENU ITEMS START
+  */
   {
     title: "Home",
     url: "/admin/dashboard",
     icon: Home,
+    role: "admin",
   },
-  /* 
-  ADMIN MENU ITEMS START
-  */
   {
     title: "Students",
     url: "/admin/dashboard/students",
@@ -56,19 +58,14 @@ const items = [
   STUDENT MENU ITEMS START
   */
   {
-    title: "My Choices",
-    url: "/dashboard/my-choices",
-    icon: Calendar,
+    title: "Home",
+    url: "/dashboard",
+    icon: Home,
     role: "student",
   },
   /*
   STUDENT MENU ITEMS END
   */
-  {
-    title: "Logout",
-    url: "/api/auth/signout",
-    icon: ChevronDown,
-  },
 ];
 
 export default async function AppSidebar() {

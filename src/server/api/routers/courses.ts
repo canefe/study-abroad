@@ -28,10 +28,26 @@ export const coursesRouter = createTRPCRouter({
         primaryCourse: true,
         alternativeCourse1: true,
         alternativeCourse2: true,
+        abroadUniversity: true,
       },
     });
     return courseChoices;
   }),
+
+  getCourses: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ input, ctx }) => {
+      const course = await ctx.db.course.findMany({
+        where: {
+          universityId: input.id,
+        },
+        include: {
+          university: true,
+        },
+      });
+      console.log(course);
+      return course;
+    }),
 
   getStudent: protectedProcedure.query(async ({ input, ctx }) => {
     const user = await ctx.db.user.findUnique({
