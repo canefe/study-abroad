@@ -69,8 +69,9 @@ model User {
     guid          String?        @unique
     accounts      Account[]
     sessions      Session[]
+    applications  Application[]
     posts         Post[]
-    CourseChoice  CourseChoice[]
+    courseChoices CourseChoice[]
 }
 
 model VerificationToken {
@@ -82,11 +83,12 @@ model VerificationToken {
 }
 
 model University {
-    id           Int            @id @default(autoincrement())
-    name         String         @unique
-    location     String
-    courses      Course[]
-    CourseChoice CourseChoice[]
+    id            Int            @id @default(autoincrement())
+    name          String         @unique
+    location      String
+    courses       Course[]
+    applications  Application[]
+    courseChoices CourseChoice[]
 }
 
 enum Semester {
@@ -97,23 +99,35 @@ enum Semester {
 
 model CourseChoice {
     id                   Int      @id @default(autoincrement())
-    userId               String
+    applicationId        Int
     homeCourseId         Int
-    abroadUniversityId   Int
     primaryCourseId      Int?
     alternativeCourse1Id Int?
     alternativeCourse2Id Int?
-    status               String
     semester             Semester
     year                 Int
-    feedback             String?
 
-    user               User       @relation(fields: [userId], references: [id])
-    homeCourse         Course     @relation("HomeCourse", fields: [homeCourseId], references: [id])
-    abroadUniversity   University @relation(fields: [abroadUniversityId], references: [id])
-    primaryCourse      Course?    @relation("PrimaryCourse", fields: [primaryCourseId], references: [id])
-    alternativeCourse1 Course?    @relation("AlternativeCourse1", fields: [alternativeCourse1Id], references: [id])
-    alternativeCourse2 Course?    @relation("AlternativeCourse2", fields: [alternativeCourse2Id], references: [id])
+    application        Application @relation(fields: [applicationId], references: [id])
+    homeCourse         Course      @relation("HomeCourse", fields: [homeCourseId], references: [id])
+    primaryCourse      Course?     @relation("PrimaryCourse", fields: [primaryCourseId], references: [id])
+    alternativeCourse1 Course?     @relation("AlternativeCourse1", fields: [alternativeCourse1Id], references: [id])
+    alternativeCourse2 Course?     @relation("AlternativeCourse2", fields: [alternativeCourse2Id], references: [id])
+    user               User?       @relation(fields: [userId], references: [id])
+    userId             String?
+    university         University? @relation(fields: [universityId], references: [id])
+    universityId       Int?
+}
+
+model Application {
+    id                 Int            @id @default(autoincrement())
+    userId             String
+    abroadUniversityId Int
+    status             String
+    feedback           String?
+    courseChoices      CourseChoice[]
+
+    user             User       @relation(fields: [userId], references: [id])
+    abroadUniversity University @relation(fields: [abroadUniversityId], references: [id])
 }
 
 model Course {
