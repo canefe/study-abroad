@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import App from "next/app";
 import Breadcrumbs from "./_sections/breadcrumb";
 import UserAvatar from "./_sections/avatar";
+import { Toaster } from "react-hot-toast";
 
 export default async function DashboardLayout({
   children,
@@ -44,7 +45,8 @@ export default async function DashboardLayout({
           </div>
         </main>
       </SidebarProvider>
-      <Footer />
+
+      <Toaster />
     </>
   );
 }
