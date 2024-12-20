@@ -1,11 +1,11 @@
 import { z } from "zod";
 
 import {
+  adminProcedure,
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
-import { TRPCError } from "@trpc/server";
 
 export const studentsRouter = createTRPCRouter({
   hello: publicProcedure
@@ -16,14 +16,7 @@ export const studentsRouter = createTRPCRouter({
       };
     }),
 
-  getList: protectedProcedure.query(async ({ ctx }) => {
-    const session = ctx.session;
-    if (session.user.role !== "ADMIN") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Only admins can view all students",
-      });
-    }
+  getList: adminProcedure.query(async ({ ctx }) => {
     const users = await ctx.db.user.findMany({
       where: {
         role: "STUDENT",
@@ -32,18 +25,14 @@ export const studentsRouter = createTRPCRouter({
     return users;
   }),
 
-  getStudent: protectedProcedure.query(async ({ input, ctx }) => {
-    const user = await ctx.db.user.findUnique({
-      where: {
-        id: input.id,
-      },
-    });
-    return user;
-  }),
-
-  getSecretMessage: protectedProcedure.query(async ({ ctx }) => {
-    const text =
-      ctx.session.user.role === "ADMIN" ? "Hello admin!" : "Hello student!";
-    return text;
-  }),
+  getStudent: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const user = await ctx.db.user.findUnique({
+        where: {
+          id: input.id,
+        },
+      });
+      return user;
+    }),
 });
