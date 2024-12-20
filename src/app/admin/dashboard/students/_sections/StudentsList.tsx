@@ -10,12 +10,6 @@ export default function StudentList() {
   const [users] = api.students.getList.useSuspenseQuery();
   const utils = api.useUtils();
 
-  const dataSource = users.map((student: any) => ({
-    key: student.id,
-    name: student.name,
-    guid: student.guid,
-    address: student.address,
-  }));
   const columns = [
     {
       title: "Name",
@@ -35,11 +29,39 @@ export default function StudentList() {
         </Link>
       ),
     },
+    {
+      title: "Applications",
+      dataIndex: "applications",
+      key: "applications",
+      render: (applications: any) => {
+        return applications.map((application: any) => {
+          return (
+            <div key={application.id}>
+              {application.status === "SUBMITTED" ? (
+                <Link
+                  href={`/admin/dashboard/applications/${application.id}`}
+                  className="text-blue-500"
+                >
+                  {application.abroadUniversity.name}
+                </Link>
+              ) : (
+                application.abroadUniversity.name + " (Draft)"
+              )}
+            </div>
+          );
+        });
+      },
+    },
   ];
 
   return (
     <div className="w-full">
-      <Table size="large" dataSource={dataSource} columns={columns} />
+      <Table
+        size="large"
+        dataSource={users}
+        columns={columns}
+        loading={!users}
+      />
     </div>
   );
 }

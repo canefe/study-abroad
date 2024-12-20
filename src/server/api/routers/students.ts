@@ -21,6 +21,14 @@ export const studentsRouter = createTRPCRouter({
       where: {
         role: "STUDENT",
       },
+      include: {
+        applications: {
+          include: {
+            //courseChoices: true,
+            abroadUniversity: true,
+          },
+        },
+      },
     });
     return users;
   }),

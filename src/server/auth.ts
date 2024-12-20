@@ -6,9 +6,11 @@ import {
 } from "next-auth";
 import { type Adapter } from "next-auth/adapters";
 import DiscordProvider from "next-auth/providers/discord";
+import CredentialsProvider from "next-auth/providers/credentials";
 
 import { env } from "@/env";
 import { db } from "@/server/db";
+import Credentials from "next-auth/providers/credentials";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -22,7 +24,7 @@ declare module "next-auth" {
       id: string;
       // ...other properties
       // role: UserRole;
-      role: "ADMIN" | "USER";
+      role: "ADMIN" | "STUDENT";
       guid: string;
     } & DefaultSession["user"];
   }
@@ -30,7 +32,7 @@ declare module "next-auth" {
   interface User {
     //   // ...other properties
     //   // role: UserRole;
-    role: "ADMIN" | "USER";
+    role: "ADMIN" | "STUDENT";
     guid: string;
   }
 }
@@ -41,14 +43,26 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authOptions: NextAuthOptions = {
+  session: {
+    strategy: "jwt",
+  },
   callbacks: {
-    session: ({ session, user }) => ({
+    async jwt({ token, user }) {
+      // When a user logs in for the first time, add their data to the token
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+        token.guid = user.guid;
+      }
+      return token;
+    },
+    session: ({ session, token }) => ({
       ...session,
       user: {
         ...session.user,
-        id: user.id,
-        role: user.role,
-        guid: user.guid,
+        id: token.id,
+        role: token.role,
+        guid: token.guid,
       },
     }),
   },
@@ -58,6 +72,44 @@ export const authOptions: NextAuthOptions = {
       clientId: env.DISCORD_CLIENT_ID,
       clientSecret: env.DISCORD_CLIENT_SECRET,
     }),
+    Credentials({
+      // You can specify which fields should be submitted, by adding keys to the `credentials` object.
+      // e.g. domain, username, password, 2FA token, etc.
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      authorize: async (credentials, req) => {
+        console.log("Authorizing user");
+        let user = null;
+        // Get user from your database
+        user = await db.user.findFirst({
+          where: {
+            email: credentials?.email,
+          },
+        });
+
+        if (!user) {
+          console.log("User not found");
+          return null;
+        }
+
+        if (user.role !== "ADMIN" && user.role !== "STUDENT") {
+          console.log("Invalid role");
+          return null;
+        }
+
+        console.log("User found");
+        console.log(user);
+
+        return {
+          ...user,
+          role: user.role as "ADMIN" | "STUDENT",
+          guid: user.guid as string,
+        };
+      },
+    }),
+
     /**
      * ...add more providers here.
      *

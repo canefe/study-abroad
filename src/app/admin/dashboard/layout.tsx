@@ -14,6 +14,7 @@ export default async function DashboardLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const session = await getServerAuthSession();
+  console.log(session);
   // check if the user is admin or not
   if (session?.user.role != "ADMIN") {
     // redirect to dashboard if user is not admin
