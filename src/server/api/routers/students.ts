@@ -5,6 +5,7 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
 
 export const studentsRouter = createTRPCRouter({
   hello: publicProcedure
@@ -16,9 +17,16 @@ export const studentsRouter = createTRPCRouter({
     }),
 
   getList: protectedProcedure.query(async ({ ctx }) => {
+    const session = ctx.session;
+    if (session.user.role !== "ADMIN") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Only admins can view all students",
+      });
+    }
     const users = await ctx.db.user.findMany({
       where: {
-        role: "ADMIN",
+        role: "STUDENT",
       },
     });
     return users;
