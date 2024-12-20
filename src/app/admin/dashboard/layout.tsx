@@ -7,6 +7,8 @@ import { redirect, usePathname } from "next/navigation";
 
 import { headers } from "next/headers";
 import Breadcrumbs from "./_sections/breadcrumb";
+import UserAvatar from "@/app/dashboard/_sections/avatar";
+import { Toaster } from "react-hot-toast";
 
 export default async function DashboardLayout({
   children,
@@ -23,13 +25,23 @@ export default async function DashboardLayout({
       <SidebarProvider>
         <AppSidebar />
         <SidebarTrigger />
-        <main className="px-3 py-6">
-          <Breadcrumbs />
-          <div className="h-screen min-h-screen">{children}</div>
-
-          <Footer />
+        <main className="flex w-full flex-col items-center px-6 py-6">
+          <div className="container flex w-full items-center justify-between border-b pr-3">
+            <div className="flex w-full items-center justify-between">
+              <div className="w-full flex-1">
+                <Breadcrumbs />
+              </div>
+              <div className="mb-3">
+                <UserAvatar />
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 flex w-full items-center justify-center">
+            <div className="container">{children}</div>
+          </div>
         </main>
       </SidebarProvider>
+      <Toaster />
     </>
   );
 }
