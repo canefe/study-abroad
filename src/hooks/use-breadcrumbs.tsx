@@ -19,6 +19,18 @@ export function useBreadcrumbs() {
     const paths = pathName.split("/");
     const indexSkip = paths.includes("admin") ? 3 : 2;
 
+    // custom breadcrumb for My choices page
+
+    if (paths.includes("my-choices")) {
+      return (
+        <>
+          <BreadcrumbItem>
+            <Link href={pathname}>My Choices</Link>
+          </BreadcrumbItem>
+        </>
+      );
+    }
+
     return paths.map((path, index) => {
       if (index < indexSkip) {
         return null;

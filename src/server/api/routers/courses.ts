@@ -15,24 +15,25 @@ export const coursesRouter = createTRPCRouter({
       };
     }),
 
-  getList: protectedProcedure.query(async ({ ctx }) => {
-    // get the session from the context
-    const session = ctx.session;
-    // get user's coursechoices
-    const courseChoices = await ctx.db.courseChoice.findMany({
-      where: {
-        userId: session.user.id,
-      },
-      include: {
-        homeCourse: true,
-        primaryCourse: true,
-        alternativeCourse1: true,
-        alternativeCourse2: true,
-        abroadUniversity: true,
-      },
-    });
-    return courseChoices;
-  }),
+  getList: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ input, ctx }) => {
+      // get the session from the context
+      const session = ctx.session;
+      // get user's coursechoices
+      const courseChoices = await ctx.db.courseChoice.findMany({
+        where: {
+          userId: session.user.id,
+        },
+        include: {
+          homeCourse: true,
+          primaryCourse: true,
+          alternativeCourse1: true,
+          alternativeCourse2: true,
+        },
+      });
+      return courseChoices;
+    }),
 
   getCourses: protectedProcedure
     .input(z.object({ id: z.number() }))
@@ -45,7 +46,6 @@ export const coursesRouter = createTRPCRouter({
           university: true,
         },
       });
-      console.log(course);
       return course;
     }),
 

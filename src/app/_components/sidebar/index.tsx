@@ -104,6 +104,7 @@ export default async function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarTrigger />
     </Sidebar>
   );
 }

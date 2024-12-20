@@ -20,47 +20,16 @@ export const choicesRouter = createTRPCRouter({
         primaryCourse: true,
         alternativeCourse1: true,
         alternativeCourse2: true,
-        abroadUniversity: true,
       },
     });
     return courseChoices;
   }),
 
-  // Get a Home University and Abroad University
-  createChoice: protectedProcedure
-    .input(
-      z.object({
-        homeUniversityId: z.number(),
-        abroadUniversityId: z.number(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      // for every home university course, create a course choice
-      const homeUniversityCourses = await ctx.db.course.findMany({
-        where: {
-          universityId: input.homeUniversityId,
-        },
-      });
-      homeUniversityCourses.forEach(async (course) => {
-        await ctx.db.courseChoice.create({
-          data: {
-            homeCourseId: course.id,
-            userId: ctx.session.user.id,
-            abroadUniversityId: input.abroadUniversityId,
-            status: "PENDING",
-            semester: "FULL_YEAR",
-            year: 2024,
-          },
-        });
-      });
-      return "Success";
-    }),
-
   // only change the choices and not other fields
   saveChoiceChanges: protectedProcedure
     .input(
       z.object({
-        homeUniversityId: z.number(),
+        homeCourseId: z.number(),
         abroadUniversityId: z.number(),
         primaryCourseId: z.number().nullable(),
         alternativeCourse1Id: z.number().nullable(),
@@ -68,13 +37,14 @@ export const choicesRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      await ctx.db.courseChoice.updateMany({
+      console.log("     ");
+      console.log("=====================================");
+      console.log("STARTING MUTATION SAVE CHOICE CHANGES");
+      console.log(input);
+      const result = await ctx.db.courseChoice.updateMany({
         where: {
           userId: ctx.session.user.id,
-          homeCourse: {
-            universityId: input.homeUniversityId,
-          },
-          abroadUniversityId: input.abroadUniversityId,
+          homeCourseId: input.homeCourseId,
         },
         data: {
           primaryCourseId: input.primaryCourseId,
@@ -82,18 +52,10 @@ export const choicesRouter = createTRPCRouter({
           alternativeCourse2Id: input.alternativeCourse2Id,
         },
       });
-      return "Success";
-    }),
-
-  removeChoice: protectedProcedure
-    .input(z.object({ abroadUniversityId: z.number() }))
-    .mutation(async ({ input, ctx }) => {
-      await ctx.db.courseChoice.deleteMany({
-        where: {
-          abroadUniversityId: input.abroadUniversityId,
-        },
-      });
-      return "Success";
+      console.log(result);
+      console.log("=====================================");
+      console.log("     ");
+      return result;
     }),
 
   getCourses: protectedProcedure

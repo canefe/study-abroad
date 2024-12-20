@@ -18,8 +18,7 @@ export default async function MyChoices({
 
   return (
     <>
-      <h1 className="text-3xl font-semibold">My Choices {id}</h1>
-      <ChoicesTable abroadId={Number(id)} />
+      <ChoicesTable applicationId={Number(id)} />
     </>
   );
 }

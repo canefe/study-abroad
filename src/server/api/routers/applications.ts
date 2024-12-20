@@ -115,4 +115,81 @@ export const applicationsRouter = createTRPCRouter({
       });
       return "Success";
     }),
+  get: protectedProcedure
+    .input(z.object({ applicationId: z.number() }))
+    .query(async ({ input, ctx }) => {
+      const session = ctx.session;
+      const application = await ctx.db.application.findFirst({
+        where: {
+          id: input.applicationId,
+          userId: session.user.id,
+        },
+        include: {
+          courseChoices: {
+            include: {
+              homeCourse: true,
+              primaryCourse: true,
+              alternativeCourse1: true,
+              alternativeCourse2: true,
+            },
+          },
+          abroadUniversity: true,
+        },
+      });
+      return application;
+    }),
+  submit: protectedProcedure
+    .input(z.object({ applicationId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const session = ctx.session;
+      // check if user is owner of application
+      const application = await ctx.db.application.findFirst({
+        where: {
+          id: input.applicationId,
+          userId: session.user.id,
+        },
+      });
+
+      if (!application) {
+        return new Response("Forbidden", { status: 403 });
+      }
+
+      // update application status
+      await ctx.db.application.update({
+        where: {
+          id: input.applicationId,
+        },
+        data: {
+          status: "SUBMITTED",
+        },
+      });
+      return "Success";
+    }),
+  withdraw: protectedProcedure
+    .input(z.object({ applicationId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const session = ctx.session;
+      // check if user is owner of application
+      const application = await ctx.db.application.findFirst({
+        where: {
+          id: input.applicationId,
+          userId: session.user.id,
+        },
+      });
+
+      if (!application) {
+        return new Response("Forbidden", { status: 403 });
+      }
+
+      // update application status
+      await ctx.db.application.update({
+        where: {
+          id: input.applicationId,
+        },
+        data: {
+          status: "DRAFT",
+        },
+      });
+      return "Success";
+    }),
 });
