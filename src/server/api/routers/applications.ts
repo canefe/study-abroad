@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import {
+  adminProcedure,
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
@@ -133,6 +134,53 @@ export const applicationsRouter = createTRPCRouter({
               alternativeCourse2: true,
             },
           },
+          messages: {
+            include: {
+              sender: true,
+              replies: {
+                include: {
+                  sender: true,
+                },
+              },
+            },
+          },
+          abroadUniversity: true,
+        },
+      });
+      return application;
+    }),
+  getAdmin: adminProcedure
+    .input(z.object({ applicationId: z.number() }))
+    .query(async ({ input, ctx }) => {
+      const application = await ctx.db.application.findFirst({
+        where: {
+          id: input.applicationId,
+        },
+        include: {
+          courseChoices: {
+            include: {
+              homeCourse: true,
+              primaryCourse: true,
+              alternativeCourse1: true,
+              alternativeCourse2: true,
+            },
+          },
+          user: true,
+          messages: {
+            include: {
+              sender: true,
+              replies: {
+                include: {
+                  sender: true,
+                  replies: {
+                    include: {
+                      sender: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
           abroadUniversity: true,
         },
       });
@@ -188,6 +236,83 @@ export const applicationsRouter = createTRPCRouter({
         },
         data: {
           status: "DRAFT",
+        },
+      });
+      return "Success";
+    }),
+  comment: protectedProcedure
+    .input(
+      z.object({
+        applicationId: z.number(),
+        comment: z.string(),
+        parentMessageId: z.number().nullable().optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const session = ctx.session;
+      // check if user is owner of application
+      const application = await ctx.db.application.findFirst({
+        where: {
+          id: input.applicationId,
+          userId: session.user.id,
+        },
+      });
+
+      if (!application) {
+        return new Response("Forbidden", { status: 403 });
+      }
+
+      // update application status
+      await ctx.db.application.update({
+        where: {
+          id: input.applicationId,
+        },
+        data: {
+          messages: {
+            create: {
+              content: input.comment,
+              senderId: session.user.id,
+              parentId: input.parentMessageId,
+            },
+          },
+        },
+      });
+      return "Success";
+    }),
+  // same as function above, but for admin
+  feedback: adminProcedure
+    .input(
+      z.object({
+        applicationId: z.number(),
+        comment: z.string(),
+        parentMessageId: z.number().nullable().optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const session = ctx.session;
+      const application = await ctx.db.application.findFirst({
+        where: {
+          id: input.applicationId,
+        },
+      });
+
+      if (!application) {
+        return new Response("Forbidden", { status: 403 });
+      }
+
+      // update application status
+      await ctx.db.application.update({
+        where: {
+          id: input.applicationId,
+        },
+        data: {
+          messages: {
+            create: {
+              content: input.comment,
+              senderId: session.user.id,
+              parentId: input.parentMessageId,
+            },
+          },
         },
       });
       return "Success";

@@ -14,6 +14,7 @@ import toast from "react-hot-toast";
 import { useRouter, usePathname } from "next/navigation";
 import { Cross, Trash } from "lucide-react";
 import { Cross1Icon } from "@radix-ui/react-icons";
+import UserAvatar from "@/app/dashboard/_sections/avatar";
 import dayjs from "dayjs";
 import CommentSection from "@/app/_components/comment-section";
 
@@ -22,28 +23,16 @@ export default function ChoicesTable({
 }: {
   applicationId: number;
 }) {
-  const application = api.applications.get.useQuery({
-    applicationId: applicationId,
-  });
+  // if admin the session will be admin not the user, use the admin api instead
+  const application = api.applications.getAdmin.useQuery(
+    {
+      applicationId: applicationId,
+    },
+    {
+      refetchInterval: 10000,
+    },
+  );
   const applicationData = application.data || [];
-  const submitApplicationApi = api.applications.submit.useMutation({
-    onSuccess: async () => {
-      // refresh courses
-      await utils.applications.invalidate();
-    },
-  });
-  const withdrawApplicationApi = api.applications.withdraw.useMutation({
-    onSuccess: async () => {
-      // refresh courses
-      await utils.applications.invalidate();
-    },
-  });
-  const sendCommentApi = api.applications.comment.useMutation({
-    onSuccess: async () => {
-      // refresh courses
-      await utils.applications.invalidate();
-    },
-  });
   const abroadCoursesQuery = api.courses.getCourses.useQuery({
     id: applicationData.abroadUniversityId,
   });
@@ -53,16 +42,17 @@ export default function ChoicesTable({
   const pathname = usePathname();
 
   const utils = api.useUtils();
-  const saveChoicesApi = api.choices.saveChoiceChanges.useMutation({
+
+  const sendFeedbackApi = api.applications.feedback.useMutation({
     onSuccess: async () => {
       // refresh courses
-      await utils.courses.invalidate();
+      toast.success("Feedback sent successfully");
+      await utils.applications.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message);
     },
   });
-
-  const handleDragStart = (event) => {
-    setActiveId(event.active.id);
-  };
 
   const [choices, setChoices] = useState({}); // Tracks the selected choices for each home course
   const abroadCourses = abroadCoursesQuery.data || [];
@@ -209,122 +199,6 @@ export default function ChoicesTable({
     updateSidebarHeight();
   }, [application.isLoading]);
 
-  // save changed
-  async function saveChanges() {
-    // for every choices, mutate
-    try {
-      await Object.entries(choices).forEach(([homeCourseId, choice]) => {
-        saveChoicesApi.mutate({
-          homeCourseId: parseInt(homeCourseId),
-          abroadUniversityId: application.data.abroadUniversityId,
-          primaryCourseId: choice.primary,
-          alternativeCourse1Id: choice.alt1,
-          alternativeCourse2Id: choice.alt2,
-        });
-      });
-    } catch (error) {
-      toast.error("Failed to save changes");
-      return Promise.reject();
-    }
-  }
-
-  // Function to validate choices before submitting
-  function validateChoices() {
-    // Check if all choices are filled
-    console.log("Choices filled:");
-    if (Object.keys(choices).length === 0) {
-      return false;
-    }
-    if (
-      Object.values(choices).some((choice) => Object.values(choice).length < 3)
-    ) {
-      return false;
-    }
-    const isChoicesFilled = Object.values(choices).every(
-      (choice) =>
-        choice.primary !== null && choice.alt1 !== null && choice.alt2 !== null,
-    );
-    // also check if they are undefined
-    if (
-      Object.values(choices).some(
-        (choice) =>
-          choice.primary === undefined ||
-          choice.alt1 === undefined ||
-          choice.alt2 === undefined,
-      )
-    ) {
-      return false;
-    }
-    // log every choice and their values
-    console.log(choices);
-
-    return isChoicesFilled;
-  }
-
-  // Function to submit the choices
-  const submit = async () => {
-    if (await validateChoices()) {
-      submitApplicationApi.mutate({
-        applicationId: applicationId,
-      });
-    } else {
-      toast.error("Please fill all choices before submitting");
-    }
-  };
-
-  async function onSubmit() {
-    if (await validateChoices()) {
-      // Submit the choices
-      toast.promise(
-        submit(),
-        {
-          loading: "Saving changes...",
-          success: "Changes saved successfully",
-          error: "Failed to save changes",
-        },
-        {
-          style: {
-            minWidth: "250px",
-          },
-        },
-      );
-    } else {
-      // Show error message
-      toast.error("Please fill all choices before submitting");
-    }
-  }
-
-  const withdraw = async () => {
-    withdrawApplicationApi.mutate({
-      applicationId: applicationId,
-    });
-  };
-
-  async function onWithdraw() {
-    toast.promise(
-      withdraw(),
-      {
-        loading: "Withdrawing...",
-        success: "Withdrawn successfully",
-        error: "Failed to withdraw",
-      },
-      {
-        style: {
-          minWidth: "250px",
-        },
-      },
-    );
-  }
-
-  const saveDraft = async () => {
-    await saveChanges();
-    const whatSaved =
-      application.data?.status.toLowerCase() === "draft"
-        ? "Draft"
-        : "Application";
-    toast.success(whatSaved + " saved successfully");
-  };
-
   if (application.isLoading || abroadCoursesQuery.isLoading)
     return (
       <Skeleton
@@ -335,21 +209,15 @@ export default function ChoicesTable({
       />
     );
 
-  const onSend = async () => {
-    //send feedback
-
-    await sendCommentApi.mutateAsync({
-      applicationId: applicationId,
-      comment: "Feedback sent",
-    });
-  };
-
   return (
-    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <>
       <div className="flex w-full items-center justify-between gap-2">
-        <h2 className="rounded border p-3 text-xl font-medium">
-          {application.data?.abroadUniversity.name}
-        </h2>
+        <div className="flex flex-col rounded border p-3 text-lg font-medium">
+          <p>{application.data?.abroadUniversity.name}</p>
+          <p>{application.data?.user?.name}</p>
+          <p>{application.data?.user?.guid}</p>
+        </div>
+
         <h2
           className="bg-gray-100 p-2 text-lg font-bold uppercase text-white"
           style={{
@@ -365,55 +233,6 @@ export default function ChoicesTable({
         >
           {application.data?.status}
         </h2>
-        <div className="flex gap-2">
-          {/* Save Draft Button */}
-          <Button
-            className="cursor-pointer"
-            onClick={saveDraft}
-            type={"dashed"}
-            size="large"
-            loading={
-              // Show loading state if the mutation is in progress
-              // utils.choices.saveChoiceChanges.isMutating returns boolean and number
-              !saveChoicesApi.isSuccess && saveChoicesApi.isPending
-            }
-          >
-            {application.data?.status.toLowerCase() === "draft"
-              ? "Save Draft"
-              : "Update Application"}
-          </Button>
-          {/* Submit Button */}
-          {application.data?.status.toLocaleLowerCase() !== "submitted" ? (
-            <Button
-              className="cursor-pointer text-white"
-              onClick={onSubmit}
-              size="large"
-              type={"primary"}
-              loading={
-                // Show loading state if the mutation is in progress
-                // utils.choices.saveChoiceChanges.isMutating returns boolean and number
-                !saveChoicesApi.isSuccess && saveChoicesApi.isPending
-              }
-            >
-              Submit
-            </Button>
-          ) : (
-            <Button
-              className="cursor-pointer text-white"
-              onClick={onWithdraw}
-              size="large"
-              type={"primary"}
-              loading={
-                // Show loading state if the mutation is in progress
-                // utils.choices.saveChoiceChanges.isMutating returns boolean and number
-                !withdrawApplicationApi.isSuccess &&
-                withdrawApplicationApi.isPending
-              }
-            >
-              Withdraw
-            </Button>
-          )}
-        </div>
       </div>
       <div className="mt-4 flex space-x-5">
         {/* Table for Home Courses */}
@@ -448,33 +267,11 @@ export default function ChoicesTable({
           </div>
         </div>
       </div>
-      <CommentSection
-        messages={application.data?.messages}
-        onSend={onSend}
-        admin={false}
-      />
-      <DragOverlay>
-        {activeId ? (
-          <DraggedCourse
-            id={activeId}
-            title={
-              abroadCourses.find((course) => course.id === activeId)?.name ||
-              "Unknown"
-            }
-          />
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+      {/* Comment-like feedback section where student and admin can discuss */}
+      <CommentSection messages={application.data?.messages} admin={true} />
+    </>
   );
 }
-
-const DraggedCourse = ({ title }) => {
-  return (
-    <div className="w-fit cursor-pointer bg-blue-100 p-5 shadow-lg">
-      <h2 className="text-xl font-semibold">{title}</h2>
-    </div>
-  );
-};
 
 // Droppable and draggable choice slot
 const ChoiceSlot = ({ id, choice, onDrop, onRemove }) => {
@@ -499,13 +296,6 @@ const ChoiceSlot = ({ id, choice, onDrop, onRemove }) => {
 
   return (
     <>
-      {choice && (
-        <Cross1Icon
-          color="white"
-          className="absolute right-0 top-0 cursor-pointer bg-red-500 hover:bg-red-700"
-          onClick={onRemove}
-        />
-      )}
       <div
         ref={combinedRef}
         style={isDraggable ? draggableStyle : undefined}

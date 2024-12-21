@@ -21,6 +21,7 @@ export function useBreadcrumbs() {
     }
     const paths = pathName.split("/");
     const indexSkip = paths.includes("admin") ? 3 : 2;
+    const prefix = paths.includes("admin") ? "admin/dashboard/" : "dashboard/";
 
     // custom breadcrumb for My choices page
 
@@ -62,7 +63,7 @@ export function useBreadcrumbs() {
       return (
         <>
           <BreadcrumbItem key={index}>
-            <Link href={`/${path}`}>{formatBreadcrumb(path)}</Link>
+            <Link href={`/${prefix}${path}`}>{formatBreadcrumb(path)}</Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
         </>
