@@ -142,7 +142,9 @@ const Comment = forwardRef(
                 : {}
             }
           >
-            <p className="text-gray-400">Replies hidden</p>
+            <p className="text-gray-400">
+              {message.replies?.length} Replies hidden
+            </p>
           </div>
         )}
         {message.replies?.length > 0 && !hidden && (
