@@ -72,6 +72,7 @@ model User {
     applications  Application[]
     posts         Post[]
     courseChoices CourseChoice[]
+    messages      Message[]
 }
 
 model VerificationToken {
@@ -123,11 +124,22 @@ model Application {
     userId             String
     abroadUniversityId Int
     status             String
-    feedback           String?
+    messages           Message[]
     courseChoices      CourseChoice[]
 
     user             User       @relation(fields: [userId], references: [id])
     abroadUniversity University @relation(fields: [abroadUniversityId], references: [id])
+}
+
+model Message {
+    id            Int      @id @default(autoincrement())
+    applicationId Int
+    senderId      String
+    content       String
+    createdAt     DateTime @default(now())
+
+    application Application @relation(fields: [applicationId], references: [id])
+    sender      User        @relation(fields: [senderId], references: [id])
 }
 
 model Course {
