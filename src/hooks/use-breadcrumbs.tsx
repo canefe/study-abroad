@@ -1,4 +1,7 @@
-import { BreadcrumbItem } from "@/components/ui/breadcrumb";
+import {
+  BreadcrumbItem,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { capitalizeFirstLetter } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -31,14 +34,38 @@ export function useBreadcrumbs() {
       );
     }
 
+    // if path is /students/[id] then
+    // return breadcrumb as Students > [id] (id is a random number)
+    //  use regex for dynamic routes
+    if (paths.includes("students")) {
+      // check last two elements are Students and a string that is 278551A
+      const regex = /students\/[a-zA-Z0-9]+$/;
+      const lastElement = paths[paths.length - 1];
+      const pathToStudents = paths.slice(0, paths.length - 1).join("/");
+      if (regex.test(fullUrl)) {
+        return (
+          <>
+            <BreadcrumbItem>
+              <Link href={pathToStudents}>Students</Link>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>{formatBreadcrumb(lastElement)}</BreadcrumbItem>
+          </>
+        );
+      }
+    }
+
     return paths.map((path, index) => {
       if (index < indexSkip) {
         return null;
       }
       return (
-        <BreadcrumbItem key={index}>
-          <Link href={`/${path}`}>{formatBreadcrumb(path)}</Link>
-        </BreadcrumbItem>
+        <>
+          <BreadcrumbItem key={index}>
+            <Link href={`/${path}`}>{formatBreadcrumb(path)}</Link>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+        </>
       );
     });
   }

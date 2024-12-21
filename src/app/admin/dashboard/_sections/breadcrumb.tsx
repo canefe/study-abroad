@@ -7,38 +7,15 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { useBreadcrumbs } from "@/hooks/use-breadcrumbs";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export default function Breadcrumbs() {
   const pathname = usePathname();
-  const generateBreadcrumb = () => {
-    const fullUrl = pathname as string;
 
-    if (!fullUrl) {
-      return null;
-    }
-    const paths = pathname.split("/");
+  const breadcrumbs = useBreadcrumbs();
 
-    //capitalize first letter
-    const capitalizeFirstLetter = (string: string) => {
-      return string.charAt(0).toUpperCase() + string.slice(1);
-    };
-
-    return paths.map((path, index) => {
-      if (index < 3) {
-        return null;
-      }
-      return (
-        <>
-          <BreadcrumbItem key={index}>
-            <Link href={`${path}`}>{capitalizeFirstLetter(path)}</Link>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-        </>
-      );
-    });
-  };
   return (
     <Breadcrumb>
       <BreadcrumbList>
@@ -46,7 +23,7 @@ export default function Breadcrumbs() {
           <Link href="/">Home</Link>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
-        {generateBreadcrumb()}
+        {breadcrumbs}
       </BreadcrumbList>
     </Breadcrumb>
   );
