@@ -16,6 +16,10 @@ export const studentsRouter = createTRPCRouter({
       };
     }),
 
+  me: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.session.user;
+  }),
+
   getList: adminProcedure.query(async ({ ctx }) => {
     const users = await ctx.db.user.findMany({
       where: {

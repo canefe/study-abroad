@@ -36,6 +36,8 @@ export default function ChoicesTable({
   const abroadCoursesQuery = api.courses.getCourses.useQuery({
     id: applicationData.abroadUniversityId,
   });
+  const user = api.students.me.useQuery();
+  const userData = user.data || [];
   const [sidebarHeight, setSidebarHeight] = useState("auto"); // Sidebar height state
   const tableRef = useRef(null); // Reference to the table
   const [activeId, setActiveId] = useState(null);
@@ -268,7 +270,12 @@ export default function ChoicesTable({
         </div>
       </div>
       {/* Comment-like feedback section where student and admin can discuss */}
-      <CommentSection messages={application.data?.messages} admin={true} />
+      <CommentSection
+        messages={application.data?.messages}
+        admin={true}
+        applicationId={applicationId}
+        user={userData}
+      />
     </>
   );
 }
