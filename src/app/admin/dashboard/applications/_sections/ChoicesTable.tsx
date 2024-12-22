@@ -45,17 +45,6 @@ export default function ChoicesTable({
 
   const utils = api.useUtils();
 
-  const sendFeedbackApi = api.applications.feedback.useMutation({
-    onSuccess: async () => {
-      // refresh courses
-      toast.success("Feedback sent successfully");
-      await utils.applications.invalidate();
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
   const [choices, setChoices] = useState({}); // Tracks the selected choices for each home course
   const abroadCourses = abroadCoursesQuery.data || [];
   console.log(abroadCourses);

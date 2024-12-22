@@ -1,7 +1,11 @@
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import Comment from "./comment";
 import { useEffect, useRef } from "react";
 import { Button } from "antd";
+
+import { Input } from "antd";
+
+const { TextArea } = Input;
 
 type FormData = {
   message: string;
@@ -20,7 +24,7 @@ export default function CommentForm({
   onSubmit,
   onCancel,
 }: CommentFormProps) {
-  const { register, handleSubmit } = useForm<FormData>();
+  const { handleSubmit, control } = useForm<FormData>();
   // focus on the input field when the form is rendered
   useEffect(() => {
     document.getElementById("comment-input")?.focus();
@@ -35,14 +39,21 @@ export default function CommentForm({
   return (
     <form
       onSubmit={handleSubmit(handleFormSubmit)}
-      className="flex w-full flex-col items-center gap-2"
+      className="m-2 flex w-full flex-col items-center gap-2"
     >
-      <textarea
-        id="comment-input"
-        className="w-full rounded border-2 border-gray-300 p-2"
-        placeholder="Write your reply here..."
-        {...register("message")}
-      ></textarea>
+      <Controller
+        name="message"
+        control={control}
+        render={({ field, fieldState }) => (
+          <TextArea
+            id="comment-input"
+            {...field}
+            className="w-full border-2 border-gray-300 p-2"
+            autoSize
+            placeholder="Write your reply here..."
+          />
+        )}
+      />
       <div className="flex w-full gap-2">
         <Button type="primary" htmlType="submit">
           Send

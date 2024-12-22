@@ -9,10 +9,10 @@ import {
   ArrowBigRight,
   CircleMinus,
   CirclePlus,
+  MessageCircle,
   Trash,
 } from "lucide-react";
 import { getServerAuthSession } from "@/server/auth";
-import { ChatBubbleIcon } from "@radix-ui/react-icons";
 
 dayjs.extend(relativeTime);
 
@@ -55,7 +55,7 @@ const Comment = ({
   padding?: any;
   userId?: any;
 }) => {
-  const [hidden, setHidden] = useState(false);
+  const [hidden, setHidden] = useState(true);
   // Function to generate a hash from a string
   const generateHash = (input: string) => {
     return crypto.createHash("md5").update(input).digest("hex");
@@ -75,7 +75,7 @@ const Comment = ({
     <>
       <div
         key={message.id}
-        className={`relative flex w-full flex-col p-2 ${parent == null ? "border" : ""}`}
+        className={`relative flex w-full flex-col p-2 ${parent == null ? "" : ""}`}
         style={
           parent !== null
             ? {
@@ -150,12 +150,17 @@ const Comment = ({
           message.replies?.length === 0 &&
           replyTo !== message.id &&
           message.parentId == null && (
-            <div className="flex">
+            <div className="ml-2 flex">
               <button
                 onClick={() => onReply?.(message.id, message.id)}
-                className="text-blue-500 hover:underline"
+                className="flex items-center gap-1 text-xs text-blue-500 hover:underline"
               >
-                <ChatBubbleIcon fill={"blue"} />
+                <MessageCircle
+                  className="hover:fill-blue-700"
+                  fill={"#3b82f6"}
+                  size={16}
+                />
+                <span>Reply</span>
               </button>
             </div>
           )}
@@ -219,9 +224,14 @@ const Comment = ({
                   message.replies[message.replies.length - 1]?.id,
                 )
               }
-              className="text-blue-500 hover:underline"
+              className="flex items-center gap-1 text-xs text-blue-500 hover:underline"
             >
-              <ChatBubbleIcon fill={"blue"} />
+              <MessageCircle
+                className="hover:fill-blue-700"
+                fill={"#3b82f6"}
+                size={16}
+              />
+              <span>Reply</span>
             </button>
           </div>
         </div>

@@ -31,7 +31,6 @@ export default function CommentSection({
   // admin send feedback api
   const sendFeedbackApi = api.applications.feedback.useMutation({
     onSuccess: async () => {
-      toast.success("Feedback sent successfully");
       utils.applications.invalidate();
     },
     onError: (error) => {
@@ -139,6 +138,9 @@ export default function CommentSection({
       <div className="mt-2 flex w-full flex-col items-center justify-start gap-2">
         {messagesClone
           ?.filter((message) => message.parentId == null)
+          .sort((a, b) => {
+            return dayjs(a.createdAt).isBefore(dayjs(b.createdAt)) ? 1 : -1;
+          })
           .map((message) => (
             <Comment
               key={message.id}
