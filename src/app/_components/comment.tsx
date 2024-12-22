@@ -75,11 +75,12 @@ const Comment = ({
     <>
       <div
         key={message.id}
-        className={`relative flex w-full flex-col p-2 ${parent == null ? "" : ""}`}
+        className={`relative mt-2 flex w-full flex-col p-2 ${parent == null ? "" : ""}`}
         style={
           parent !== null
             ? {
                 marginLeft: padding * 2,
+                borderLeft: `2px solid ${generateRandomColor(parent, parent)}`,
               }
             : {
                 borderColor: `${generateRandomColor(message.createdAt, message.createdAt)}`,
@@ -110,31 +111,42 @@ const Comment = ({
             </p>
           </Tooltip>
           <div className="flex items-center">
-            <Tag>{message.sender.role}</Tag>
+            <Tag
+              color={message.sender.role === "STUDENT" ? "blue" : "red"}
+              className="capitalize"
+            >
+              {message.sender.role === "ADMIN" ? "Coordinator" : "Student"}
+            </Tag>
             {message.sender.role === "STUDENT" && (
               <Tag>{message.sender.guid}</Tag>
             )}
           </div>
-          {message.replies?.length > 0 && (
-            <div className="flex justify-end">
-              <button
-                onClick={() => setHidden(!hidden)}
-                className="text-blue-500 hover:underline"
-              >
-                {hidden ? <CirclePlus size="16" /> : <CircleMinus size="16" />}
-              </button>
-            </div>
-          )}
-          {message.sender.id === userId && (
-            <div className="flex justify-end">
-              <button
-                onClick={() => onDelete?.(message.id)}
-                className="text-red-500 hover:underline"
-              >
-                <Trash size={"16"} />
-              </button>
-            </div>
-          )}
+          <div className="flex items-center gap-1">
+            {message.replies?.length > 0 && (
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setHidden(!hidden)}
+                  className="text-blue-500 hover:scale-110 hover:underline"
+                >
+                  {hidden ? (
+                    <CirclePlus size="16" />
+                  ) : (
+                    <CircleMinus size="16" />
+                  )}
+                </button>
+              </div>
+            )}
+            {message.sender.id === userId && (
+              <div className="flex justify-end">
+                <button
+                  onClick={() => onDelete?.(message.id)}
+                  className="text-red-500 hover:scale-110 hover:underline"
+                >
+                  <Trash size={"16"} />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
         <div className="p-2">{message.content}</div>
         {replyUnder === message.id && (
@@ -186,13 +198,14 @@ const Comment = ({
 
       {message.replies?.length > 0 && !hidden && (
         <div className="relative ml-2 w-full">
-          {/* have a line till the last reply to signify the end of the thread */}
+          {/* have a line till the last reply to signify the end of the thread 
           <div
-            className="absolute ml-1 h-full w-[1px] items-start"
+            className="absolute ml-1 h-full w-[2px] items-start"
             style={{
               backgroundColor: `${generateRandomColor(message.createdAt, message.createdAt)}`,
             }}
           ></div>
+            */}
           {message.replies
             ?.sort(
               (a, b) =>
