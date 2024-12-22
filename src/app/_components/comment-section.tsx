@@ -26,6 +26,7 @@ export default function CommentSection({
 }: CommentSectionProps) {
   const [replyTo, setReplyTo] = useState<number | null>(null);
   const [showReply, setShowReply] = useState<boolean>(false);
+  const [replyUnder, setReplyUnder] = useState<number | null>(null);
   const utils = api.useUtils();
   // admin send feedback api
   const sendFeedbackApi = api.applications.feedback.useMutation({
@@ -60,11 +61,18 @@ export default function CommentSection({
 
   const messagesClone = messages; // we clone it here we later use it when we are commenting to make it seem like the comment is being sent
 
-  const handleReply = (id: number) => {
+  const handleReply = (id: number, replyUnder: number) => {
     if (replyTo === id) {
       setReplyTo(null);
     }
+    console.log("replyUnder", replyUnder);
+    setReplyUnder(replyUnder);
     setReplyTo(id);
+  };
+
+  const handleCancel = () => {
+    setReplyTo(null);
+    setReplyUnder(null);
   };
 
   const onSendMessage = async (message: string) => {
@@ -72,11 +80,23 @@ export default function CommentSection({
       return;
     }
     if (message.trim() === "") {
+      return Promise.reject("Message cannot be empty");
+    }
+    await sendCommentApi.mutate({
+      applicationId: applicationId,
+      comment: message,
+      parentMessageId: replyTo,
+    });
+  };
+
+  const onSendFeedback = async (message: string) => {
+    if (!user) {
       return;
     }
-    // add artifical delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    await sendCommentApi.mutate({
+    if (message.trim() === "") {
+      return Promise.reject("Message cannot be empty");
+    }
+    await sendFeedbackApi.mutate({
       applicationId: applicationId,
       comment: message,
       parentMessageId: replyTo,
@@ -85,18 +105,19 @@ export default function CommentSection({
 
   const handleFormSubmit = (data: any) => {
     setReplyTo(null);
+    setReplyUnder(null);
     setShowReply(false);
     if (admin) {
-      sendFeedbackApi.mutate({
-        applicationId: applicationId,
-        comment: data.message,
-        parentMessageId: replyTo,
+      toast.promise(onSendFeedback(data.message), {
+        loading: "Sending feedback...",
+        success: "Feedback sent successfully",
+        error: (err) => err.toString(),
       });
     } else {
       toast.promise(onSendMessage(data.message), {
         loading: "Sending comment...",
         success: "Comment sent successfully",
-        error: "Failed to send comment",
+        error: (err) => err.toString(),
       });
     }
   };
@@ -124,10 +145,12 @@ export default function CommentSection({
               message={message}
               onReply={handleReply}
               userId={user?.id}
+              onCancel={handleCancel}
               onDelete={(id: number) => {
                 deleteCommentApi.mutate({ messageId: id });
               }}
               replyTo={replyTo}
+              replyUnder={replyUnder}
               onSubmit={handleFormSubmit}
               padding={1}
             />

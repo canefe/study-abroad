@@ -1,11 +1,18 @@
-import { message, Avatar, Tooltip, Tag, Button } from "antd";
+import { message, Avatar, Tooltip, Tag, Button, Collapse } from "antd";
 import dayjs from "dayjs";
 import crypto from "crypto";
 import relativeTime from "dayjs/plugin/relativeTime";
 import CommentForm from "./comment-form";
 import { forwardRef, useState } from "react";
-import { ArrowBigDown, ArrowBigRight } from "lucide-react";
+import {
+  ArrowBigDown,
+  ArrowBigRight,
+  CircleMinus,
+  CirclePlus,
+  Trash,
+} from "lucide-react";
 import { getServerAuthSession } from "@/server/auth";
+import { ChatBubbleIcon } from "@radix-ui/react-icons";
 
 dayjs.extend(relativeTime);
 
@@ -27,6 +34,7 @@ const Comment = ({
   message,
   parent = null, // time stamp of parent comment
   onReply,
+  replyUnder,
   replyTo,
   replying = false, // if the user is replying to a comment
   onDelete,
@@ -38,6 +46,7 @@ const Comment = ({
   message: Message;
   parent?: string | null;
   onReply?: any;
+  replyUnder?: number;
   replyTo?: number;
   replying?: boolean;
   onDelete?: any;
@@ -66,14 +75,19 @@ const Comment = ({
     <>
       <div
         key={message.id}
-        className="flex w-full flex-col gap-2 rounded bg-slate-50 p-2"
+        className={`relative flex w-full flex-col p-2 ${parent == null ? "border" : ""}`}
         style={
           parent !== null
             ? {
-                borderLeft: `4px solid ${generateRandomColor(parent, parent)}`,
-                marginLeft: padding * 10,
+                marginLeft: padding * 2,
               }
-            : {}
+            : {
+                borderColor: `${generateRandomColor(message.createdAt, message.createdAt)}`,
+                backgroundImage: `linear-gradient(90deg, ${generateRandomColor(
+                  message.createdAt,
+                  message.createdAt,
+                )} 0.25%, white 0%)`,
+              }
         }
       >
         <div className="flex items-center gap-2">
@@ -95,17 +109,19 @@ const Comment = ({
               {dayjs(message.createdAt).fromNow()}
             </p>
           </Tooltip>
-          <Tag>{message.sender.role}</Tag>
-          {message.sender.role === "STUDENT" && (
-            <Tag>{message.sender.guid}</Tag>
-          )}
+          <div className="flex items-center">
+            <Tag>{message.sender.role}</Tag>
+            {message.sender.role === "STUDENT" && (
+              <Tag>{message.sender.guid}</Tag>
+            )}
+          </div>
           {message.replies?.length > 0 && (
             <div className="flex justify-end">
               <button
                 onClick={() => setHidden(!hidden)}
                 className="text-blue-500 hover:underline"
               >
-                {hidden ? <ArrowBigRight /> : <ArrowBigDown />}
+                {hidden ? <CirclePlus size="16" /> : <CircleMinus size="16" />}
               </button>
             </div>
           )}
@@ -115,13 +131,13 @@ const Comment = ({
                 onClick={() => onDelete?.(message.id)}
                 className="text-red-500 hover:underline"
               >
-                Delete
+                <Trash size={"16"} />
               </button>
             </div>
           )}
         </div>
-        <div className="bg-gray-100 p-2">{message.content}</div>
-        {replyTo === message.id && (
+        <div className="p-2">{message.content}</div>
+        {replyUnder === message.id && (
           <>
             <CommentForm
               onSubmit={onSubmit}
@@ -131,14 +147,15 @@ const Comment = ({
           </>
         )}
         {replying === false &&
+          message.replies?.length === 0 &&
           replyTo !== message.id &&
           message.parentId == null && (
             <div className="flex">
               <button
-                onClick={() => onReply?.(message.id)}
+                onClick={() => onReply?.(message.id, message.id)}
                 className="text-blue-500 hover:underline"
               >
-                Reply
+                <ChatBubbleIcon fill={"blue"} />
               </button>
             </div>
           )}
@@ -150,7 +167,7 @@ const Comment = ({
             parent !== null
               ? {
                   borderLeft: `4px solid ${generateRandomColor(parent, parent)}`,
-                  marginLeft: padding * 10,
+                  marginLeft: padding * 2,
                 }
               : {}
           }
@@ -163,24 +180,51 @@ const Comment = ({
       {/** If last message */}
 
       {message.replies?.length > 0 && !hidden && (
-        <>
-          {message.replies?.map((reply) => (
-            <Comment
-              key={reply.id}
-              message={reply}
-              parent={message.createdAt}
-              onReply={onReply}
-              replyTo={replyTo}
-              onSubmit={onSubmit}
-              userId={userId}
-              onCancel={onCancel}
-              padding={padding + 10}
-              onDelete={(id: number) => {
-                onDelete(id);
-              }}
-            />
-          ))}
-        </>
+        <div className="relative ml-2 w-full">
+          {/* have a line till the last reply to signify the end of the thread */}
+          <div
+            className="absolute ml-1 h-full w-[1px] items-start"
+            style={{
+              backgroundColor: `${generateRandomColor(message.createdAt, message.createdAt)}`,
+            }}
+          ></div>
+          {message.replies
+            ?.sort(
+              (a, b) =>
+                new Date(a.createdAt).getTime() -
+                new Date(b.createdAt).getTime(),
+            )
+            .map((reply) => (
+              <Comment
+                key={reply.id}
+                message={reply}
+                parent={message.createdAt}
+                onReply={onReply}
+                replyUnder={replyUnder}
+                replyTo={replyTo}
+                onSubmit={onSubmit}
+                userId={userId}
+                onCancel={onCancel}
+                padding={padding + 1}
+                onDelete={(id: number) => {
+                  onDelete(id);
+                }}
+              />
+            ))}
+          <div className="ml-4 flex">
+            <button
+              onClick={() =>
+                onReply?.(
+                  message.id,
+                  message.replies[message.replies.length - 1]?.id,
+                )
+              }
+              className="text-blue-500 hover:underline"
+            >
+              <ChatBubbleIcon fill={"blue"} />
+            </button>
+          </div>
+        </div>
       )}
     </>
   );

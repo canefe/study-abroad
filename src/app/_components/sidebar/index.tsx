@@ -1,11 +1,14 @@
 import {
   Calendar,
   ChevronDown,
+  Flag,
   Home,
   Inbox,
   Search,
   Settings,
+  ShieldQuestion,
   User,
+  Verified,
 } from "lucide-react";
 
 import Image from "next/image";
@@ -25,6 +28,7 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { getServerAuthSession } from "@/server/auth";
+import { Tag } from "antd";
 
 // Menu items. That checks ROLE and displays the menu items accordingly
 const items = [
@@ -36,18 +40,52 @@ const items = [
     url: "/admin/dashboard",
     icon: Home,
     role: "admin",
+    category: "Main",
   },
   {
     title: "Students",
     url: "/admin/dashboard/students",
     icon: User,
     role: "admin",
+    category: "Students",
+  },
+  {
+    title: "Verified Courses",
+    url: "/admin/dashboard/courses/verified",
+    icon: Verified,
+    role: "admin",
+    category: "Courses",
+  },
+  {
+    title: "Flagged Courses",
+    url: "/admin/dashboard/courses/flagged",
+    icon: Flag,
+    role: "admin",
+    suffix: (
+      <Tag color="red" className="rounded-full">
+        3
+      </Tag>
+    ),
+    category: "Courses",
+  },
+  {
+    title: "Unverified Courses",
+    url: "/admin/dashboard/courses/unverified",
+    icon: ShieldQuestion,
+    role: "admin",
+    suffix: (
+      <Tag color="yellow" className="rounded-full">
+        3
+      </Tag>
+    ),
+    category: "Courses",
   },
   {
     title: "Settings",
     url: "#",
     icon: Settings,
     role: "admin",
+    category: "General",
   },
 
   /* 
@@ -62,6 +100,7 @@ const items = [
     url: "/dashboard",
     icon: Home,
     role: "student",
+    category: "Student",
   },
   /*
   STUDENT MENU ITEMS END
@@ -79,6 +118,15 @@ export default async function AppSidebar() {
     return true;
   });
 
+  // Group items by category
+  const groupedItems = filteredItems.reduce((acc, item) => {
+    if (!acc[item.category]) {
+      acc[item.category] = [];
+    }
+    acc[item.category].push(item);
+    return acc;
+  }, {});
+
   return (
     <Sidebar>
       <SidebarHeader className="flex items-center p-6">
@@ -86,23 +134,26 @@ export default async function AppSidebar() {
         <h3 className="font-semibold">Study Abroad Portal</h3>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {filteredItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {Object.keys(groupedItems).map((category) => (
+          <SidebarGroup key={category}>
+            <SidebarGroupLabel>{category}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {groupedItems[category].map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <Link href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                        {item.suffix}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
     </Sidebar>
   );

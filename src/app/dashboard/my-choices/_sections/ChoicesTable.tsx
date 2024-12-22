@@ -1,6 +1,15 @@
 "use client";
 import { api } from "@/trpc/react";
-import { Avatar, Button, FloatButton, Skeleton, Spin, Table, Tag } from "antd";
+import {
+  Avatar,
+  Button,
+  FloatButton,
+  Popconfirm,
+  Skeleton,
+  Spin,
+  Table,
+  Tag,
+} from "antd";
 import {
   DndContext,
   DragEndEvent,
@@ -12,7 +21,7 @@ import { useEffect, useRef, useState } from "react";
 import { getCourseNameById, useCombinedRefs } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { useRouter, usePathname } from "next/navigation";
-import { Cross, Trash } from "lucide-react";
+import { Cross, FlagIcon, Trash } from "lucide-react";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import dayjs from "dayjs";
 import CommentSection from "@/app/_components/comment-section";
@@ -31,7 +40,7 @@ export default function ChoicesTable({
       refetchInterval: 10000,
     },
   );
-  const applicationData = application.data || [];
+  const applicationData = application.data;
   const user = api.students.me.useQuery();
   const userData = user.data || [];
   const submitApplicationApi = api.applications.submit.useMutation({
@@ -58,6 +67,12 @@ export default function ChoicesTable({
       await utils.applications.invalidate();
     },
   });
+  const flagCourseApi = api.courses.flagCourse.useMutation({
+    onSuccess: async () => {
+      // refresh courses
+      await utils.courses.invalidate();
+    },
+  });
   const abroadCoursesQuery = api.courses.getCourses.useQuery({
     id: application.data?.abroadUniversityId || 0,
   });
@@ -79,6 +94,7 @@ export default function ChoicesTable({
   };
 
   const [choices, setChoices] = useState({}); // Tracks the selected choices for each home course
+  const [initialEffectRun, setInitialEffectRun] = useState(false); // this is to fix unsaved changes going away on application data refreshes
   const abroadCourses = abroadCoursesQuery.data || [];
   console.log(abroadCourses);
   // Prepare the table data
@@ -178,16 +194,19 @@ export default function ChoicesTable({
 
   // update choices according to applications.courseChoices
   useEffect(() => {
-    const newChoices = {};
-    applicationData.courseChoices?.forEach((choice) => {
-      newChoices[choice.homeCourse.id] = {
-        primary: choice.primaryCourse?.id,
-        alt1: choice.alternativeCourse1?.id,
-        alt2: choice.alternativeCourse2?.id,
-      };
-    });
-    setChoices(newChoices);
-  }, [applicationData]);
+    if (applicationData && !initialEffectRun) {
+      const newChoices = {};
+      applicationData.courseChoices?.forEach((choice) => {
+        newChoices[choice.homeCourse.id] = {
+          primary: choice.primaryCourse?.id,
+          alt1: choice.alternativeCourse1?.id,
+          alt2: choice.alternativeCourse2?.id,
+        };
+      });
+      setChoices(newChoices);
+      setInitialEffectRun(true);
+    }
+  }, [applicationData, initialEffectRun]);
 
   const updateSidebarHeight = () => {
     if (tableRef.current) {
@@ -362,21 +381,28 @@ export default function ChoicesTable({
   const onAddCourse = async (name: string) => {
     //add course
     if (!name) {
-      toast.error("Please enter a course name");
-      return;
+      return Promise.reject("Course name is required");
     }
     if (abroadCourses.find((course) => course.name === name)) {
-      toast.error("Course already exists");
-      return;
+      return Promise.reject("Course already exists");
     }
     if (!application.data?.abroadUniversityId) {
-      toast.error("Please select a university first");
-      return;
+      return Promise.reject("University not found");
     }
     await addNewCourseApi.mutateAsync({
       abroadUniversityId: application.data?.abroadUniversityId,
       name: name,
     });
+  };
+
+  const onFlagCourse = async (id: number) => {
+    try {
+      await flagCourseApi.mutateAsync({
+        id: id,
+      });
+    } catch (error) {
+      toast.error("Failed to flag course");
+    }
   };
 
   return (
@@ -449,22 +475,44 @@ export default function ChoicesTable({
             </Button>
           )}
           {/* Add a New Course Button */}
-          <Button
-            className="cursor-pointer"
-            onClick={() => {
-              const courseName = prompt("Enter course name");
-              if (courseName) {
-                toast.promise(onAddCourse(courseName), {
-                  loading: "Adding course...",
-                  success: "Course added successfully",
-                  error: "Failed to add course",
-                });
+          <Popconfirm
+            title="Adding a new course"
+            description={
+              <>
+                <p>Before adding a course you must accept these terms:</p>
+                <ul className="list-inside list-decimal">
+                  <li>Course must be related to the university</li>
+                  <li>Course must be available in the university</li>
+                  <li>Course must be a valid course</li>
+                </ul>
+              </>
+            }
+            onConfirm={() => {
+              const name = prompt("Enter course name", "Course Name");
+              if (name !== null) {
+                toast.promise(
+                  onAddCourse(name),
+                  {
+                    loading: "Adding course...",
+                    success: "Course added successfully",
+                    error: (err) => `${err.toString()}`,
+                  },
+                  {
+                    style: {
+                      minWidth: "250px",
+                    },
+                  },
+                );
               }
             }}
-            size="large"
+            okText="I accept"
+            cancelText="Cancel"
+            placement="top"
           >
-            Add Course
-          </Button>
+            <Button className="cursor-pointer" size="large">
+              Add Course
+            </Button>
+          </Popconfirm>
         </div>
       </div>
       <div className="mt-4 flex space-x-5">
@@ -489,12 +537,39 @@ export default function ChoicesTable({
           >
             <div className="grid grid-cols-1 gap-4">
               {availableAbroadCourses.map((course) => (
-                <DraggableCourse
-                  key={course.id}
-                  id={course.id}
-                  title={course.name}
-                  university={course.university.name}
-                />
+                <div className="flex items-center gap-2">
+                  <DraggableCourse
+                    key={course.id}
+                    id={course.id}
+                    title={course.name}
+                    university={course.university.name}
+                    flagged={course.flagged}
+                  />
+                  {course.flagged === false && (
+                    <Popconfirm
+                      title="Are you sure to flag this course?"
+                      description={
+                        <>
+                          <p>
+                            Please flag the course if it is unrelated to the
+                            university or if it is a mistake.
+                          </p>
+                        </>
+                      }
+                      onConfirm={() => {
+                        onFlagCourse(course.id);
+                      }}
+                      okText="Yes"
+                      cancelText="No"
+                    >
+                      <FlagIcon
+                        size={16}
+                        fill="#ef4444"
+                        className="w-fit cursor-pointer text-red-500 hover:text-red-700"
+                      />
+                    </Popconfirm>
+                  )}
+                </div>
               ))}
             </div>
           </div>
@@ -531,7 +606,14 @@ const DraggedCourse = ({ title }) => {
 };
 
 // Droppable and draggable choice slot
-const ChoiceSlot = ({ id, choice, onDrop, onRemove, universityId }) => {
+const ChoiceSlot = ({
+  id,
+  choice,
+  onDrop,
+  onRemove,
+  universityId,
+  flagged,
+}) => {
   const { isOver, setNodeRef: setDroppableRef } = useDroppable({ id });
 
   const {
@@ -563,22 +645,29 @@ const ChoiceSlot = ({ id, choice, onDrop, onRemove, universityId }) => {
       <div
         ref={combinedRef}
         style={isDraggable ? draggableStyle : undefined}
-        className={`w-fit border-2 border-dashed p-2 ${
+        className={`flex h-full w-full items-center justify-between gap-2 border-dashed p-1 ${
           isOver ? "border-green-500" : "border-gray-300"
-        }`}
+        } ${!choice || (choice && isOver) ? "border-2" : ""}`}
         {...draggableAttributes}
       >
         <p className={choice ? "font-regular" : "text-red-500"}>
           {getCourseNameById(choice, universityId) || "No choice"}
           {isOver ? " (Drop here)" : ""}
         </p>
+        {flagged && (
+          <FlagIcon
+            size={16}
+            fill="#ef4444"
+            className="w-fit cursor-pointer text-red-500"
+          />
+        )}
       </div>
     </>
   );
 };
 
 // Draggable course box
-const DraggableCourse = ({ id, title, university }) => {
+const DraggableCourse = ({ id, title, university, flagged }) => {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id,
   });
@@ -593,10 +682,16 @@ const DraggableCourse = ({ id, title, university }) => {
       style={style}
       {...listeners}
       {...attributes}
-      className="cursor-pointer bg-gray-200 p-3 hover:bg-blue-100"
+      className="w-full flex-1 cursor-pointer bg-gray-200 p-3 hover:bg-blue-100"
     >
       <h2 className="text-md font-semibold">{title}</h2>
       <p>{university}</p>
+      {flagged && (
+        <div className="text-xs text-red-500">
+          <p>This course has been flagged.</p>{" "}
+          <p>It might be unrelated to the university.</p>
+        </div>
+      )}
     </div>
   );
 };

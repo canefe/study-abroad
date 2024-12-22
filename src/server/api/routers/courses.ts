@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import {
+  adminProcedure,
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
@@ -15,25 +16,23 @@ export const coursesRouter = createTRPCRouter({
       };
     }),
 
-  getList: protectedProcedure
-    .input(z.object({ id: z.number() }))
-    .query(async ({ input, ctx }) => {
-      // get the session from the context
-      const session = ctx.session;
-      // get user's coursechoices
-      const courseChoices = await ctx.db.courseChoice.findMany({
-        where: {
-          userId: session.user.id,
+  getFlaggedList: adminProcedure.query(async ({ ctx }) => {
+    // get the session from the context
+    const courses = await ctx.db.course.findMany({
+      where: {
+        flagged: true,
+      },
+      include: {
+        university: {
+          select: {
+            name: true,
+          },
         },
-        include: {
-          homeCourse: true,
-          primaryCourse: true,
-          alternativeCourse1: true,
-          alternativeCourse2: true,
-        },
-      });
-      return courseChoices;
-    }),
+      },
+    });
+
+    return courses;
+  }),
 
   getCourses: protectedProcedure
     .input(z.object({ id: z.number() }))
@@ -57,6 +56,20 @@ export const coursesRouter = createTRPCRouter({
         data: {
           name: input.name,
           universityId: input.abroadUniversityId,
+        },
+      });
+      return course;
+    }),
+
+  flagCourse: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const course = await ctx.db.course.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          flagged: true,
         },
       });
       return course;
