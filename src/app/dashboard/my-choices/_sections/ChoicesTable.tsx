@@ -22,10 +22,18 @@ export default function ChoicesTable({
 }: {
   applicationId: number;
 }) {
-  const application = api.applications.get.useQuery({
-    applicationId: applicationId,
-  });
+  const application = api.applications.get.useQuery(
+    {
+      applicationId: applicationId,
+    },
+    {
+      refetchOnWindowFocus: true,
+      refetchInterval: 10000,
+    },
+  );
   const applicationData = application.data || [];
+  const user = api.students.me.useQuery();
+  const userData = user.data || [];
   const submitApplicationApi = api.applications.submit.useMutation({
     onSuccess: async () => {
       // refresh courses
@@ -38,6 +46,12 @@ export default function ChoicesTable({
       await utils.applications.invalidate();
     },
   });
+  const addNewCourseApi = api.courses.addCourse.useMutation({
+    onSuccess: async () => {
+      // refresh courses
+      await utils.courses.invalidate();
+    },
+  });
   const sendCommentApi = api.applications.comment.useMutation({
     onSuccess: async () => {
       // refresh courses
@@ -45,7 +59,7 @@ export default function ChoicesTable({
     },
   });
   const abroadCoursesQuery = api.courses.getCourses.useQuery({
-    id: applicationData.abroadUniversityId,
+    id: application.data?.abroadUniversityId || 0,
   });
   const [sidebarHeight, setSidebarHeight] = useState("auto"); // Sidebar height state
   const tableRef = useRef(null); // Reference to the table
@@ -113,6 +127,7 @@ export default function ChoicesTable({
               console.log("Removing choice", record.id, choiceType);
               removeChoices(record.id, choiceType);
             }}
+            universityId={application.data?.abroadUniversityId}
           />
         );
       },
@@ -344,6 +359,26 @@ export default function ChoicesTable({
     });
   };
 
+  const onAddCourse = async (name: string) => {
+    //add course
+    if (!name) {
+      toast.error("Please enter a course name");
+      return;
+    }
+    if (abroadCourses.find((course) => course.name === name)) {
+      toast.error("Course already exists");
+      return;
+    }
+    if (!application.data?.abroadUniversityId) {
+      toast.error("Please select a university first");
+      return;
+    }
+    await addNewCourseApi.mutateAsync({
+      abroadUniversityId: application.data?.abroadUniversityId,
+      name: name,
+    });
+  };
+
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex w-full items-center justify-between gap-2">
@@ -413,6 +448,23 @@ export default function ChoicesTable({
               Withdraw
             </Button>
           )}
+          {/* Add a New Course Button */}
+          <Button
+            className="cursor-pointer"
+            onClick={() => {
+              const courseName = prompt("Enter course name");
+              if (courseName) {
+                toast.promise(onAddCourse(courseName), {
+                  loading: "Adding course...",
+                  success: "Course added successfully",
+                  error: "Failed to add course",
+                });
+              }
+            }}
+            size="large"
+          >
+            Add Course
+          </Button>
         </div>
       </div>
       <div className="mt-4 flex space-x-5">
@@ -451,6 +503,8 @@ export default function ChoicesTable({
       <CommentSection
         messages={application.data?.messages}
         onSend={onSend}
+        applicationId={applicationId}
+        user={userData}
         admin={false}
       />
       <DragOverlay>
@@ -477,7 +531,7 @@ const DraggedCourse = ({ title }) => {
 };
 
 // Droppable and draggable choice slot
-const ChoiceSlot = ({ id, choice, onDrop, onRemove }) => {
+const ChoiceSlot = ({ id, choice, onDrop, onRemove, universityId }) => {
   const { isOver, setNodeRef: setDroppableRef } = useDroppable({ id });
 
   const {
@@ -515,7 +569,7 @@ const ChoiceSlot = ({ id, choice, onDrop, onRemove }) => {
         {...draggableAttributes}
       >
         <p className={choice ? "font-regular" : "text-red-500"}>
-          {getCourseNameById(choice, 2) || "No choice"}
+          {getCourseNameById(choice, universityId) || "No choice"}
           {isOver ? " (Drop here)" : ""}
         </p>
       </div>

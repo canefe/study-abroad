@@ -49,14 +49,29 @@ export const coursesRouter = createTRPCRouter({
       return course;
     }),
 
-  getStudent: protectedProcedure.query(async ({ input, ctx }) => {
-    const user = await ctx.db.user.findUnique({
-      where: {
-        id: input.id,
-      },
-    });
-    return user;
-  }),
+  // input: the abroad university id, name of the course creates an abroad course
+  addCourse: protectedProcedure
+    .input(z.object({ name: z.string(), abroadUniversityId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const course = await ctx.db.course.create({
+        data: {
+          name: input.name,
+          universityId: input.abroadUniversityId,
+        },
+      });
+      return course;
+    }),
+
+  getStudent: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const user = await ctx.db.user.findUnique({
+        where: {
+          id: input.id,
+        },
+      });
+      return user;
+    }),
 
   getSecretMessage: protectedProcedure.query(async ({ ctx }) => {
     const text =
