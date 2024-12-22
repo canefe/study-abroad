@@ -150,6 +150,9 @@ model Course {
     name         String
     universityId Int
     university   University @relation(fields: [universityId], references: [id])
+    flagged      Boolean    @default(false) // Flagged courses are courses that need to be reviewed by an admin
+    createdAt    DateTime   @default(now())
+    createdBy    String? // The user who created the course
 
     homeCourseChoices         CourseChoice[] @relation("HomeCourse")
     primaryCourseChoices      CourseChoice[] @relation("PrimaryCourse")
