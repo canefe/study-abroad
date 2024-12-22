@@ -175,6 +175,11 @@ export const applicationsRouter = createTRPCRouter({
                   replies: {
                     include: {
                       sender: true,
+                      replies: {
+                        include: {
+                          sender: true,
+                        },
+                      },
                     },
                   },
                 },
@@ -313,6 +318,31 @@ export const applicationsRouter = createTRPCRouter({
               parentId: input.parentMessageId,
             },
           },
+        },
+      });
+      return "Success";
+    }),
+  // delete comment
+  deleteComment: protectedProcedure
+    .input(z.object({ messageId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const session = ctx.session;
+      // check if user is owner of message
+      const message = await ctx.db.message.findFirst({
+        where: {
+          id: input.messageId,
+          senderId: session.user.id,
+        },
+      });
+
+      if (!message) {
+        return new Response("Forbidden", { status: 403 });
+      }
+
+      // delete message
+      await ctx.db.message.delete({
+        where: {
+          id: input.messageId,
         },
       });
       return "Success";
