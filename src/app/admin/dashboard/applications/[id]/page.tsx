@@ -1,14 +1,14 @@
-import ChoicesTable from "../_sections/ChoicesTable";
+import ChoicesTable from "@/app/_components/choices-table";
 
 export default async function Page({
-  params,
+	params,
 }: {
-  params: Promise<{ id: string }>;
+	params: Promise<{ id: string }>;
 }) {
-  const slug = (await params).id;
-  return (
-    <div className="container">
-      <ChoicesTable applicationId={Number(slug)} />
-    </div>
-  );
+	const slug = (await params).id;
+	return (
+		<div className="container">
+			<ChoicesTable applicationId={Number(slug)} admin={true} />
+		</div>
+	);
 }

@@ -28,18 +28,28 @@ import CommentSection from "@/app/_components/comment-section";
 
 export default function ChoicesTable({
 	applicationId,
+	admin,
 }: {
 	applicationId: number;
+	admin?: boolean;
 }) {
-	const application = api.applications.get.useQuery(
-		{
-			applicationId: applicationId,
-		},
-		{
-			refetchOnWindowFocus: true,
-			refetchInterval: 10000,
-		},
-	);
+	const application = admin
+		? api.applications.getAdmin.useQuery(
+				{ applicationId },
+				{
+					refetchOnWindowFocus: true,
+					refetchInterval: 10000,
+				},
+			)
+		: api.applications.get.useQuery(
+				{
+					applicationId: applicationId,
+				},
+				{
+					refetchOnWindowFocus: true,
+					refetchInterval: 10000,
+				},
+			);
 	const applicationData = application.data;
 	const user = api.students.me.useQuery();
 	const userData = user.data || [];
@@ -609,7 +619,7 @@ export default function ChoicesTable({
 				onSend={onSend}
 				applicationId={applicationId}
 				user={userData}
-				admin={false}
+				admin={admin || false}
 			/>
 			<DragOverlay>
 				{activeId ? (

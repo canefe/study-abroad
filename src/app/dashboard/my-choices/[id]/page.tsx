@@ -1,5 +1,5 @@
+import ChoicesTable from "@/app/_components/choices-table";
 import { api } from "@/trpc/server";
-import ChoicesTable from "../_sections/ChoicesTable";
 import { redirect } from "next/navigation";
 
 export default async function MyChoices({
