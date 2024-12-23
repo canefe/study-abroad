@@ -9,10 +9,30 @@ var relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
 
 export default function NotificationBell() {
-	const [notifications] = api.notifications.getList.useSuspenseQuery();
+	const [notifications] = api.notifications.getList.useSuspenseQuery(void 0, {
+		refetchInterval: 10000,
+	});
 	const unreadNotifications = notifications?.filter((n) => !n.read);
 	const [clicked, setClicked] = useState(false);
 	const [hovered, setHovered] = useState(false);
+
+	const utils = api.useUtils();
+	const markAsReadApi = api.notifications.markAsRead.useMutation({
+		onSuccess: async () => {
+			await utils.notifications.invalidate();
+		},
+		onError: (error) => {
+			console.error(error);
+		},
+	});
+	const markAllAsReadApi = api.notifications.markAllAsRead.useMutation({
+		onSuccess: async () => {
+			await utils.notifications.invalidate();
+		},
+		onError: (error) => {
+			console.error(error);
+		},
+	});
 
 	const hide = () => {
 		setClicked(false);
@@ -35,7 +55,7 @@ export default function NotificationBell() {
 			<ul>
 				{notifications?.map((n) => (
 					<li
-						className="cursor-pointer border-b border-t bg-slate-100 p-2 hover:bg-slate-200"
+						className="border-b border-t bg-slate-100 p-2 hover:bg-slate-200"
 						key={n.id}
 					>
 						<div className="flex gap-2">
@@ -47,7 +67,14 @@ export default function NotificationBell() {
 										{dayjs(n.createdAt).fromNow()}
 									</div>
 									<span className="text-xs text-gray-500">
-										{n.read ? "Read" : "Unread"}
+										{!n.read && (
+											<span
+												onClick={() => markAsReadApi.mutate({ id: n.id })}
+												className="cursor-pointer text-blue-500"
+											>
+												Mark as read
+											</span>
+										)}
 									</span>
 									<span className="text-xs text-red-500">Delete</span>
 								</div>
