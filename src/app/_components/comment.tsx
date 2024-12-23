@@ -179,21 +179,24 @@ const Comment = ({
 					)}
 			</div>
 			{message.replies?.length > 0 && hidden && (
-				<div
-					className="flex w-full items-start gap-2 bg-slate-50 p-2"
-					style={
-						parent !== null
-							? {
-									borderLeft: `4px solid ${generateRandomColor(parent, parent)}`,
-									marginLeft: padding * 2,
-								}
-							: {}
-					}
-				>
-					<p className="text-gray-400">
-						{message.replies?.length} Replies hidden
-					</p>
-				</div>
+				<Tooltip title="Show replies" placement="left">
+					<div
+						className="flex w-full cursor-pointer items-start gap-2 bg-slate-50 p-2"
+						onClick={() => setHidden(!hidden)}
+						style={
+							parent !== null
+								? {
+										borderLeft: `4px solid ${generateRandomColor(parent, parent)}`,
+										marginLeft: padding * 2,
+									}
+								: {}
+						}
+					>
+						<p className="text-gray-400">
+							{message.replies?.length} Replies hidden
+						</p>
+					</div>
+				</Tooltip>
 			)}
 			{/** If last message */}
 
