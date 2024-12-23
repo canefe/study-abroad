@@ -73,6 +73,7 @@ model User {
     posts         Post[]
     courseChoices CourseChoice[]
     messages      Message[]
+    notifications Notification[]
 }
 
 model VerificationToken {
@@ -158,4 +159,15 @@ model Course {
     primaryCourseChoices      CourseChoice[] @relation("PrimaryCourse")
     alternativeCourse1Choices CourseChoice[] @relation("AlternativeCourse1")
     alternativeCourse2Choices CourseChoice[] @relation("AlternativeCourse2")
+}
+
+// A model for Notifications.
+model Notification {
+    id        Int      @id @default(autoincrement())
+    userId    String
+    message   String
+    read      Boolean  @default(false)
+    createdAt DateTime @default(now())
+
+    user User @relation(fields: [userId], references: [id])
 }
