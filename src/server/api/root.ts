@@ -5,6 +5,7 @@ import { coursesRouter } from "./routers/courses";
 import { universitiesRouter } from "./routers/universities";
 import { choicesRouter } from "./routers/choices";
 import { applicationsRouter } from "./routers/applications";
+import { notificationsRouter } from "./routers/notifications";
 
 /**
  * This is the primary router for your server.
@@ -12,12 +13,13 @@ import { applicationsRouter } from "./routers/applications";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  post: postRouter,
-  students: studentsRouter,
-  courses: coursesRouter,
-  universities: universitiesRouter,
-  choices: choicesRouter,
-  applications: applicationsRouter,
+	post: postRouter,
+	students: studentsRouter,
+	courses: coursesRouter,
+	universities: universitiesRouter,
+	choices: choicesRouter,
+	applications: applicationsRouter,
+	notifications: notificationsRouter,
 });
 
 // export type definition of API
