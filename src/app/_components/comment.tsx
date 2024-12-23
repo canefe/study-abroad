@@ -103,7 +103,12 @@ const Comment = ({
 					>
 						{message.sender.name?.charAt(0).toUpperCase()}
 					</Avatar>
-					<p className="font-semibold">{message.sender.name}</p>
+					<p className="font-semibold">
+						{message.sender.name}{" "}
+						<span className="font-medium text-red-500">
+							{message.sender.id === userId && "(You)"}
+						</span>
+					</p>
 					<Tooltip
 						title={dayjs(message.createdAt).format("YYYY-MM-DD HH:mm:ss")}
 					>
