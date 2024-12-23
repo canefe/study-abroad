@@ -10,43 +10,34 @@ import UserAvatar from "./_sections/avatar";
 import { Toaster } from "react-hot-toast";
 
 export default async function DashboardLayout({
-  children,
+	children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const session = await getServerAuthSession();
-  // check if the user is admin or not
+	const session = await getServerAuthSession();
+	// check if the user is admin or not
 
-  // if no user at all, redirect to login
-  if (!session?.user) {
-    redirect("/");
-  }
+	// if no user at all, redirect to login
+	if (!session?.user) {
+		redirect("/");
+	}
 
-  if (session?.user.role == "ADMIN") {
-    // redirect to dashboard if user is not admin
-    redirect("/admin/dashboard");
-  }
-  return (
-    <>
-      <SidebarProvider>
-        <AppSidebar />
-        {/*<SidebarTrigger />*/}
-        <main className="flex w-full flex-col items-center px-6 py-6">
-          <div className="container flex w-full items-center justify-between border-b pr-3">
-            <div className="flex w-full items-center justify-between">
-              <div className="w-full flex-1">
-                <Breadcrumbs />
-              </div>
-              <div className="mb-3">
-                <UserAvatar />
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 flex w-full items-center justify-center">
-            <div className="container">{children}</div>
-          </div>
-        </main>
-      </SidebarProvider>
+	if (session?.user.role == "ADMIN") {
+		// redirect to dashboard if user is not admin
+		redirect("/admin/dashboard");
+	}
+	return (
+		<>
+			<SidebarProvider>
+				<AppSidebar />
+				{/*<SidebarTrigger />*/}
+				<main className="flex w-full flex-col items-center px-6 py-6">
+					<Header />
+					<div className="mt-4 flex w-full items-center justify-center">
+						<div className="container">{children}</div>
+					</div>
+				</main>
+			</SidebarProvider>
 
-      <Toaster />
-    </>
-  );
+			<Toaster />
+		</>
+	);
 }
