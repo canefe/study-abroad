@@ -1,6 +1,6 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Footer } from "@/app/_components/footer";
-import Header from "@/app/_components/header";
+import Header from "@/app/_components/header/header";
 import AppSidebar from "@/app/_components/sidebar";
 import { getServerAuthSession } from "@/server/auth";
 import { redirect } from "next/navigation";

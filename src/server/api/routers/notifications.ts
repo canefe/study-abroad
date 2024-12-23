@@ -8,11 +8,11 @@ import {
 } from "@/server/api/trpc";
 
 export const notificationsRouter = createTRPCRouter({
-	getList: adminProcedure.query(async ({ ctx }) => {
+	getList: publicProcedure.query(async ({ ctx }) => {
 		const session = ctx.session;
 		const notifications = await ctx.db.notification.findMany({
 			where: {
-				userId: session.user.id,
+				userId: session?.user.id,
 			},
 		});
 		return notifications;

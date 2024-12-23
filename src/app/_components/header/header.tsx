@@ -1,7 +1,10 @@
+"use client";
 import { Bell } from "lucide-react";
-import UserAvatar from "../dashboard/_sections/avatar";
-import Breadcrumbs from "../dashboard/_sections/breadcrumb";
-import { Badge } from "antd";
+import UserAvatar from "../../dashboard/_sections/avatar";
+import Breadcrumbs from "../../dashboard/_sections/breadcrumb";
+import { Badge, Dropdown } from "antd";
+import { api } from "@/trpc/react";
+import NotificationBell from "./notification-bell";
 
 export default function Header() {
 	return (
@@ -11,12 +14,7 @@ export default function Header() {
 					<Breadcrumbs />
 				</div>
 				<div className="mb-3 flex items-center gap-4">
-					<Badge
-						count={5}
-						className="cursor-pointer duration-150 hover:scale-110"
-					>
-						<Bell size={24} />
-					</Badge>
+					<NotificationBell />
 					<UserAvatar />
 				</div>
 			</div>
