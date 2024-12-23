@@ -262,7 +262,7 @@ export default function Dashboard() {
 						)}
 					</div>
 					<div className="my-5 border-b-2 border-t-2 border-gray-200"></div>
-					{applications.length < 3 ? (
+					{open || applications.length < 3 ? (
 						<div ref={ref5} className="flex w-2/3 flex-col items-start gap-3">
 							<p>
 								You can make up to 3 choices. You have made{" "}
