@@ -3,22 +3,24 @@ import ChoicesTable from "../_sections/ChoicesTable";
 import { redirect } from "next/navigation";
 
 export default async function MyChoices({
-  params,
+	params,
 }: {
-  params: Promise<{ id: string }>;
+	params: Promise<{ id: string }>;
 }) {
-  const id = (await params).id;
+	const id = (await params).id;
 
-  const choices = await api.choices.getList();
+	const application = await api.applications.get({
+		applicationId: Number(id),
+	});
 
-  // if length of choices is 0, then redirect to /dashboard/
-  if (choices.length === 0) {
-    redirect("/dashboard/");
-  }
+	// if application is null then redirect to /dashboard/
+	if (application === null) {
+		redirect("/dashboard/");
+	}
 
-  return (
-    <>
-      <ChoicesTable applicationId={Number(id)} />
-    </>
-  );
+	return (
+		<>
+			<ChoicesTable applicationId={Number(id)} />
+		</>
+	);
 }
