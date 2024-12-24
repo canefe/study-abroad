@@ -44,4 +44,16 @@ export const notificationsRouter = createTRPCRouter({
 		});
 		return notifications;
 	}),
+	delete: protectedProcedure
+		.input(z.object({ id: z.number() }))
+		.mutation(async ({ input, ctx }) => {
+			const session = ctx.session;
+			const notification = await ctx.db.notification.delete({
+				where: {
+					id: input.id,
+					userId: session?.user.id,
+				},
+			});
+			return notification;
+		}),
 });

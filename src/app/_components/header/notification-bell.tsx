@@ -1,10 +1,11 @@
 "use client";
-import { Bell } from "lucide-react";
+import { Bell, Trash } from "lucide-react";
 
 import { Avatar, Badge, Dropdown, Popover } from "antd";
 import { api } from "@/trpc/react";
 import { useState } from "react";
 import dayjs from "dayjs";
+import toast from "react-hot-toast";
 var relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
 
@@ -33,6 +34,18 @@ export default function NotificationBell() {
 			console.error(error);
 		},
 	});
+	const deleteApi = api.notifications.delete.useMutation({
+		onSuccess: async () => {
+			await utils.notifications.invalidate();
+		},
+		onError: (error) => {
+			console.error(error);
+		},
+	});
+
+	const onDelete = async (id: number) => {
+		await deleteApi.mutate({ id });
+	};
 
 	const hide = () => {
 		setClicked(false);
@@ -53,6 +66,9 @@ export default function NotificationBell() {
 		<>
 			<span className="p-2 text-lg font-bold">Notifications</span>
 			<ul>
+				{notifications?.length === 0 && (
+					<li className="p-2 text-center">No notifications</li>
+				)}
 				{notifications?.map((n) => (
 					<li
 						className="border-b border-t bg-slate-100 p-2 hover:bg-slate-200"
@@ -76,7 +92,14 @@ export default function NotificationBell() {
 											</span>
 										)}
 									</span>
-									<span className="text-xs text-red-500">Delete</span>
+									<span
+										className="cursor-pointer text-xs text-red-500"
+										onClick={() => {
+											onDelete(n.id);
+										}}
+									>
+										<Trash size={16} />
+									</span>
 								</div>
 							</div>
 						</div>
