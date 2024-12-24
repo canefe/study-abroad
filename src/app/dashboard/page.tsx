@@ -165,9 +165,9 @@ export default function Dashboard() {
 					</div>
 				</Tooltip>
 			</div>
-			<div className="flex gap-2">
+			<div className="flex flex-col gap-2 md:flex-row">
 				<Tour open={open} onClose={() => setOpen(false)} steps={steps} />
-				<div className="mt-10 flex w-1/2 flex-col gap-2">
+				<div className="mt-10 flex flex-col gap-2">
 					<h2 className="text-xl font-semibold">University Choices</h2>
 					<div ref={ref1}>
 						{(
@@ -271,7 +271,10 @@ export default function Dashboard() {
 					</div>
 					<div className="my-5 border-b-2 border-t-2 border-gray-200"></div>
 					{open || applications.length < 3 ? (
-						<div ref={ref5} className="flex w-2/3 flex-col items-start gap-3">
+						<div
+							ref={ref5}
+							className="flex flex-col items-start gap-3 md:w-2/3"
+						>
 							<p>
 								You can make up to 3 choices. You have made{" "}
 								{applications.length} choices.
@@ -301,7 +304,7 @@ export default function Dashboard() {
 						<p>You have made the maximum number of choices.</p>
 					)}
 				</div>
-				<div className="mt-10 flex w-1/2 flex-col gap-2">
+				<div className="mt-10 flex flex-col gap-2">
 					<h2 className="text-xl font-semibold">Latest Announcements</h2>
 					{[1, 2, 3].map((feedback) => (
 						<div

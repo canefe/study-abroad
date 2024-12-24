@@ -85,10 +85,10 @@ const Comment = ({
 							}
 						: {
 								borderColor: `${generateRandomColor(message.createdAt, message.createdAt)}`,
-								backgroundImage: `linear-gradient(90deg, ${generateRandomColor(
+								borderLeft: `3px solid ${generateRandomColor(
 									message.createdAt,
 									message.createdAt,
-								)} 0.25%, white 0%)`,
+								)}`,
 							}
 				}
 			>
@@ -109,13 +109,6 @@ const Comment = ({
 							{message.sender.id === userId && "(You)"}
 						</span>
 					</p>
-					<Tooltip
-						title={dayjs(message.createdAt).format("YYYY-MM-DD HH:mm:ss")}
-					>
-						<p className="cursor-pointer text-gray-400">
-							{dayjs(message.createdAt).fromNow()}
-						</p>
-					</Tooltip>
 					<div className="flex items-center">
 						<Tag
 							color={message.sender.role === "STUDENT" ? "blue" : "red"}
@@ -154,7 +147,12 @@ const Comment = ({
 						)}
 					</div>
 				</div>
-				<div className="p-2">{message.content}</div>
+				<div className="p-2 pb-0">{message.content}</div>
+				<Tooltip title={dayjs(message.createdAt).format("YYYY-MM-DD HH:mm:ss")}>
+					<p className="ml-2 cursor-pointer text-xs text-gray-400">
+						{dayjs(message.createdAt).fromNow()}
+					</p>
+				</Tooltip>
 				{replyUnder === message.id && (
 					<>
 						<CommentForm

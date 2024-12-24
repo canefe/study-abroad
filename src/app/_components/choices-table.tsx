@@ -25,6 +25,7 @@ import { Cross, FlagIcon, Trash } from "lucide-react";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import dayjs from "dayjs";
 import CommentSection from "@/app/_components/comment-section";
+import MobileChoicesTable from "./mobile-choices-table";
 
 export default function ChoicesTable({
 	applicationId,
@@ -418,7 +419,7 @@ export default function ChoicesTable({
 
 	return (
 		<DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-			<div className="flex w-full items-center justify-between gap-2">
+			<div className="flex w-full flex-col items-center justify-between gap-2 md:flex-row">
 				<h2 className="rounded border p-3 text-xl font-medium">
 					{application.data?.abroadUniversity.name}
 				</h2>
@@ -554,11 +555,12 @@ export default function ChoicesTable({
 					</Popconfirm>
 				</div>
 			</div>
-			<div className="mt-4 flex space-x-5">
+			<div className="mt-4 flex flex-col space-x-5 md:flex-row">
 				{/* Table for Home Courses */}
 				<div ref={tableRef} className="h-fit flex-1">
 					<Table
 						size={"small"}
+						className="hidden md:block"
 						columns={columns}
 						dataSource={filteredDataSource.sort((a, b) =>
 							a.id > b.id ? 1 : -1,
@@ -567,11 +569,24 @@ export default function ChoicesTable({
 						bordered
 						pagination={false}
 					/>
+					{/* Mobile version of the table */}
+					<div className="md:hidden">
+						<MobileChoicesTable
+							choices={
+								application.data?.courseChoices.map((choice) => ({
+									homeCourse: choice.homeCourse.name,
+									firstChoice: choice.primaryCourse?.name || "No choice",
+									secondChoice: choice.alternativeCourse1?.name || "No choice",
+									thirdChoice: choice.alternativeCourse2?.name || "No choice",
+								})) || []
+							}
+						/>
+					</div>
 				</div>
 				{/* Sidebar for Available Courses */}
 				<div>
 					<div
-						className="relative !z-0 w-full overflow-auto rounded bg-gray-50 p-3"
+						className="relative !z-0 !h-fit w-full overflow-auto rounded bg-gray-50 p-3 md:h-auto"
 						style={{ height: sidebarHeight }}
 					>
 						<div className="grid grid-cols-1 gap-4">
