@@ -3,19 +3,58 @@ import { Bell, Trash } from "lucide-react";
 
 import { Avatar, Badge, Dropdown, Popover } from "antd";
 import { api } from "@/trpc/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dayjs from "dayjs";
 import toast from "react-hot-toast";
+import { motion, useAnimation } from "framer-motion";
 var relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
 
 export default function NotificationBell() {
 	const [notifications] = api.notifications.getList.useSuspenseQuery(void 0, {
-		refetchInterval: 10000,
+		refetchInterval: 5000,
 	});
 	const unreadNotifications = notifications?.filter((n) => !n.read);
 	const [clicked, setClicked] = useState(false);
 	const [hovered, setHovered] = useState(false);
+	const [cachedNotifications, setCachedNotifications] = useState<
+		undefined | typeof notifications
+	>(undefined);
+
+	const controls = useAnimation();
+
+	useEffect(() => {
+		// on first load dont animate
+		if (cachedNotifications === undefined) {
+			setCachedNotifications(notifications);
+			return;
+		}
+		// compare cached animations with the new one, if there is a new one animate not if existing one is removed
+		if (cachedNotifications?.length < notifications?.length) {
+			if (unreadNotifications?.length > 0) {
+				controls.start({
+					scale: [1, 1.1, 1],
+					x: [0, -10, 10, -10, 10, 0],
+					transition: {
+						duration: 0.5,
+					},
+				});
+				// get the different notifications and toast them
+				const newNotifications = notifications?.filter(
+					(n) => !cachedNotifications?.some((cn) => cn.id === n.id),
+				);
+				console.log(newNotifications);
+				console.log(cachedNotifications);
+				if (newNotifications) {
+					newNotifications.forEach((n) => {
+						toast(n.message);
+					});
+				}
+			}
+		} else {
+			setCachedNotifications(notifications);
+		}
+	}, [unreadNotifications.length, controls]);
 
 	const utils = api.useUtils();
 	const markAsReadApi = api.notifications.markAsRead.useMutation({
@@ -138,12 +177,14 @@ export default function NotificationBell() {
 				open={clicked}
 				onOpenChange={handleClickChange}
 			>
-				<Badge
-					count={unreadNotifications?.length ?? 0}
-					className="cursor-pointer duration-150 hover:scale-110"
-				>
-					<Bell size={24} />
-				</Badge>
+				<motion.div animate={controls}>
+					<Badge
+						count={unreadNotifications?.length ?? 0}
+						className="cursor-pointer duration-150 hover:scale-110"
+					>
+						<Bell size={24} />
+					</Badge>
+				</motion.div>
 			</Popover>
 		</Popover>
 	);

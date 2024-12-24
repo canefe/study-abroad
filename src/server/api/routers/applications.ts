@@ -282,6 +282,32 @@ export const applicationsRouter = createTRPCRouter({
 					},
 				},
 			});
+
+			// return users participating in the application's conversations (always inlclude the application owner)
+			const users = await ctx.db.message.findMany({
+				where: {
+					applicationId: input.applicationId,
+				},
+				select: {
+					senderId: true,
+				},
+				distinct: ["senderId"],
+			});
+
+			const filteredUsers = users.filter(
+				(user) => user.senderId !== session.user.id,
+			);
+
+			const otherUsersNotifications = filteredUsers.map((user) => ({
+				userId: user.senderId,
+				message: `You have a new message in <Link href="/admin/dashboard/applications/${input.applicationId}">application #${input.applicationId}</Link>`,
+				read: false,
+			}));
+
+			await ctx.db.notification.createMany({
+				data: otherUsersNotifications,
+			});
+
 			return "Success";
 		}),
 	// same as function above, but for admin
@@ -320,6 +346,43 @@ export const applicationsRouter = createTRPCRouter({
 					},
 				},
 			});
+
+			// return users participating in the application's conversations (always inlclude the application owner)
+			const users = await ctx.db.message.findMany({
+				where: {
+					applicationId: input.applicationId,
+				},
+				select: {
+					senderId: true,
+				},
+			});
+
+			const owner = application.userId;
+			// if owner is on the list, remove it
+			let filteredUsers = users.filter((user) => user.senderId !== owner);
+			// if the one who commented is on the list, remove it
+			filteredUsers = filteredUsers.filter(
+				(user) => user.senderId !== session.user.id,
+			);
+
+			// send two different notifications to owner and other users
+
+			const ownerNotification = {
+				userId: owner,
+				message: `You have a new message in your application #${input.applicationId}`,
+				read: false,
+			};
+
+			const otherUsersNotifications = filteredUsers.map((user) => ({
+				userId: user.senderId,
+				message: `You have a new message in application #${input.applicationId}`,
+				read: false,
+			}));
+
+			await ctx.db.notification.createMany({
+				data: [ownerNotification, ...otherUsersNotifications],
+			});
+
 			return "Success";
 		}),
 	// delete comment
