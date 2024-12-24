@@ -300,7 +300,7 @@ export const applicationsRouter = createTRPCRouter({
 
 			const otherUsersNotifications = filteredUsers.map((user) => ({
 				userId: user.senderId,
-				message: `You have a new message in <Link href="/admin/dashboard/applications/${input.applicationId}">application #${input.applicationId}</Link>`,
+				message: `You have a new message in [link=/admin/dashboard/applications/${input.applicationId}]Application #${input.applicationId}[/link]`,
 				read: false,
 			}));
 
@@ -369,13 +369,14 @@ export const applicationsRouter = createTRPCRouter({
 
 			const ownerNotification = {
 				userId: owner,
-				message: `You have a new message in your application #${input.applicationId}`,
+				message: `You have a new message in your [link=/dashboard/my-choices/${input.applicationId}]Application #${input.applicationId}[/link]`,
 				read: false,
 			};
 
+			// admins
 			const otherUsersNotifications = filteredUsers.map((user) => ({
 				userId: user.senderId,
-				message: `You have a new message in application #${input.applicationId}`,
+				message: `You have a new message in [link=/admin/dashboard/applications/${input.applicationId}]Application #${input.applicationId}[/link]`,
 				read: false,
 			}));
 

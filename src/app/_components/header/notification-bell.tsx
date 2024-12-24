@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import dayjs from "dayjs";
 import toast from "react-hot-toast";
 import { motion, useAnimation } from "framer-motion";
+import { parseNotificationMessage } from "@/lib/notificationUtils";
 var relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
 
@@ -47,7 +48,21 @@ export default function NotificationBell() {
 				console.log(cachedNotifications);
 				if (newNotifications) {
 					newNotifications.forEach((n) => {
-						toast(n.message);
+						toast.custom(
+							(t) => (
+								<div className="flex items-center gap-2 bg-slate-100 p-2">
+									<div>{parseNotificationMessage(n.message)}</div>
+									<div>{dayjs(n.createdAt).fromNow()}</div>
+								</div>
+							),
+							{
+								duration: 5000,
+								icon: <Bell size={24} />,
+								style: {
+									color: "black",
+								},
+							},
+						);
 					});
 				}
 			}
@@ -116,7 +131,7 @@ export default function NotificationBell() {
 						<div className="flex gap-2">
 							<Avatar>B</Avatar>
 							<div>
-								<div dangerouslySetInnerHTML={{ __html: n.message }} />
+								{parseNotificationMessage(n.message)}
 								<div className="flex items-center justify-between gap-2">
 									<div className="text-xs text-gray-500">
 										{dayjs(n.createdAt).fromNow()}

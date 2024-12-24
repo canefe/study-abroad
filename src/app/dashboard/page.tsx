@@ -181,6 +181,14 @@ export default function Dashboard() {
 								pagination={false}
 								columns={[
 									{
+										title: "#",
+										dataIndex: "id",
+										key: "id",
+										render: (text, record) => (
+											<span className="text-gray-400">{record.id}</span>
+										),
+									},
+									{
 										title: "University",
 										dataIndex: ["abroadUniversity", "name"],
 										key: "abroadUniversityname",
