@@ -165,9 +165,9 @@ export default function Dashboard() {
 					</div>
 				</Tooltip>
 			</div>
-			<div className="flex flex-col gap-2 md:flex-row">
+			<div className="flex w-full flex-col gap-2 md:flex-row">
 				<Tour open={open} onClose={() => setOpen(false)} steps={steps} />
-				<div className="mt-10 flex flex-col gap-2">
+				<div className="mt-10 flex w-full flex-col gap-2">
 					<h2 className="text-xl font-semibold">University Choices</h2>
 					<div ref={ref1}>
 						{(
@@ -304,7 +304,7 @@ export default function Dashboard() {
 						<p>You have made the maximum number of choices.</p>
 					)}
 				</div>
-				<div className="mt-10 flex flex-col gap-2">
+				<div className="mt-10 flex w-full flex-col gap-2">
 					<h2 className="text-xl font-semibold">Latest Announcements</h2>
 					{[1, 2, 3].map((feedback) => (
 						<div
