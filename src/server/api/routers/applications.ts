@@ -300,8 +300,9 @@ export const applicationsRouter = createTRPCRouter({
 
 			const otherUsersNotifications = filteredUsers.map((user) => ({
 				userId: user.senderId,
-				message: `You have a new message in [link=/admin/dashboard/applications/${input.applicationId}]Application #${input.applicationId}[/link]`,
+				message: `NEW_MESSAGE_IN_APPLICATION_${input.applicationId}`,
 				read: false,
+				senderId: session.user.id,
 			}));
 
 			await ctx.db.notification.createMany({
@@ -369,15 +370,17 @@ export const applicationsRouter = createTRPCRouter({
 
 			const ownerNotification = {
 				userId: owner,
-				message: `You have a new message in your [link=/dashboard/my-choices/${input.applicationId}]Application #${input.applicationId}[/link]`,
+				message: `NEW_FEEDBACK_IN_APPLICATION_${input.applicationId}`,
 				read: false,
+				senderId: session.user.id,
 			};
 
 			// admins
 			const otherUsersNotifications = filteredUsers.map((user) => ({
 				userId: user.senderId,
-				message: `You have a new message in [link=/admin/dashboard/applications/${input.applicationId}]Application #${input.applicationId}[/link]`,
+				message: `NEW_MESSAGE_IN_APPLICATION_${input.applicationId}`,
 				read: false,
+				senderId: session.user.id,
 			}));
 
 			await ctx.db.notification.createMany({
@@ -402,6 +405,13 @@ export const applicationsRouter = createTRPCRouter({
 			if (!message) {
 				return new Response("Forbidden", { status: 403 });
 			}
+
+			// delete replies
+			await ctx.db.message.deleteMany({
+				where: {
+					parentId: input.messageId,
+				},
+			});
 
 			// delete message
 			await ctx.db.message.delete({
