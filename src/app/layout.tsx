@@ -6,19 +6,19 @@ import { type Metadata } from "next";
 import { TRPCReactProvider } from "@/trpc/react";
 
 export const metadata: Metadata = {
-  title: "UofG | Study Abroad Portal",
-  description: "Study Abroad Portal for University of Glasgow",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+	title: "UofG | Study Abroad Portal",
+	description: "Study Abroad Portal for University of Glasgow",
+	icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
 export default function RootLayout({
-  children,
+	children,
 }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <html lang="en" className={`${GeistSans.variable}`}>
-      <body>
-        <TRPCReactProvider>{children}</TRPCReactProvider>
-      </body>
-    </html>
-  );
+	return (
+		<html lang="en" className={`${GeistSans.variable}`}>
+			<body>
+				<TRPCReactProvider>{children}</TRPCReactProvider>
+			</body>
+		</html>
+	);
 }
