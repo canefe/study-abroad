@@ -74,11 +74,6 @@ const items = [
 		url: "/admin/dashboard/courses/unverified",
 		icon: ShieldQuestion,
 		role: "admin",
-		suffix: (
-			<Tag color="yellow" className="rounded-full">
-				3
-			</Tag>
-		),
 		category: "Courses",
 	},
 	{

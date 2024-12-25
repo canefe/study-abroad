@@ -8,25 +8,15 @@ import {
 import { api } from "@/trpc/react";
 import { Button, Table } from "antd";
 
-export default function FlaggedCoursesList() {
-	const getCoursesApi = api.courses.getFlaggedList;
+export default function VerifiedCoursesList() {
+	const getCoursesApi = api.courses.getVerifiedList;
 	const { data, error } = getCoursesApi.useQuery();
 
-	const { verifyCourse } = useVerifyCourse();
 	const { unverifyCourse } = useUnverifyCourse();
-	const { unflagCourse } = useUnflagCourse();
 	const { deleteCourse } = useDeleteCourse();
-
-	const handleVerify = async (courseId: number) => {
-		await verifyCourse(courseId);
-	};
 
 	const handleUnverify = async (courseId: number) => {
 		await unverifyCourse(courseId);
-	};
-
-	const handleUnflag = async (courseId: number) => {
-		await unflagCourse(courseId);
 	};
 
 	const handleDelete = async (courseId: number) => {
@@ -62,16 +52,10 @@ export default function FlaggedCoursesList() {
 						Delete Course
 					</Button>
 					<Button
-						className="text-blue-500"
-						onClick={() => handleUnflag(record.id)}
+						className="text-yellow-500"
+						onClick={() => handleUnverify(record.id)}
 					>
-						Unflag
-					</Button>
-					<Button
-						className="text-green-500"
-						onClick={() => handleVerify(record.id)}
-					>
-						Verify Course
+						Unverify Course
 					</Button>
 				</div>
 			),
@@ -80,9 +64,8 @@ export default function FlaggedCoursesList() {
 	return (
 		<div className="container">
 			<p className="text-gray-500">
-				Flagged courses are courses that have been reported by users.
-				Coordinators should review these courses and determine whether they
-				should be deleted or unflagged.
+				Verified courses are courses that have been verified by coordinators.
+				You can unverify a course if it is not up to date or accurate.
 			</p>
 			<Table
 				size={"small"}

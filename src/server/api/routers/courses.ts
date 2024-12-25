@@ -34,6 +34,40 @@ export const coursesRouter = createTRPCRouter({
 		return courses;
 	}),
 
+	getVerifiedList: adminProcedure.query(async ({ ctx }) => {
+		const courses = await ctx.db.course.findMany({
+			where: {
+				verified: true,
+			},
+			include: {
+				university: {
+					select: {
+						name: true,
+					},
+				},
+			},
+		});
+
+		return courses;
+	}),
+
+	getUnverifiedList: adminProcedure.query(async ({ ctx }) => {
+		const courses = await ctx.db.course.findMany({
+			where: {
+				verified: false,
+			},
+			include: {
+				university: {
+					select: {
+						name: true,
+					},
+				},
+			},
+		});
+
+		return courses;
+	}),
+
 	getCourses: protectedProcedure
 		.input(z.object({ id: z.number() }))
 		.query(async ({ input, ctx }) => {
@@ -75,20 +109,60 @@ export const coursesRouter = createTRPCRouter({
 			return course;
 		}),
 
-	getStudent: protectedProcedure
-		.input(z.object({ id: z.string() }))
-		.query(async ({ input, ctx }) => {
-			const user = await ctx.db.user.findUnique({
+	unflagCourse: adminProcedure
+		.input(z.object({ id: z.number() }))
+		.mutation(async ({ input, ctx }) => {
+			const course = await ctx.db.course.update({
+				where: {
+					id: input.id,
+				},
+				data: {
+					flagged: false,
+				},
+			});
+			return course;
+		}),
+
+	// input: the course id, verifies a course
+	verifyCourse: adminProcedure
+		.input(z.object({ id: z.number() }))
+		.mutation(async ({ input, ctx }) => {
+			const course = await ctx.db.course.update({
+				where: {
+					id: input.id,
+				},
+				data: {
+					verified: true,
+					flagged: false,
+				},
+			});
+			return course;
+		}),
+
+	// input: the course id, unverifies a course
+	unverifyCourse: adminProcedure
+		.input(z.object({ id: z.number() }))
+		.mutation(async ({ input, ctx }) => {
+			const course = await ctx.db.course.update({
+				where: {
+					id: input.id,
+				},
+				data: {
+					verified: false,
+				},
+			});
+			return course;
+		}),
+
+	// input: the course id, deletes a course
+	deleteCourse: adminProcedure
+		.input(z.object({ id: z.number() }))
+		.mutation(async ({ input, ctx }) => {
+			const course = await ctx.db.course.delete({
 				where: {
 					id: input.id,
 				},
 			});
-			return user;
+			return course;
 		}),
-
-	getSecretMessage: protectedProcedure.query(async ({ ctx }) => {
-		const text =
-			ctx.session.user.role === "ADMIN" ? "Hello admin!" : "Hello student!";
-		return text;
-	}),
 });

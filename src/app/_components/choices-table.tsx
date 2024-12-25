@@ -9,6 +9,7 @@ import {
 	Spin,
 	Table,
 	Tag,
+	Tooltip,
 } from "antd";
 import {
 	DndContext,
@@ -21,7 +22,7 @@ import { useEffect, useRef, useState } from "react";
 import { getCourseNameById, useCombinedRefs } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { useRouter, usePathname } from "next/navigation";
-import { Cross, FlagIcon, Trash } from "lucide-react";
+import { Cross, FlagIcon, FlagOff, Trash, Verified } from "lucide-react";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import dayjs from "dayjs";
 import CommentSection from "@/app/_components/comment-section";
@@ -84,9 +85,14 @@ export default function ChoicesTable({
 			await utils.courses.invalidate();
 		},
 	});
-	const abroadCoursesQuery = api.courses.getCourses.useQuery({
-		id: application.data?.abroadUniversityId || 0,
-	});
+	const abroadCoursesQuery = api.courses.getCourses.useQuery(
+		{
+			id: application.data?.abroadUniversityId || 0,
+		},
+		{
+			refetchInterval: 10000,
+		},
+	);
 	const [sidebarHeight, setSidebarHeight] = useState("auto"); // Sidebar height state
 	const tableRef = useRef(null); // Reference to the table
 	const [activeId, setActiveId] = useState(null);
@@ -156,6 +162,16 @@ export default function ChoicesTable({
 							removeChoices(record.id, choiceType);
 						}}
 						universityId={application.data?.abroadUniversityId}
+						flagged={
+							abroadCourses.find(
+								(course) => course.id === choices[record.id]?.[choiceType],
+							)?.flagged
+						}
+						verified={
+							abroadCourses.find(
+								(course) => course.id === choices[record.id]?.[choiceType],
+							)?.verified
+						}
 					/>
 				);
 			},
@@ -598,8 +614,9 @@ export default function ChoicesTable({
 										title={course.name}
 										university={course.university.name}
 										flagged={course.flagged}
+										verified={course.verified}
 									/>
-									{course.flagged === false && (
+									{course.flagged === false && !course.verified && (
 										<Popconfirm
 											title="Are you sure to flag this course?"
 											description={
@@ -667,6 +684,15 @@ const ChoiceSlot = ({
 	onRemove,
 	universityId,
 	flagged,
+	verified,
+}: {
+	id: string;
+	choice: number;
+	onDrop: (courseId: number) => void;
+	onRemove: () => void;
+	universityId: number;
+	flagged?: boolean;
+	verified?: boolean;
 }) => {
 	const { isOver, setNodeRef: setDroppableRef } = useDroppable({ id });
 
@@ -690,16 +716,18 @@ const ChoiceSlot = ({
 	return (
 		<>
 			{choice && (
-				<Cross1Icon
-					color="white"
-					className="absolute right-0 top-0 cursor-pointer bg-red-500 hover:bg-red-700"
-					onClick={onRemove}
-				/>
+				<Tooltip title="Remove choice">
+					<Cross1Icon
+						color="black"
+						className="absolute right-0 top-0 cursor-pointer hover:scale-110"
+						onClick={onRemove}
+					/>
+				</Tooltip>
 			)}
 			<div
 				ref={combinedRef}
 				style={isDraggable ? draggableStyle : undefined}
-				className={`flex h-full w-full items-center justify-between gap-2 border-dashed p-1 ${
+				className={`flex h-full w-full items-center gap-2 border-dashed p-1 ${
 					isOver ? "border-green-500" : "border-gray-300"
 				} ${!choice || (choice && isOver) ? "border-2" : ""}`}
 				{...draggableAttributes}
@@ -708,11 +736,16 @@ const ChoiceSlot = ({
 					{getCourseNameById(choice, universityId) || "No choice"}
 					{isOver ? " (Drop here)" : ""}
 				</p>
-				{flagged && (
+				{flagged && !verified && (
 					<FlagIcon
 						size={16}
-						fill="#ef4444"
-						className="w-fit cursor-pointer text-red-500"
+						className="w-fit cursor-pointer fill-red-500 text-red-500"
+					/>
+				)}
+				{verified && (
+					<Verified
+						size={16}
+						className="w-fit cursor-pointer fill-green-300 text-green-500"
 					/>
 				)}
 			</div>
@@ -721,7 +754,19 @@ const ChoiceSlot = ({
 };
 
 // Draggable course box
-const DraggableCourse = ({ id, title, university, flagged }) => {
+const DraggableCourse = ({
+	id,
+	title,
+	university,
+	flagged,
+	verified,
+}: {
+	id: number;
+	title: string;
+	university: string;
+	flagged: boolean;
+	verified: boolean;
+}) => {
 	const { attributes, listeners, setNodeRef, transform } = useDraggable({
 		id,
 	});
@@ -738,14 +783,53 @@ const DraggableCourse = ({ id, title, university, flagged }) => {
 			{...attributes}
 			className="w-full flex-1 cursor-pointer bg-gray-200 p-3 hover:bg-blue-100"
 		>
-			<h2 className="text-md font-semibold">{title}</h2>
+			<div className="flex items-center gap-2">
+				<h2 className="text-md font-semibold">{title}</h2>
+				{flagged && !verified && (
+					<Tooltip
+						title={
+							<div>
+								<p className="font-semibold">Flagged</p>
+								<ul className="list-inside list-disc">
+									<li className="text-xs">
+										This course has been flagged by a student.
+									</li>
+									<li className="text-xs">
+										It could be an outdated course or a mistake.
+									</li>
+								</ul>
+							</div>
+						}
+					>
+						<div className="text-xs text-red-500">
+							<FlagIcon className="fill-red-500 text-red-600" size={16} />
+						</div>
+					</Tooltip>
+				)}
+				{verified && (
+					<Tooltip
+						title={
+							<div>
+								<p className="font-semibold">Verified</p>
+								<ul className="list-inside list-disc">
+									<li className="text-xs">
+										This course has been verified by a coordinator.
+									</li>
+									<li className="text-xs">It is up to date and accurate.</li>
+								</ul>
+							</div>
+						}
+					>
+						<span className="inline-block whitespace-nowrap text-xs text-green-500">
+							<Verified
+								className="fill-green-300 text-green-500 hover:scale-110"
+								size={16}
+							/>
+						</span>
+					</Tooltip>
+				)}
+			</div>
 			<p>{university}</p>
-			{flagged && (
-				<div className="text-xs text-red-500">
-					<p>This course has been flagged.</p>{" "}
-					<p>It might be unrelated to the university.</p>
-				</div>
-			)}
 		</div>
 	);
 };

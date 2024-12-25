@@ -1,32 +1,17 @@
 "use client";
-import {
-	useDeleteCourse,
-	useUnflagCourse,
-	useUnverifyCourse,
-	useVerifyCourse,
-} from "@/hooks/useCourses";
+import { useDeleteCourse } from "@/hooks/useCourses";
+import { useVerifyCourse } from "@/hooks/useCourses";
 import { api } from "@/trpc/react";
 import { Button, Table } from "antd";
 
-export default function FlaggedCoursesList() {
-	const getCoursesApi = api.courses.getFlaggedList;
+export default function UnverifiedCoursesList() {
+	const getCoursesApi = api.courses.getUnverifiedList;
 	const { data, error } = getCoursesApi.useQuery();
-
-	const { verifyCourse } = useVerifyCourse();
-	const { unverifyCourse } = useUnverifyCourse();
-	const { unflagCourse } = useUnflagCourse();
+	const { verifyCourse, isLoading } = useVerifyCourse();
 	const { deleteCourse } = useDeleteCourse();
 
 	const handleVerify = async (courseId: number) => {
 		await verifyCourse(courseId);
-	};
-
-	const handleUnverify = async (courseId: number) => {
-		await unverifyCourse(courseId);
-	};
-
-	const handleUnflag = async (courseId: number) => {
-		await unflagCourse(courseId);
 	};
 
 	const handleDelete = async (courseId: number) => {
@@ -54,22 +39,18 @@ export default function FlaggedCoursesList() {
 			dataIndex: "",
 			key: "",
 			render: (_, record) => (
-				<div className="grid grid-cols-3 gap-2">
+				<div className="grid grid-cols-2 gap-2">
 					<Button
 						className="text-red-500"
 						onClick={() => handleDelete(record.id)}
 					>
-						Delete Course
-					</Button>
-					<Button
-						className="text-blue-500"
-						onClick={() => handleUnflag(record.id)}
-					>
-						Unflag
+						Delete
 					</Button>
 					<Button
 						className="text-green-500"
-						onClick={() => handleVerify(record.id)}
+						onClick={() => {
+							handleVerify(record.id);
+						}}
 					>
 						Verify Course
 					</Button>
@@ -80,14 +61,14 @@ export default function FlaggedCoursesList() {
 	return (
 		<div className="container">
 			<p className="text-gray-500">
-				Flagged courses are courses that have been reported by users.
-				Coordinators should review these courses and determine whether they
-				should be deleted or unflagged.
+				Unverified courses are courses that have been created by students but
+				have not been verified by coordinators. Coordinators can review these
+				courses if it is up to date and accurate.
 			</p>
 			<Table
-				size={"small"}
 				dataSource={data}
 				columns={columns}
+				size="small"
 				rowKey="id"
 				pagination={{
 					hideOnSinglePage: true,
