@@ -36,10 +36,15 @@ export default function CommentForm({
 		onSubmit(data);
 	};
 
+	const placeholder = replyTo
+		? "Reply to this comment..."
+		: "Write a comment...";
+	const buttonLabel = replyTo ? "Reply" : "Comment";
+
 	return (
 		<form
 			onSubmit={handleSubmit(handleFormSubmit)}
-			className="m-2 flex w-full flex-col items-center gap-2"
+			className="m-2 flex flex-col items-center gap-2"
 		>
 			<Controller
 				name="message"
@@ -50,13 +55,13 @@ export default function CommentForm({
 						{...field}
 						className="w-full border-2 border-gray-300 p-2"
 						autoSize
-						placeholder="Write your reply here..."
+						placeholder={placeholder}
 					/>
 				)}
 			/>
 			<div className="flex w-full gap-2">
 				<Button type="primary" htmlType="submit">
-					Send
+					{buttonLabel}
 				</Button>
 				<Button type="default" onClick={onCancel}>
 					Cancel

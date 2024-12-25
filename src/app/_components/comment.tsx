@@ -42,6 +42,8 @@ const Comment = ({
 	onCancel,
 	padding,
 	userId,
+	showSenderInfo = true,
+	lastComment,
 }: {
 	message: Message;
 	parent?: string | null;
@@ -54,8 +56,16 @@ const Comment = ({
 	onCancel?: any;
 	padding?: any;
 	userId?: any;
+	showSenderInfo?: boolean;
+	lastComment?: boolean;
 }) => {
 	const [hidden, setHidden] = useState(true);
+	const [hover, setHover] = useState(false);
+
+	const onHover = () => {
+		setHover(true);
+	};
+
 	// Function to generate a hash from a string
 	const generateHash = (input: string) => {
 		return crypto.createHash("md5").update(input).digest("hex");
@@ -71,12 +81,18 @@ const Comment = ({
 		const hash = generateHash(`${sender}-${timestamp}`);
 		return hashToColor(hash);
 	};
+
+	let previousSenderId: number = -1;
+	let previousCreatedAt: string = "";
+
 	return (
 		<>
 			<div
 				key={message.id}
 				onClick={() => setHidden(!hidden)}
-				className={`relative mt-2 flex w-full flex-col p-2 ${parent == null ? "" : ""}`}
+				onMouseEnter={() => onHover()}
+				onMouseLeave={() => setHover(false)}
+				className={`relative flex w-full flex-col pl-2 ${!showSenderInfo ? "" : "mt-2 py-1"} hover:bg-gray-100 ${parent == null ? "" : ""}`}
 				style={
 					parent !== null
 						? {
@@ -92,115 +108,137 @@ const Comment = ({
 							}
 				}
 			>
-				<div className="flex items-center gap-2">
-					<Avatar
-						style={{
-							backgroundColor: generateRandomColor(
-								message.sender.name,
-								message.sender.name,
-							),
-						}}
-					>
-						{message.sender.name?.charAt(0).toUpperCase()}
-					</Avatar>
-					<p className="font-semibold">
-						{message.sender.name}{" "}
-						<span className="font-medium text-red-500">
-							{message.sender.id === userId && "(You)"}
-						</span>
-					</p>
-					<div className="flex items-center">
-						<Tag
-							color={message.sender.role === "STUDENT" ? "blue" : "red"}
-							className="capitalize"
-						>
-							{message.sender.role === "ADMIN" ? "Coordinator" : "Student"}
-						</Tag>
-						{message.sender.role === "STUDENT" && (
-							<Tag color="blue">{message.sender.guid}</Tag>
-						)}
-					</div>
-					<div className="flex items-center gap-1">
-						{message.replies?.length > 0 && (
-							<div className="flex justify-end">
-								<button
-									onClick={() => setHidden(!hidden)}
-									className="text-blue-500 hover:scale-110 hover:underline"
-								>
-									{hidden ? (
-										<CirclePlus size="16" />
-									) : (
-										<CircleMinus size="16" />
+				<div className="flex items-center justify-end gap-2">
+					{showSenderInfo && (
+						<>
+							<Avatar
+								style={{
+									backgroundColor: generateRandomColor(
+										message.sender.name,
+										message.sender.name,
+									),
+								}}
+							>
+								{message.sender.name?.charAt(0).toUpperCase()}
+							</Avatar>
+							<div className="flex flex-1 flex-col">
+								<div className="flex items-center gap-2">
+									<p className="font-semibold">{message.sender.name}</p>
+									<Tooltip
+										placement="top"
+										title={dayjs(message.createdAt).format(
+											"YYYY-MM-DD HH:mm:ss",
+										)}
+									>
+										<p className="w-fit cursor-pointer text-xs text-gray-400">
+											{dayjs(message.createdAt).fromNow()}
+										</p>
+									</Tooltip>
+								</div>
+								<div className="flex items-center gap-1 text-xs text-gray-400">
+									<span>
+										{message.sender.role === "ADMIN"
+											? "Coordinator"
+											: "Student"}
+									</span>
+									{message.sender.role === "STUDENT" && (
+										<span>• {message.sender.guid}</span>
 									)}
-								</button>
+								</div>
 							</div>
-						)}
-						{message.sender.id === userId && (
-							<div className="flex justify-end">
-								<button
-									onClick={() => onDelete?.(message.id)}
-									className="text-red-500 hover:scale-110 hover:underline"
+						</>
+					)}
+					<div className="flex items-center gap-1 pr-2">
+						{message.sender.id === userId && hover && (
+							<Tooltip title="Delete" placement="top">
+								<div
+									className={`flex justify-end ${!showSenderInfo ? "absolute bottom-0 right-2 top-0 z-20 my-auto" : ""}`}
 								>
-									<Trash size={"16"} />
-								</button>
-							</div>
+									<button
+										onClick={() => onDelete?.(message.id)}
+										className="text-red-500 hover:scale-110 hover:underline"
+									>
+										<Trash size={"16"} />
+									</button>
+								</div>
+							</Tooltip>
 						)}
 					</div>
 				</div>
-				<div className="p-2 pb-0">{message.content}</div>
-				<Tooltip title={dayjs(message.createdAt).format("YYYY-MM-DD HH:mm:ss")}>
-					<p className="ml-2 cursor-pointer text-xs text-gray-400">
-						{dayjs(message.createdAt).fromNow()}
-					</p>
-				</Tooltip>
-				{replyUnder === message.id && (
-					<>
+
+				<div className="relative flex items-center gap-1">
+					{!showSenderInfo && hover && (
+						<div className="absolute mt-2 flex items-center gap-2">
+							<p className="w-fit cursor-pointer text-xs text-gray-400">
+								{dayjs(message.createdAt).format("HH:mm")}
+							</p>
+						</div>
+					)}
+					<div
+						className="pl-10"
+						style={showSenderInfo ? { marginTop: "0.5rem" } : {}}
+					>
+						{message.content}
+					</div>
+				</div>
+				{((lastComment && replyTo == message.parentId) ||
+					(!lastComment &&
+						replyTo === message.id &&
+						message.replies.length === 0)) && (
+					<div className="ml-8">
 						<CommentForm
 							onSubmit={onSubmit}
 							onSend={onReply}
 							onCancel={onCancel}
+							replyTo={replyTo}
 						/>
-					</>
+					</div>
 				)}
-				{replying === false &&
-					message.replies?.length === 0 &&
-					replyTo !== message.id &&
-					message.parentId == null && (
-						<div className="ml-2 flex">
+				{((lastComment && replying === false && replyTo !== message.parentId) ||
+					(!lastComment &&
+						replying === false &&
+						message.replies?.length === 0 &&
+						replyTo !== message.id &&
+						message.parentId == null)) && (
+					<div className="ml-10 mt-2 flex">
+						<Button
+							size="small"
+							onClick={() => {
+								if (!lastComment) {
+									onReply?.(message.id, message.id);
+								} else {
+									onReply?.(message.parentId, message.parentId);
+								}
+							}}
+							className="flex items-center gap-1 text-xs text-blue-500"
+						>
+							<MessageCircle
+								className="hover:fill-blue-700"
+								fill={"#3b82f6"}
+								size={16}
+							/>
+							<span>Reply</span>
+						</Button>
+					</div>
+				)}
+				{message.replies?.length > 0 && (
+					<Tooltip title="Show replies" placement="top">
+						<div className="absolute -bottom-1 -left-[0.7rem] flex justify-end">
 							<button
-								onClick={() => onReply?.(message.id, message.id)}
-								className="flex items-center gap-1 text-xs text-blue-500 hover:underline"
+								onClick={() => setHidden(!hidden)}
+								className="text-blue-500 hover:scale-110 hover:underline"
 							>
-								<MessageCircle
-									className="hover:fill-blue-700"
-									fill={"#3b82f6"}
-									size={16}
-								/>
-								<span>Reply</span>
+								{hidden ? (
+									<CirclePlus fill="white" size="20" />
+								) : (
+									<CircleMinus fill="white" size="20" />
+								)}
 							</button>
 						</div>
-					)}
+					</Tooltip>
+				)}
 			</div>
-			{message.replies?.length > 0 && hidden && (
-				<Tooltip title="Show replies" placement="left">
-					<div
-						className="flex w-full cursor-pointer items-start gap-2 bg-slate-50 p-2"
-						onClick={() => setHidden(!hidden)}
-						style={
-							parent !== null
-								? {
-										borderLeft: `4px solid ${generateRandomColor(parent, parent)}`,
-										marginLeft: padding * 2,
-									}
-								: {}
-						}
-					>
-						<p className="text-gray-400">
-							{message.replies?.length} Replies hidden
-						</p>
-					</div>
-				</Tooltip>
-			)}
+
 			{/** If last message */}
 
 			{message.replies?.length > 0 && !hidden && (
@@ -211,41 +249,36 @@ const Comment = ({
 								new Date(a.createdAt).getTime() -
 								new Date(b.createdAt).getTime(),
 						)
-						.map((reply) => (
-							<Comment
-								key={reply.id}
-								message={reply}
-								parent={message.createdAt}
-								onReply={onReply}
-								replyUnder={replyUnder}
-								replyTo={replyTo}
-								onSubmit={onSubmit}
-								userId={userId}
-								onCancel={onCancel}
-								padding={padding + 1}
-								onDelete={(id: number) => {
-									onDelete(id);
-								}}
-							/>
-						))}
-					<div className="ml-4 flex">
-						<button
-							onClick={() =>
-								onReply?.(
-									message.id,
-									message.replies[message.replies.length - 1]?.id,
-								)
-							}
-							className="flex items-center gap-1 text-xs text-blue-500 hover:underline"
-						>
-							<MessageCircle
-								className="hover:fill-blue-700"
-								fill={"#3b82f6"}
-								size={16}
-							/>
-							<span>Reply</span>
-						</button>
-					</div>
+						.map((reply) => {
+							const showSenderInfo =
+								reply.sender.id !== previousSenderId ||
+								!dayjs(reply.createdAt).isSame(previousCreatedAt, "day");
+							previousSenderId = reply.sender.id;
+							previousCreatedAt = reply.createdAt;
+
+							return (
+								<Comment
+									key={reply.id}
+									message={reply}
+									parent={message.createdAt}
+									onReply={onReply}
+									replyUnder={lastComment ? reply.id : -1}
+									replyTo={replyTo}
+									onSubmit={onSubmit}
+									userId={userId}
+									onCancel={onCancel}
+									padding={padding + 1}
+									onDelete={(id: number) => {
+										onDelete(id);
+									}}
+									// if this reply last comment
+									lastComment={
+										reply.id === message.replies[message.replies.length - 1]?.id
+									}
+									showSenderInfo={showSenderInfo}
+								/>
+							);
+						})}
 				</div>
 			)}
 		</>
