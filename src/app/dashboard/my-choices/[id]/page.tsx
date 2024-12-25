@@ -1,4 +1,4 @@
-import ChoicesTable from "@/app/_components/choices-table";
+import ChoicesTable from "@/app/_components/choices-table/choices-table";
 import { api } from "@/trpc/server";
 import { redirect } from "next/navigation";
 

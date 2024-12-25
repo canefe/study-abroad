@@ -1,4 +1,5 @@
 "use client";
+import VerifiedBadge from "@/app/_components/choices-table/verified-badge";
 import {
 	useDeleteCourse,
 	useUnflagCourse,
@@ -7,6 +8,7 @@ import {
 } from "@/hooks/useCourses";
 import { api } from "@/trpc/react";
 import { Button, Table } from "antd";
+import { FlagIcon, FlagOffIcon, Trash } from "lucide-react";
 
 export default function FlaggedCoursesList() {
 	const getCoursesApi = api.courses.getFlaggedList;
@@ -58,20 +60,35 @@ export default function FlaggedCoursesList() {
 					<Button
 						className="text-red-500"
 						onClick={() => handleDelete(record.id)}
+						icon={
+							<Trash
+								size={16}
+								fill="#ef4444"
+								className="w-fit cursor-pointer text-red-500 hover:text-red-700"
+							/>
+						}
 					>
-						Delete Course
+						Delete
 					</Button>
 					<Button
 						className="text-blue-500"
 						onClick={() => handleUnflag(record.id)}
+						icon={
+							<FlagOffIcon
+								size={16}
+								fill="#ef4444"
+								className="w-fit cursor-pointer text-red-500 hover:text-red-700"
+							/>
+						}
 					>
 						Unflag
 					</Button>
 					<Button
 						className="text-green-500"
 						onClick={() => handleVerify(record.id)}
+						icon={<VerifiedBadge />}
 					>
-						Verify Course
+						Verify
 					</Button>
 				</div>
 			),

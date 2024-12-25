@@ -26,7 +26,8 @@ import { Cross, FlagIcon, FlagOff, Trash, Verified } from "lucide-react";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import dayjs from "dayjs";
 import CommentSection from "@/app/_components/comment-section";
-import MobileChoicesTable from "./mobile-choices-table";
+import MobileChoicesTable from "../mobile-choices-table";
+import VerifiedBadge from "./verified-badge";
 
 export default function ChoicesTable({
 	applicationId,
@@ -742,12 +743,7 @@ const ChoiceSlot = ({
 						className="w-fit cursor-pointer fill-red-500 text-red-500"
 					/>
 				)}
-				{verified && (
-					<Verified
-						size={16}
-						className="w-fit cursor-pointer fill-green-300 text-green-500"
-					/>
-				)}
+				{verified && <VerifiedBadge />}
 			</div>
 		</>
 	);
@@ -806,28 +802,7 @@ const DraggableCourse = ({
 						</div>
 					</Tooltip>
 				)}
-				{verified && (
-					<Tooltip
-						title={
-							<div>
-								<p className="font-semibold">Verified</p>
-								<ul className="list-inside list-disc">
-									<li className="text-xs">
-										This course has been verified by a coordinator.
-									</li>
-									<li className="text-xs">It is up to date and accurate.</li>
-								</ul>
-							</div>
-						}
-					>
-						<span className="inline-block whitespace-nowrap text-xs text-green-500">
-							<Verified
-								className="fill-green-300 text-green-500 hover:scale-110"
-								size={16}
-							/>
-						</span>
-					</Tooltip>
-				)}
+				{verified && <VerifiedBadge />}
 			</div>
 			<p>{university}</p>
 		</div>

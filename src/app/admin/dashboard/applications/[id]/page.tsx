@@ -1,4 +1,4 @@
-import ChoicesTable from "@/app/_components/choices-table";
+import ChoicesTable from "@/app/_components/choices-table/choices-table";
 
 export default async function Page({
 	params,

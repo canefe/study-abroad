@@ -1,5 +1,4 @@
 "use client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -8,18 +7,31 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { generateRandomColor } from "@/lib/randomUtils";
+import { api } from "@/trpc/react";
+import { Avatar } from "antd";
 import { useRouter } from "next/navigation";
 
 export default function UserAvatar() {
 	// next-navigation redirect
 	const router = useRouter();
+	const meApi = api.students.me.useQuery();
+	const me = meApi.data;
 
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger>
-				<Avatar className="border-2 border-black">
-					<AvatarImage src="https://github.com/shadcn.png" />
-					<AvatarFallback>CN</AvatarFallback>
+				<Avatar
+					size={32}
+					className="border-2 text-base"
+					style={{
+						backgroundColor: generateRandomColor(
+							me?.name || "black",
+							me?.name || "black",
+						),
+					}}
+				>
+					{me?.name?.charAt(0).toUpperCase()}
 				</Avatar>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent>

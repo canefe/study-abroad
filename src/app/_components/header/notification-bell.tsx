@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 import toast from "react-hot-toast";
 import { motion, useAnimation } from "framer-motion";
 import { parseNotificationMessage } from "@/lib/notificationUtils";
+import { generateRandomColor } from "@/lib/randomUtils";
 var relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
 
@@ -50,7 +51,7 @@ export default function NotificationBell() {
 					newNotifications.forEach((n) => {
 						toast((t) => (
 							<div className="flex flex-col items-center gap-2 p-2">
-								<div>{parseNotificationMessage(n.message)}</div>
+								<div>{parseNotificationMessage(n)}</div>
 								<span className="text-xs text-gray-500">
 									{dayjs(n.createdAt).fromNow()}
 								</span>
@@ -121,10 +122,20 @@ export default function NotificationBell() {
 						className="border-b border-t bg-slate-100 p-2 hover:bg-slate-200"
 						key={n.id}
 					>
-						<div className="flex gap-2">
-							<Avatar>B</Avatar>
-							<div>
-								{parseNotificationMessage(n.message)}
+						<div className="flex w-full gap-2">
+							<Avatar
+								style={{
+									backgroundColor: n.sender?.name
+										? generateRandomColor(n.sender.name, n.sender.name)
+										: "gray",
+									minWidth: 36,
+									minHeight: 36,
+								}}
+							>
+								{n.sender?.name?.charAt(0).toUpperCase() || "!"}
+							</Avatar>
+							<div className="text-sm">
+								{parseNotificationMessage(n)}
 								<div className="flex items-center justify-between gap-2">
 									<div className="text-xs text-gray-500">
 										{dayjs(n.createdAt).fromNow()}
@@ -158,39 +169,43 @@ export default function NotificationBell() {
 
 	return (
 		<Popover
-			style={{ width: 500 }}
-			overlayInnerStyle={{ padding: 0 }}
+			style={{ width: 100 }}
+			overlayInnerStyle={{
+				padding: 0,
+				maxWidth: 350,
+				maxHeight: 475,
+			}}
 			content={content}
 			title=""
+			placement={"left"}
 			trigger="hover"
 			open={hovered}
 			onOpenChange={handleHoverChange}
 		>
 			<Popover
-				content={
-					<div>
-						{content}
-						<a onClick={hide}>Close</a>
-					</div>
-				}
+				content={<div>{content}</div>}
 				style={{
-					width: 500,
+					width: 100,
 					padding: 0,
+					marginTop: 10,
 				}}
 				overlayInnerStyle={{
 					padding: 0,
+					width: 375,
+					height: 575,
 				}}
+				placement={"left"}
 				title=""
 				trigger="click"
 				open={clicked}
 				onOpenChange={handleClickChange}
 			>
-				<motion.div animate={controls}>
+				<motion.div animate={controls} className="h-6 w-6">
 					<Badge
 						count={unreadNotifications?.length ?? 0}
 						className="cursor-pointer duration-150 hover:scale-110"
 					>
-						<Bell size={24} />
+						<Bell size={24} fill={clicked ? "black" : "white"} />
 					</Badge>
 				</motion.div>
 			</Popover>

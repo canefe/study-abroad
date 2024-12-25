@@ -14,6 +14,13 @@ export const notificationsRouter = createTRPCRouter({
 			where: {
 				userId: session?.user.id,
 			},
+			include: {
+				sender: {
+					select: {
+						name: true,
+					},
+				},
+			},
 		});
 		return notifications;
 	}),

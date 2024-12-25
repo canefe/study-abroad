@@ -13,8 +13,10 @@ export default function Header() {
 				<div className="w-full flex-1">
 					<Breadcrumbs />
 				</div>
-				<div className="mb-3 flex items-center gap-4">
-					<NotificationBell />
+				<div className="mb-3 flex h-6 items-center gap-2">
+					<div className="flex h-10 w-10 items-center justify-center">
+						<NotificationBell />
+					</div>
 					<UserAvatar />
 				</div>
 			</div>
