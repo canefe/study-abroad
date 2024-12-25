@@ -48,21 +48,14 @@ export default function NotificationBell() {
 				console.log(cachedNotifications);
 				if (newNotifications) {
 					newNotifications.forEach((n) => {
-						toast.custom(
-							(t) => (
-								<div className="flex items-center gap-2 bg-slate-100 p-2">
-									<div>{parseNotificationMessage(n.message)}</div>
-									<div>{dayjs(n.createdAt).fromNow()}</div>
-								</div>
-							),
-							{
-								duration: 5000,
-								icon: <Bell size={24} />,
-								style: {
-									color: "black",
-								},
-							},
-						);
+						toast((t) => (
+							<div className="flex flex-col items-center gap-2 p-2">
+								<div>{parseNotificationMessage(n.message)}</div>
+								<span className="text-xs text-gray-500">
+									{dayjs(n.createdAt).fromNow()}
+								</span>
+							</div>
+						));
 					});
 				}
 			}
