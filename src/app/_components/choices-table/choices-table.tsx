@@ -115,7 +115,6 @@ export default function ChoicesTable({
 	const [choices, setChoices] = useState({}); // Tracks the selected choices for each home course
 	const [initialEffectRun, setInitialEffectRun] = useState(false); // this is to fix unsaved changes going away on application data refreshes
 	const abroadCourses = abroadCoursesQuery.data || [];
-	console.log(abroadCourses);
 	// Prepare the table data
 
 	const dataSource =
@@ -607,6 +606,12 @@ export default function ChoicesTable({
 						style={{ height: sidebarHeight }}
 					>
 						<div className="grid grid-cols-1 gap-4">
+							{availableAbroadCourses.length === 0 && (
+								<p className="w-[250px] text-gray-500">
+									No courses available. You have selected all courses. You can
+									add a new course.
+								</p>
+							)}
 							{availableAbroadCourses.map((course) => (
 								<div className="flex items-center gap-2">
 									<DraggableCourse
@@ -728,7 +733,7 @@ const ChoiceSlot = ({
 			<div
 				ref={combinedRef}
 				style={isDraggable ? draggableStyle : undefined}
-				className={`flex h-full w-full items-center gap-2 border-dashed p-1 ${
+				className={`flex h-full w-full items-center justify-start gap-2 border-dashed p-1 ${
 					isOver ? "border-green-500" : "border-gray-300"
 				} ${!choice || (choice && isOver) ? "border-2" : ""}`}
 				{...draggableAttributes}
