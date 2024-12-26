@@ -25,8 +25,7 @@ export default async function DashboardLayout({
 		<>
 			<SidebarProvider>
 				<AppSidebar />
-				<SidebarTrigger />
-				<main className="flex w-full flex-col items-center px-6 py-6">
+				<main className="flex w-full flex-col items-center px-4 py-6">
 					<Header />
 					<div className="mt-4 flex w-full items-center justify-center">
 						<div className="container">{children}</div>
