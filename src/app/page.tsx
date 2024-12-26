@@ -37,7 +37,7 @@ export default async function Home() {
 							<p className="text-center text-2xl text-white">
 								{session && (
 									<span>
-										Logged in as {session.user?.name} {session.user?.role}
+										Logged in as {session?.user?.name} {session?.user?.role}
 									</span>
 								)}
 							</p>

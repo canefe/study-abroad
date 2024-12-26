@@ -45,21 +45,21 @@ const items = [
 	},
 	{
 		title: "Students",
-		url: "/admin/dashboard/students",
+		url: "/admin/students",
 		icon: User,
 		role: "admin",
 		category: "Students",
 	},
 	{
 		title: "Verified Courses",
-		url: "/admin/dashboard/courses/verified",
+		url: "/admin/courses/verified",
 		icon: Verified,
 		role: "admin",
 		category: "Courses",
 	},
 	{
 		title: "Flagged Courses",
-		url: "/admin/dashboard/courses/flagged",
+		url: "/admin/courses/flagged",
 		icon: Flag,
 		role: "admin",
 		suffix: (
@@ -71,7 +71,7 @@ const items = [
 	},
 	{
 		title: "Unverified Courses",
-		url: "/admin/dashboard/courses/unverified",
+		url: "/admin/courses/unverified",
 		icon: ShieldQuestion,
 		role: "admin",
 		category: "Courses",

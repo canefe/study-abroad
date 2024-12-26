@@ -86,10 +86,21 @@ export default function Dashboard() {
 			return;
 		}
 
+		if (!universities) {
+			toast.error("Universities data is not available");
+			return;
+		}
+
+		const selectedUniversity = universities.find(
+			(university) => university.name === selectedUni,
+		);
+		if (!selectedUniversity) {
+			toast.error("Selected university not found");
+			return;
+		}
+
 		createChoicesApi.mutate({
-			abroadUniversityId: universities.find(
-				(university) => university.name === selectedUni,
-			).id,
+			abroadUniversityId: selectedUniversity.id,
 		});
 	}
 

@@ -21,10 +21,7 @@ export default function StudentList() {
 			dataIndex: "guid",
 			key: "guid",
 			render: (guid: string) => (
-				<Link
-					href={`/admin/dashboard/students/${guid}`}
-					className="text-blue-500"
-				>
+				<Link href={`/admin/students/${guid}`} className="text-blue-500">
 					{guid}
 				</Link>
 			),
@@ -39,7 +36,7 @@ export default function StudentList() {
 						<div key={application.id}>
 							{application.status === "SUBMITTED" ? (
 								<Link
-									href={`/admin/dashboard/applications/${application.id}`}
+									href={`/admin/applications/${application.id}`}
 									className="text-blue-500"
 								>
 									{application.abroadUniversity.name}

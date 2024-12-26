@@ -29,10 +29,7 @@ export const parseNotificationMessage = (n: Notification) => {
 			return (
 				<>
 					<b>{senderName}</b> sent a new message in{" "}
-					<Link
-						className="text-blue-500"
-						href={`/admin/dashboard/applications/${id}`}
-					>
+					<Link className="text-blue-500" href={`/admin/applications/${id}`}>
 						Application #{id}
 					</Link>
 				</>
