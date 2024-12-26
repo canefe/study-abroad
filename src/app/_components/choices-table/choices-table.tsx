@@ -28,6 +28,7 @@ import dayjs from "dayjs";
 import CommentSection from "@/app/_components/comment-section";
 import MobileChoicesTable from "../mobile-choices-table";
 import VerifiedBadge from "./verified-badge";
+import { shortenText } from "@/lib/textUtils";
 
 export default function ChoicesTable({
 	applicationId,
@@ -151,6 +152,7 @@ export default function ChoicesTable({
 				return (
 					<ChoiceSlot
 						id={`${record.id}-${choiceType}`}
+						key={`${record.id}-${choiceType}`}
 						choice={choices[record.id]?.[choiceType]}
 						onDrop={(courseId) => {
 							// check all choices to see if the course is already selected and remove it if it is
@@ -240,6 +242,7 @@ export default function ChoicesTable({
 		if (tableRef.current) {
 			const tableHeight = tableRef.current.offsetHeight;
 			setSidebarHeight(`${tableHeight}px`);
+			console.log("Sidebar height updated to", tableHeight);
 		}
 	};
 
@@ -436,7 +439,7 @@ export default function ChoicesTable({
 	return (
 		<DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
 			<div className="flex w-full flex-col items-center justify-between gap-2 md:flex-row">
-				<h2 className="rounded border p-3 text-xl font-medium">
+				<h2 className="text-xl font-medium">
 					{application.data?.abroadUniversity.name}
 				</h2>
 				<h2
@@ -602,10 +605,10 @@ export default function ChoicesTable({
 				{/* Sidebar for Available Courses */}
 				<div>
 					<div
-						className="relative !z-0 !h-fit w-full overflow-auto rounded bg-gray-50 p-3 md:h-auto"
+						className="relative !z-0 w-52 overflow-auto rounded bg-gray-50 p-3"
 						style={{ height: sidebarHeight }}
 					>
-						<div className="grid grid-cols-1 gap-4">
+						<div className="grid grid-cols-1 gap-2">
 							{availableAbroadCourses.length === 0 && (
 								<p className="w-[250px] text-gray-500">
 									No courses available. You have selected all courses. You can
@@ -738,8 +741,11 @@ const ChoiceSlot = ({
 				} ${!choice || (choice && isOver) ? "border-2" : ""}`}
 				{...draggableAttributes}
 			>
-				<p className={choice ? "font-regular" : "text-red-500"}>
-					{getCourseNameById(choice, universityId) || "No choice"}
+				<p
+					className={`min-w-32 text-wrap ${choice ? "font-regular" : "text-red-500"}`}
+				>
+					{shortenText(getCourseNameById(choice, universityId), 15) ||
+						"No choice"}
 					{isOver ? " (Drop here)" : ""}
 				</p>
 				{flagged && !verified && (
@@ -782,10 +788,11 @@ const DraggableCourse = ({
 			style={style}
 			{...listeners}
 			{...attributes}
+			key={id}
 			className="w-full flex-1 cursor-pointer bg-gray-200 p-3 hover:bg-blue-100"
 		>
 			<div className="flex items-center gap-2">
-				<h2 className="text-md font-semibold">{title}</h2>
+				<h2 className="text-sm font-semibold">{title}</h2>
 				{flagged && !verified && (
 					<Tooltip
 						title={
@@ -809,7 +816,6 @@ const DraggableCourse = ({
 				)}
 				{verified && <VerifiedBadge />}
 			</div>
-			<p>{university}</p>
 		</div>
 	);
 };
