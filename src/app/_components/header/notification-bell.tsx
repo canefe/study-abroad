@@ -1,7 +1,7 @@
 "use client";
 import { Bell, Trash } from "lucide-react";
 
-import { Avatar, Badge, Dropdown, Popover } from "antd";
+import { Avatar, Badge, Button, Dropdown, Popover } from "antd";
 import { api } from "@/trpc/react";
 import { useState, useEffect } from "react";
 import dayjs from "dayjs";
@@ -111,15 +111,15 @@ export default function NotificationBell() {
 	};
 
 	const content = (
-		<>
+		<div className="flex flex-col justify-between gap-2 p-2">
 			<span className="p-2 text-lg font-bold">Notifications</span>
-			<ul>
+			<ul className="h-full w-full flex-1">
 				{notifications?.length === 0 && (
 					<li className="p-2 text-center">No notifications</li>
 				)}
 				{notifications?.map((n) => (
 					<li
-						className="border-b border-t bg-slate-100 p-2 hover:bg-slate-200"
+						className="border-b border-t bg-slate-50 p-2 hover:bg-slate-200"
 						key={n.id}
 					>
 						<div className="flex w-full gap-2">
@@ -164,7 +164,15 @@ export default function NotificationBell() {
 					</li>
 				))}
 			</ul>
-		</>
+			<Button className="w-full">
+				<span
+					className="cursor-pointer text-red-500"
+					onClick={() => markAllAsReadApi.mutate()}
+				>
+					Mark all as read
+				</span>
+			</Button>
+		</div>
 	);
 
 	return (
