@@ -16,6 +16,7 @@ export default function NotificationBell() {
 	const [notifications] = api.notifications.getList.useSuspenseQuery(void 0, {
 		refetchInterval: 5000,
 	});
+	const copyNotifications = [...notifications];
 	const unreadNotifications = notifications?.filter((n) => !n.read);
 	const [clicked, setClicked] = useState(false);
 	const [cachedNotifications, setCachedNotifications] = useState<
@@ -30,8 +31,9 @@ export default function NotificationBell() {
 			setCachedNotifications(notifications);
 			return;
 		}
+		setCachedNotifications(notifications);
 		// compare cached animations with the new one, if there is a new one animate not if existing one is removed
-		if (cachedNotifications?.length < notifications?.length) {
+		if (cachedNotifications?.length < (notifications?.length ?? 0)) {
 			if (unreadNotifications?.length > 0) {
 				controls.start({
 					scale: [1, 1.1, 1],
@@ -62,12 +64,12 @@ export default function NotificationBell() {
 		} else {
 			setCachedNotifications(notifications);
 		}
-	}, [unreadNotifications.length, controls]);
+	}, [notifications, controls]);
 
 	const utils = api.useUtils();
 	const markAsReadApi = api.notifications.markAsRead.useMutation({
 		onSuccess: async () => {
-			await utils.notifications.invalidate();
+			//await utils.notifications.invalidate();
 		},
 		onError: (error) => {
 			console.error(error);
@@ -75,7 +77,7 @@ export default function NotificationBell() {
 	});
 	const markAsUnreadApi = api.notifications.markAsUnread.useMutation({
 		onSuccess: async () => {
-			await utils.notifications.invalidate();
+			//await utils.notifications.invalidate();
 		},
 		onError: (error) => {
 			console.error(error);
@@ -83,7 +85,7 @@ export default function NotificationBell() {
 	});
 	const markAllAsReadApi = api.notifications.markAllAsRead.useMutation({
 		onSuccess: async () => {
-			await utils.notifications.invalidate();
+			//await utils.notifications.invalidate();
 		},
 		onError: (error) => {
 			console.error(error);
@@ -117,7 +119,7 @@ export default function NotificationBell() {
 				{notifications?.length === 0 && (
 					<li className="p-2 text-center">No notifications</li>
 				)}
-				{notifications
+				{copyNotifications
 					?.sort((a, b) => b.createdAt - a.createdAt)
 					.map((n) => (
 						<li
@@ -146,35 +148,39 @@ export default function NotificationBell() {
 											{dayjs(n.createdAt).fromNow()}
 										</div>
 										<div className="flex items-center gap-2">
-											{markAsReadApi.isPending || markAsUnreadApi.isPending ? (
-												<Spin size="small" />
-											) : (
-												<Tooltip
-													title={n.read ? "Mark as unread" : "Mark as read"}
-												>
-													<span className="text-xs text-gray-500">
-														{!n.read ? (
-															<span
-																onClick={() =>
-																	markAsReadApi.mutate({ id: n.id })
-																}
-																className="cursor-pointer text-blue-500"
-															>
-																<Eye size={16} />
-															</span>
-														) : (
-															<span
-																onClick={() =>
-																	markAsUnreadApi.mutate({ id: n.id })
-																}
-																className="cursor-pointer text-gray-500"
-															>
-																<EyeClosed size={16} />
-															</span>
-														)}
-													</span>
-												</Tooltip>
-											)}
+											<Tooltip
+												title={n.read ? "Mark as unread" : "Mark as read"}
+											>
+												<span className="text-xs text-gray-500">
+													{!n.read ? (
+														<span
+															onClick={() => {
+																markAsReadApi.mutate({ id: n.id });
+																// change copyNotifications to update the UI
+																copyNotifications.find(
+																	(cn) => cn.id === n.id,
+																)!.read = true;
+															}}
+															className="cursor-pointer text-blue-500"
+														>
+															<Eye size={16} />
+														</span>
+													) : (
+														<span
+															onClick={() => {
+																markAsUnreadApi.mutate({ id: n.id });
+																// change copyNotifications to update the UI
+																copyNotifications.find(
+																	(cn) => cn.id === n.id,
+																)!.read = false;
+															}}
+															className="cursor-pointer text-gray-500"
+														>
+															<EyeClosed size={16} />
+														</span>
+													)}
+												</span>
+											</Tooltip>
 											{deleteApi.isPending ? (
 												<Spin size="small" />
 											) : (
