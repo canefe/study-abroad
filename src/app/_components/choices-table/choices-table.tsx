@@ -308,7 +308,8 @@ export default function ChoicesTable({
 			await Promise.all(promises);
 			return Promise.resolve();
 		} catch (error) {
-			return Promise.reject("Failed to save changes");
+			console.log("Error saving choices", error);
+			return Promise.reject("Failed to save choices");
 		}
 	}
 
@@ -492,7 +493,7 @@ export default function ChoicesTable({
 					<Button
 						className="cursor-pointer"
 						onClick={saveDraft}
-						type={"dashed"}
+						type={"primary"}
 						size="large"
 						loading={
 							// Show loading state if the mutation is in progress
@@ -507,10 +508,10 @@ export default function ChoicesTable({
 					{/* Submit Button */}
 					{application.data?.status.toLocaleLowerCase() !== "submitted" ? (
 						<Button
-							className="cursor-pointer text-white"
+							className="cursor-pointer"
 							onClick={onSubmit}
 							size="large"
-							type={"primary"}
+							type={"dashed"}
 							loading={
 								// Show loading state if the mutation is in progress
 								// utils.choices.saveChoiceChanges.isMutating returns boolean and number
@@ -640,10 +641,10 @@ export default function ChoicesTable({
 					>
 						<div className="grid grid-cols-1 gap-2">
 							{availableAbroadCourses.length === 0 && (
-								<p className="w-[250px] text-gray-500">
-									No courses available. You have selected all courses. You can
-									add a new course.
-								</p>
+								<ul className="w-fit list-inside text-sm text-gray-500">
+									<li>No courses available</li>
+									<li>You can add a new course</li>
+								</ul>
 							)}
 							{availableAbroadCourses.map((course) => (
 								<div className="flex items-center gap-2">

@@ -91,7 +91,7 @@ export const coursesRouter = createTRPCRouter({
 					name: input.name,
 					universityId: input.abroadUniversityId,
 					createdAt: new Date(),
-					createdBy: ctx.session.user.guid,
+					createdBy: ctx.session.user.guid || ctx.session.user.name,
 				},
 			});
 			return course;
