@@ -31,9 +31,9 @@ export const choicesRouter = createTRPCRouter({
 			z.object({
 				homeCourseId: z.number(),
 				abroadUniversityId: z.number(),
-				primaryCourseId: z.number().nullable(),
-				alternativeCourse1Id: z.number().nullable(),
-				alternativeCourse2Id: z.number().nullable(),
+				primaryCourseId: z.number().nullable().optional(),
+				alternativeCourse1Id: z.number().nullable().optional(),
+				alternativeCourse2Id: z.number().nullable().optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
