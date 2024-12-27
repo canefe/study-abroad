@@ -123,6 +123,9 @@ export default function NotificationBell() {
 						<li
 							className="border-b border-t bg-slate-50 p-2 hover:bg-slate-200"
 							key={n.id}
+							onClick={() => {
+								if (!n.read) markAsReadApi.mutate({ id: n.id });
+							}}
 						>
 							<div className="flex w-full gap-2">
 								<Avatar
