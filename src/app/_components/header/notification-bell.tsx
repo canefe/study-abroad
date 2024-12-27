@@ -1,7 +1,7 @@
 "use client";
-import { Bell, Trash } from "lucide-react";
+import { Bell, Eye, EyeClosed, Trash } from "lucide-react";
 
-import { Avatar, Badge, Button, Dropdown, Popover } from "antd";
+import { Avatar, Badge, Button, Dropdown, Popover, Spin, Tooltip } from "antd";
 import { api } from "@/trpc/react";
 import { useState, useEffect } from "react";
 import dayjs from "dayjs";
@@ -73,6 +73,14 @@ export default function NotificationBell() {
 			console.error(error);
 		},
 	});
+	const markAsUnreadApi = api.notifications.markAsUnread.useMutation({
+		onSuccess: async () => {
+			await utils.notifications.invalidate();
+		},
+		onError: (error) => {
+			console.error(error);
+		},
+	});
 	const markAllAsReadApi = api.notifications.markAllAsRead.useMutation({
 		onSuccess: async () => {
 			await utils.notifications.invalidate();
@@ -109,52 +117,81 @@ export default function NotificationBell() {
 				{notifications?.length === 0 && (
 					<li className="p-2 text-center">No notifications</li>
 				)}
-				{notifications?.map((n) => (
-					<li
-						className="border-b border-t bg-slate-50 p-2 hover:bg-slate-200"
-						key={n.id}
-					>
-						<div className="flex w-full gap-2">
-							<Avatar
-								style={{
-									backgroundColor: n.sender?.name
-										? generateRandomColor(n.sender.name, n.sender.name)
-										: "gray",
-									minWidth: 36,
-									minHeight: 36,
-								}}
-							>
-								{n.sender?.name?.charAt(0).toUpperCase() || "!"}
-							</Avatar>
-							<div className="text-sm">
-								{parseNotificationMessage(n)}
-								<div className="flex items-center justify-between gap-2">
-									<div className="text-xs text-gray-500">
-										{dayjs(n.createdAt).fromNow()}
+				{notifications
+					?.sort((a, b) => b.createdAt - a.createdAt)
+					.map((n) => (
+						<li
+							className="border-b border-t bg-slate-50 p-2 hover:bg-slate-200"
+							key={n.id}
+						>
+							<div className="flex w-full gap-2">
+								<Avatar
+									style={{
+										backgroundColor: n.sender?.name
+											? generateRandomColor(n.sender.name, n.sender.name)
+											: "gray",
+										minWidth: 36,
+										minHeight: 36,
+									}}
+								>
+									{n.sender?.name?.charAt(0).toUpperCase() || "!"}
+								</Avatar>
+								<div className="text-sm">
+									{parseNotificationMessage(n)}
+									<div className="flex items-center justify-between gap-2">
+										<div className="text-xs text-gray-500">
+											{dayjs(n.createdAt).fromNow()}
+										</div>
+										<div className="flex items-center gap-2">
+											{markAsReadApi.isPending || markAsUnreadApi.isPending ? (
+												<Spin size="small" />
+											) : (
+												<Tooltip
+													title={n.read ? "Mark as unread" : "Mark as read"}
+												>
+													<span className="text-xs text-gray-500">
+														{!n.read ? (
+															<span
+																onClick={() =>
+																	markAsReadApi.mutate({ id: n.id })
+																}
+																className="cursor-pointer text-blue-500"
+															>
+																<Eye size={16} />
+															</span>
+														) : (
+															<span
+																onClick={() =>
+																	markAsUnreadApi.mutate({ id: n.id })
+																}
+																className="cursor-pointer text-gray-500"
+															>
+																<EyeClosed size={16} />
+															</span>
+														)}
+													</span>
+												</Tooltip>
+											)}
+											{deleteApi.isPending ? (
+												<Spin size="small" />
+											) : (
+												<Tooltip title="Delete">
+													<span
+														className="cursor-pointer text-xs text-red-500"
+														onClick={() => {
+															onDelete(n.id);
+														}}
+													>
+														<Trash size={16} />
+													</span>
+												</Tooltip>
+											)}
+										</div>
 									</div>
-									<span className="text-xs text-gray-500">
-										{!n.read && (
-											<span
-												onClick={() => markAsReadApi.mutate({ id: n.id })}
-												className="cursor-pointer text-blue-500"
-											>
-												Mark as read
-											</span>
-										)}
-									</span>
-									<span
-										className="cursor-pointer text-xs text-red-500"
-										onClick={() => {
-											onDelete(n.id);
-										}}
-									>
-										<Trash size={16} />
-									</span>
 								</div>
 							</div>
-						</div>
-					</li>
-				))}
+						</li>
+					))}
 			</ul>
 			<Button className="w-full">
 				<span

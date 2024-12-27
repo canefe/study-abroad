@@ -39,6 +39,21 @@ export const notificationsRouter = createTRPCRouter({
 			});
 			return notification;
 		}),
+	markAsUnread: protectedProcedure
+		.input(z.object({ id: z.number() }))
+		.mutation(async ({ input, ctx }) => {
+			const session = ctx.session;
+			const notification = await ctx.db.notification.update({
+				where: {
+					id: input.id,
+					userId: session?.user.id,
+				},
+				data: {
+					read: false,
+				},
+			});
+			return notification;
+		}),
 	markAllAsRead: protectedProcedure.mutation(async ({ ctx }) => {
 		const session = ctx.session;
 		const notifications = await ctx.db.notification.updateMany({
