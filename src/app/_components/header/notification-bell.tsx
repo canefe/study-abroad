@@ -18,7 +18,6 @@ export default function NotificationBell() {
 	});
 	const unreadNotifications = notifications?.filter((n) => !n.read);
 	const [clicked, setClicked] = useState(false);
-	const [hovered, setHovered] = useState(false);
 	const [cachedNotifications, setCachedNotifications] = useState<
 		undefined | typeof notifications
 	>(undefined);
@@ -97,16 +96,9 @@ export default function NotificationBell() {
 
 	const hide = () => {
 		setClicked(false);
-		setHovered(false);
-	};
-
-	const handleHoverChange = (open: boolean) => {
-		setHovered(open);
-		setClicked(false);
 	};
 
 	const handleClickChange = (open: boolean) => {
-		setHovered(false);
 		setClicked(open);
 	};
 
@@ -177,46 +169,31 @@ export default function NotificationBell() {
 
 	return (
 		<Popover
-			style={{ width: 100 }}
+			content={<div>{content}</div>}
+			style={{
+				width: 100,
+				padding: 0,
+				marginTop: 10,
+			}}
 			overlayInnerStyle={{
 				padding: 0,
-				maxWidth: 350,
-				maxHeight: 475,
+				width: 375,
+				height: 575,
 			}}
-			content={content}
-			title=""
 			placement={"left"}
-			trigger="hover"
-			open={hovered}
-			onOpenChange={handleHoverChange}
+			title=""
+			trigger="click"
+			open={clicked}
+			onOpenChange={handleClickChange}
 		>
-			<Popover
-				content={<div>{content}</div>}
-				style={{
-					width: 100,
-					padding: 0,
-					marginTop: 10,
-				}}
-				overlayInnerStyle={{
-					padding: 0,
-					width: 375,
-					height: 575,
-				}}
-				placement={"left"}
-				title=""
-				trigger="click"
-				open={clicked}
-				onOpenChange={handleClickChange}
-			>
-				<motion.div animate={controls} className="h-6 w-6">
-					<Badge
-						count={unreadNotifications?.length ?? 0}
-						className="cursor-pointer duration-150 hover:scale-110"
-					>
-						<Bell size={24} fill={clicked ? "black" : "white"} />
-					</Badge>
-				</motion.div>
-			</Popover>
+			<motion.div animate={controls} className="h-6 w-6">
+				<Badge
+					count={unreadNotifications?.length ?? 0}
+					className="cursor-pointer duration-150 hover:scale-110"
+				>
+					<Bell size={24} fill={clicked ? "black" : "white"} />
+				</Badge>
+			</motion.div>
 		</Popover>
 	);
 }
