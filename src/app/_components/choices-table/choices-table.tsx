@@ -22,13 +22,21 @@ import { useEffect, useRef, useState } from "react";
 import { getCourseNameById, useCombinedRefs } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { useRouter, usePathname } from "next/navigation";
-import { Cross, FlagIcon, FlagOff, Trash, Verified } from "lucide-react";
+import {
+	Cross,
+	FileWarning,
+	FlagIcon,
+	FlagOff,
+	Trash,
+	Verified,
+} from "lucide-react";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import dayjs from "dayjs";
 import CommentSection from "@/app/_components/comment-section";
 import MobileChoicesTable from "../mobile-choices-table";
 import VerifiedBadge from "./verified-badge";
 import { shortenText } from "@/lib/textUtils";
+import MissingBadge from "./missing-badge";
 
 export default function ChoicesTable({
 	applicationId,
@@ -106,6 +114,9 @@ export default function ChoicesTable({
 		onSuccess: async () => {
 			// refresh courses
 			await utils.courses.invalidate();
+		},
+		onError: (error) => {
+			return Promise.reject(error);
 		},
 	});
 
@@ -278,18 +289,26 @@ export default function ChoicesTable({
 	async function saveChanges() {
 		// for every choices, mutate
 		try {
+			// list of promises
+			const promises: Promise<void>[] = [];
 			await Object.entries(choices).forEach(([homeCourseId, choice]) => {
-				saveChoicesApi.mutate({
-					homeCourseId: parseInt(homeCourseId),
-					abroadUniversityId: application.data.abroadUniversityId,
-					primaryCourseId: choice.primary,
-					alternativeCourse1Id: choice.alt1,
-					alternativeCourse2Id: choice.alt2,
-				});
+				if (application.data) {
+					promises.push(
+						saveChoicesApi.mutateAsync({
+							homeCourseId: parseInt(homeCourseId),
+							abroadUniversityId: application.data.abroadUniversityId,
+							primaryCourseId: (choice as any).primary,
+							alternativeCourse1Id: (choice as any).alt1,
+							alternativeCourse2Id: (choice as any).alt2,
+						}),
+					);
+				}
 			});
+			// wait for all promises to resolve check if there is an error
+			await Promise.all(promises);
+			return Promise.resolve();
 		} catch (error) {
-			toast.error("Failed to save changes");
-			return Promise.reject();
+			return Promise.reject("Failed to save changes");
 		}
 	}
 
@@ -345,7 +364,7 @@ export default function ChoicesTable({
 				{
 					loading: "Saving changes...",
 					success: "Changes saved successfully",
-					error: "Failed to save changes",
+					error: (err) => `${err.toString()}`,
 				},
 				{
 					style: {
@@ -382,12 +401,23 @@ export default function ChoicesTable({
 	}
 
 	const saveDraft = async () => {
-		await saveChanges();
 		const whatSaved =
 			application.data?.status.toLowerCase() === "draft"
 				? "Draft"
 				: "Application";
-		toast.success(whatSaved + " saved successfully");
+		await toast.promise(
+			saveChanges(),
+			{
+				loading: `Saving ${whatSaved}...`,
+				success: `${whatSaved} saved successfully`,
+				error: (err) => `${err?.toString() || "Failed to save"}`,
+			},
+			{
+				style: {
+					minWidth: "250px",
+				},
+			},
+		);
 	};
 
 	if (application.isLoading || abroadCoursesQuery.isLoading)
@@ -722,6 +752,10 @@ const ChoiceSlot = ({
 		? { ...attributes, ...listeners }
 		: {};
 
+	const name =
+		getCourseNameById(choice, universityId) ||
+		(choice ? "Deleted course" : "No choice");
+
 	return (
 		<>
 			{choice && (
@@ -744,8 +778,7 @@ const ChoiceSlot = ({
 				<p
 					className={`min-w-32 text-wrap ${choice ? "font-regular" : "text-red-500"}`}
 				>
-					{shortenText(getCourseNameById(choice, universityId), 15) ||
-						"No choice"}
+					{shortenText(name, 15)}
 					{isOver ? " (Drop here)" : ""}
 				</p>
 				{flagged && !verified && (
@@ -755,6 +788,7 @@ const ChoiceSlot = ({
 					/>
 				)}
 				{verified && <VerifiedBadge />}
+				{choice && name === "Deleted course" && <MissingBadge />}
 			</div>
 		</>
 	);
