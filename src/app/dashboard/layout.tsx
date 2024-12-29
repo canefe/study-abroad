@@ -5,8 +5,8 @@ import AppSidebar from "@/app/_components/sidebar";
 import { getServerAuthSession } from "@/server/auth";
 import { redirect } from "next/navigation";
 import App from "next/app";
-import Breadcrumbs from "./_sections/breadcrumb";
-import UserAvatar from "./_sections/avatar";
+import Breadcrumbs from "../_components/breadcrumb";
+import UserAvatar from "../_components/avatar";
 import { Toaster } from "react-hot-toast";
 
 export default async function DashboardLayout({

@@ -1,13 +1,9 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Footer } from "@/app/_components/footer";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import Header from "@/app/_components/header/header";
 import AppSidebar from "@/app/_components/sidebar";
 import { getServerAuthSession } from "@/server/auth";
-import { redirect, usePathname } from "next/navigation";
+import { redirect } from "next/navigation";
 
-import { headers } from "next/headers";
-import Breadcrumbs from "./_sections/breadcrumb";
-import UserAvatar from "@/app/dashboard/_sections/avatar";
 import { Toaster } from "react-hot-toast";
 
 export default async function DashboardLayout({

@@ -1,9 +1,6 @@
 "use client";
-import { Bell } from "lucide-react";
-import UserAvatar from "../../dashboard/_sections/avatar";
-import Breadcrumbs from "../../dashboard/_sections/breadcrumb";
-import { Badge, Dropdown } from "antd";
-import { api } from "@/trpc/react";
+import UserAvatar from "../avatar";
+import Breadcrumbs from "../breadcrumb";
 import NotificationBell from "./notification-bell";
 
 export default function Header() {
