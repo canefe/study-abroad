@@ -177,3 +177,12 @@ model Notification {
     sender User? @relation("SenderRelation", fields: [senderId], references: [id])
     user   User  @relation("UserRelation", fields: [userId], references: [id])
 }
+
+// A model for Settings
+model Setting {
+    id        Int      @id @default(autoincrement())
+    key       String   @unique
+    value     String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
