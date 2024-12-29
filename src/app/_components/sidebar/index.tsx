@@ -1,10 +1,6 @@
 import {
-	Calendar,
-	ChevronDown,
 	Flag,
 	Home,
-	Inbox,
-	Search,
 	Settings,
 	ShieldQuestion,
 	User,
@@ -24,7 +20,6 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
-	SidebarTrigger,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { getServerAuthSession } from "@/server/auth";
@@ -78,7 +73,7 @@ const items = [
 	},
 	{
 		title: "Settings",
-		url: "#",
+		url: "/admin/settings",
 		icon: Settings,
 		role: "admin",
 		category: "General",

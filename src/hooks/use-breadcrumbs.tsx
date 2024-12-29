@@ -20,7 +20,7 @@ export function useBreadcrumbs() {
 			return null;
 		}
 		const paths = pathName.split("/");
-		const indexSkip = paths.includes("admin") ? 3 : 2;
+		const indexSkip = paths.includes("admin") ? 2 : 1;
 		const prefix = paths.includes("admin") ? "admin/" : "dashboard/";
 
 		// custom breadcrumb for My choices page
