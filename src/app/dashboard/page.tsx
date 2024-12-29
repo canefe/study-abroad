@@ -1,6 +1,5 @@
 "use client";
 import { api } from "@/trpc/react";
-import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import {
 	Button,
 	Popconfirm,
@@ -240,6 +239,12 @@ export default function Dashboard() {
 												{record.status}
 											</Tag>
 										),
+									},
+									{
+										title: "Year",
+										dataIndex: "year",
+										key: "year",
+										render: (text, record) => <span>{record.year}</span>,
 									},
 									{
 										title: "Action",

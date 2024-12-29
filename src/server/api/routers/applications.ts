@@ -4,9 +4,7 @@ import {
 	adminProcedure,
 	createTRPCRouter,
 	protectedProcedure,
-	publicProcedure,
 } from "@/server/api/trpc";
-import { create } from "domain";
 import { TRPCError } from "@trpc/server";
 
 export const applicationsRouter = createTRPCRouter({
@@ -91,7 +89,6 @@ export const applicationsRouter = createTRPCRouter({
 						userId: session.user.id,
 						applicationId: application.id,
 						semester: "FULL_YEAR",
-						year: 2024,
 					},
 				});
 			});

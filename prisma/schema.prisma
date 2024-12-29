@@ -135,6 +135,8 @@ model Application {
     status             String
     messages           Message[]
     courseChoices      CourseChoice[]
+    year               Year?
+    semester           Semester?
 
     user             User       @relation(fields: [userId], references: [id])
     abroadUniversity University @relation(fields: [abroadUniversityId], references: [id])
