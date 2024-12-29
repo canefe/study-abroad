@@ -8,8 +8,9 @@ import Comment from "./comment";
 import CommentForm from "./comment-form";
 import { api } from "@/trpc/react";
 import toast from "react-hot-toast";
+import { useComments } from "@/hooks/useComments";
 
-var relativeTime = require("dayjs/plugin/relativeTime");
+const relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
 
 type CommentSectionProps = {
@@ -27,35 +28,9 @@ export default function CommentSection({
 	const [replyTo, setReplyTo] = useState<number | null>(null);
 	const [showReply, setShowReply] = useState<boolean>(false);
 	const [replyUnder, setReplyUnder] = useState<number | null>(null);
-	const utils = api.useUtils();
-	// admin send feedback api
-	const sendFeedbackApi = api.applications.feedback.useMutation({
-		onSuccess: async () => {
-			utils.applications.invalidate();
-		},
-		onError: (error) => {
-			toast.error(error.message);
-		},
-	});
 
-	// student send comment api
-	const sendCommentApi = api.applications.comment.useMutation({
-		onSuccess: async () => {
-			utils.applications.invalidate();
-		},
-		onError: (error) => {
-			toast.error(error.message);
-		},
-	});
-
-	const deleteCommentApi = api.applications.deleteComment.useMutation({
-		onSuccess: async () => {
-			toast.success("Comment deleted successfully");
-			utils.applications.invalidate();
-		},
-		onError: (error) => {
-			toast.error(error.message);
-		},
+	const { sendComment, sendFeedback, deleteComment } = useComments({
+		applicationId,
 	});
 
 	const messagesClone = messages; // we clone it here we later use it when we are commenting to make it seem like the comment is being sent
@@ -81,7 +56,7 @@ export default function CommentSection({
 		if (message.trim() === "") {
 			return Promise.reject("Message cannot be empty");
 		}
-		await sendCommentApi.mutate({
+		await sendComment({
 			applicationId: applicationId,
 			comment: message,
 			parentMessageId: replyTo,
@@ -95,7 +70,7 @@ export default function CommentSection({
 		if (message.trim() === "") {
 			return Promise.reject("Message cannot be empty");
 		}
-		await sendFeedbackApi.mutate({
+		await sendFeedback({
 			applicationId: applicationId,
 			comment: message,
 			parentMessageId: replyTo,
@@ -149,7 +124,7 @@ export default function CommentSection({
 							userId={user?.id}
 							onCancel={handleCancel}
 							onDelete={(id: number) => {
-								deleteCommentApi.mutate({ messageId: id });
+								deleteComment.mutate({ messageId: id });
 							}}
 							replyTo={replyTo}
 							replyUnder={replyUnder}

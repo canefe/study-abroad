@@ -7,6 +7,8 @@ import { forwardRef, useState } from "react";
 import {
 	ArrowBigDown,
 	ArrowBigRight,
+	Bell,
+	BellOff,
 	CircleMinus,
 	CirclePlus,
 	MessageCircle,
@@ -14,6 +16,7 @@ import {
 } from "lucide-react";
 import { getServerAuthSession } from "@/server/auth";
 import { generateRandomColor } from "@/lib/randomUtils";
+import { useNotifications } from "@/hooks/useNotifications";
 
 dayjs.extend(relativeTime);
 
@@ -24,6 +27,7 @@ type Message = {
 		role: string;
 		guid: string;
 		id: number;
+		mutedBy: { id: number }[];
 	};
 	content: string;
 	createdAt: string;
@@ -66,6 +70,8 @@ const Comment = ({
 	const onHover = () => {
 		setHover(true);
 	};
+
+	const { muteUser, unmuteUser } = useNotifications();
 
 	let previousSenderId: number = -1;
 	let previousCreatedAt: string = "";
@@ -146,6 +152,38 @@ const Comment = ({
 										<Trash size={"16"} />
 									</button>
 								</div>
+							</Tooltip>
+						)}
+						{hover && userId != message.sender?.id && (
+							<Tooltip
+								title={
+									<>
+										<p>
+											{message.sender?.mutedBy?.find((mb) => mb.id === userId)
+												? "Unmute"
+												: "Mute"}{" "}
+											notifications from
+										</p>
+										<p>{message.sender?.name}</p>
+									</>
+								}
+							>
+								<span
+									onClick={
+										message.sender?.mutedBy?.find((mb) => mb.id === userId)
+											? () => unmuteUser(message.sender.id.toString())
+											: () => muteUser(message.sender.id.toString())
+									}
+									className={`text-xs text-gray-500 ${!showSenderInfo ? "absolute bottom-0 right-2 top-0 z-20 my-auto" : ""}`}
+								>
+									<span className="cursor-pointer text-gray-500">
+										{message.sender?.mutedBy?.find((mb) => mb.id === userId) ? (
+											<BellOff size={16} />
+										) : (
+											<Bell size={16} />
+										)}
+									</span>
+								</span>
 							</Tooltip>
 						)}
 					</div>

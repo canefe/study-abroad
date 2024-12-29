@@ -14,7 +14,7 @@ export const capitalizeFirstLetter = (string: string) => {
 };
 
 export const getCourseNameById = (id: number, universityId: number) => {
-	const course = api.courses.getCourses.useQuery({ id: universityId });
+	const course = api.courses.getCourses.useQuery({ universityId });
 
 	return course.data?.find((course) => course.id === id)?.name;
 };

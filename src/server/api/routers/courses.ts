@@ -69,11 +69,11 @@ export const coursesRouter = createTRPCRouter({
 	}),
 
 	getCourses: protectedProcedure
-		.input(z.object({ id: z.number() }))
+		.input(z.object({ universityId: z.number() }))
 		.query(async ({ input, ctx }) => {
 			const course = await ctx.db.course.findMany({
 				where: {
-					universityId: input.id,
+					universityId: input.universityId,
 				},
 				include: {
 					university: true,
@@ -98,11 +98,11 @@ export const coursesRouter = createTRPCRouter({
 		}),
 
 	flagCourse: protectedProcedure
-		.input(z.object({ id: z.number() }))
+		.input(z.object({ courseId: z.number() }))
 		.mutation(async ({ input, ctx }) => {
 			const course = await ctx.db.course.update({
 				where: {
-					id: input.id,
+					id: input.courseId,
 				},
 				data: {
 					flagged: true,

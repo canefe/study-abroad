@@ -1,5 +1,5 @@
 "use client";
-import { Bell, Eye, EyeClosed, Trash } from "lucide-react";
+import { Bell, BellOff, Eye, EyeClosed, Trash } from "lucide-react";
 
 import { Avatar, Badge, Button, Dropdown, Popover, Spin, Tooltip } from "antd";
 import { api } from "@/trpc/react";
@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { motion, useAnimation } from "framer-motion";
 import { parseNotificationMessage } from "@/lib/notificationUtils";
 import { generateRandomColor } from "@/lib/randomUtils";
+import { useNotifications } from "@/hooks/useNotifications";
 var relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
 
@@ -16,12 +17,23 @@ export default function NotificationBell() {
 	const [notifications] = api.notifications.getList.useSuspenseQuery(void 0, {
 		refetchInterval: 5000,
 	});
+	const [user] = api.students.me.useSuspenseQuery();
 	const copyNotifications = [...notifications];
 	const unreadNotifications = notifications?.filter((n) => !n.read);
 	const [clicked, setClicked] = useState(false);
 	const [cachedNotifications, setCachedNotifications] = useState<
 		undefined | typeof notifications
 	>(undefined);
+
+	const {
+		muteUser,
+		unmuteUser,
+		markAsRead,
+		markAsUnread,
+		deleteNotification,
+		deleteNotificationMutation,
+		markAllAsRead,
+	} = useNotifications();
 
 	const controls = useAnimation();
 
@@ -66,44 +78,6 @@ export default function NotificationBell() {
 		}
 	}, [notifications, controls]);
 
-	const utils = api.useUtils();
-	const markAsReadApi = api.notifications.markAsRead.useMutation({
-		onSuccess: async () => {
-			//await utils.notifications.invalidate();
-		},
-		onError: (error) => {
-			console.error(error);
-		},
-	});
-	const markAsUnreadApi = api.notifications.markAsUnread.useMutation({
-		onSuccess: async () => {
-			//await utils.notifications.invalidate();
-		},
-		onError: (error) => {
-			console.error(error);
-		},
-	});
-	const markAllAsReadApi = api.notifications.markAllAsRead.useMutation({
-		onSuccess: async () => {
-			//await utils.notifications.invalidate();
-		},
-		onError: (error) => {
-			console.error(error);
-		},
-	});
-	const deleteApi = api.notifications.delete.useMutation({
-		onSuccess: async () => {
-			await utils.notifications.invalidate();
-		},
-		onError: (error) => {
-			console.error(error);
-		},
-	});
-
-	const onDelete = async (id: number) => {
-		await deleteApi.mutate({ id });
-	};
-
 	const hide = () => {
 		setClicked(false);
 	};
@@ -126,7 +100,7 @@ export default function NotificationBell() {
 							className="border-b border-t bg-slate-50 p-2 hover:bg-slate-200"
 							key={n.id}
 							onClick={() => {
-								if (!n.read) markAsReadApi.mutate({ id: n.id });
+								if (!n.read) markAsRead(n.id);
 							}}
 						>
 							<div className="flex w-full gap-2">
@@ -148,6 +122,42 @@ export default function NotificationBell() {
 											{dayjs(n.createdAt).fromNow()}
 										</div>
 										<div className="flex items-center gap-2">
+											{n.senderId != null && (
+												<Tooltip
+													title={
+														<>
+															<p>
+																{n.sender?.mutedBy?.find(
+																	(mb) => mb.id === user.id,
+																)
+																	? "Unmute"
+																	: "Mute"}{" "}
+																notifications from
+															</p>
+															<p>{n.sender?.name}</p>
+														</>
+													}
+												>
+													<span
+														onClick={
+															n.sender?.mutedBy?.find((mb) => mb.id === user.id)
+																? () => unmuteUser(n.senderId || "")
+																: () => muteUser(n.senderId || "")
+														}
+														className="text-xs text-gray-500"
+													>
+														<span className="cursor-pointer text-gray-500">
+															{n.sender?.mutedBy?.find(
+																(mb) => mb.id === user.id,
+															) ? (
+																<BellOff size={16} />
+															) : (
+																<Bell size={16} />
+															)}
+														</span>
+													</span>
+												</Tooltip>
+											)}
 											<Tooltip
 												title={n.read ? "Mark as unread" : "Mark as read"}
 											>
@@ -155,7 +165,7 @@ export default function NotificationBell() {
 													{!n.read ? (
 														<span
 															onClick={() => {
-																markAsReadApi.mutate({ id: n.id });
+																markAsRead(n.id);
 																// change copyNotifications to update the UI
 																copyNotifications.find(
 																	(cn) => cn.id === n.id,
@@ -168,7 +178,7 @@ export default function NotificationBell() {
 													) : (
 														<span
 															onClick={() => {
-																markAsUnreadApi.mutate({ id: n.id });
+																markAsUnread(n.id);
 																// change copyNotifications to update the UI
 																copyNotifications.find(
 																	(cn) => cn.id === n.id,
@@ -181,14 +191,14 @@ export default function NotificationBell() {
 													)}
 												</span>
 											</Tooltip>
-											{deleteApi.isPending ? (
+											{deleteNotificationMutation.isPending ? (
 												<Spin size="small" />
 											) : (
 												<Tooltip title="Delete">
 													<span
 														className="cursor-pointer text-xs text-red-500"
 														onClick={() => {
-															onDelete(n.id);
+															deleteNotification(n.id);
 														}}
 													>
 														<Trash size={16} />
@@ -205,7 +215,7 @@ export default function NotificationBell() {
 			<Button className="w-full">
 				<span
 					className="cursor-pointer text-red-500"
-					onClick={() => markAllAsReadApi.mutate()}
+					onClick={() => markAllAsRead()}
 				>
 					Mark all as read
 				</span>

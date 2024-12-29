@@ -18,6 +18,11 @@ export const notificationsRouter = createTRPCRouter({
 				sender: {
 					select: {
 						name: true,
+						mutedBy: {
+							select: {
+								id: true,
+							},
+						},
 					},
 				},
 			},
@@ -77,5 +82,50 @@ export const notificationsRouter = createTRPCRouter({
 				},
 			});
 			return notification;
+		}),
+	// mute notifications from specific user (this is individual for each user)
+	mute: protectedProcedure
+		.input(z.object({ userId: z.string() }))
+		.mutation(async ({ input, ctx }) => {
+			const session = ctx.session;
+			try {
+				await ctx.db.user.update({
+					where: {
+						id: session?.user.id,
+					},
+					data: {
+						mutedUsers: {
+							connect: {
+								id: input.userId,
+							},
+						},
+					},
+				});
+			} catch (error) {
+				console.error;
+				return error;
+			}
+
+			return true;
+		}),
+	// unmute notifications from specific user (this is individual for each user)
+	unmute: protectedProcedure
+		.input(z.object({ userId: z.string() }))
+		.mutation(async ({ input, ctx }) => {
+			const session = ctx.session;
+			await ctx.db.user.update({
+				where: {
+					id: session?.user.id,
+				},
+				data: {
+					mutedUsers: {
+						disconnect: {
+							id: input.userId,
+						},
+					},
+				},
+			});
+
+			return true;
 		}),
 });

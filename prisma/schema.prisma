@@ -73,6 +73,8 @@ model User {
     posts             Post[]
     courseChoices     CourseChoice[]
     messages          Message[]
+    mutedUsers        User[]         @relation("MutedUsers")
+    mutedBy           User[]         @relation("MutedUsers")
     notifications     Notification[] @relation("UserRelation")
     sentNotifications Notification[] @relation("SenderRelation")
 }

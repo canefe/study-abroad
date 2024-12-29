@@ -1,5 +1,5 @@
 import { Tooltip } from "antd";
-import { FileWarning, Verified } from "lucide-react";
+import { FileWarning } from "lucide-react";
 
 export default function MissingBadge() {
 	return (
