@@ -102,6 +102,11 @@ enum Semester {
     FULL_YEAR
 }
 
+enum Year {
+    SECOND_YEAR
+    THIRD_YEAR
+}
+
 model CourseChoice {
     id                   Int      @id @default(autoincrement())
     applicationId        Int
@@ -110,7 +115,7 @@ model CourseChoice {
     alternativeCourse1Id Int?
     alternativeCourse2Id Int?
     semester             Semester
-    year                 Int
+    year                 Year?
 
     application        Application @relation(fields: [applicationId], references: [id])
     homeCourse         Course      @relation("HomeCourse", fields: [homeCourseId], references: [id])
@@ -150,15 +155,15 @@ model Message {
 }
 
 model Course {
-    id           Int        @id @default(autoincrement())
-    name         String
-    universityId Int
-    university   University @relation(fields: [universityId], references: [id])
-    flagged      Boolean    @default(false) // Flagged courses are courses that need to be reviewed by an admin
-    createdAt    DateTime   @default(now())
-    createdBy    String? // The user who created the course
-    verified     Boolean    @default(false) // Verified courses are courses that have been reviewed by an admin
-
+    id                        Int            @id @default(autoincrement())
+    name                      String
+    universityId              Int
+    university                University     @relation(fields: [universityId], references: [id])
+    flagged                   Boolean        @default(false) // Flagged courses are courses that need to be reviewed by an admin
+    createdAt                 DateTime       @default(now())
+    createdBy                 String? // The user who created the course
+    verified                  Boolean        @default(false) // Verified courses are courses that have been reviewed by an admin
+    year                      Year?
     homeCourseChoices         CourseChoice[] @relation("HomeCourse")
     primaryCourseChoices      CourseChoice[] @relation("PrimaryCourse")
     alternativeCourse1Choices CourseChoice[] @relation("AlternativeCourse1")
