@@ -40,10 +40,25 @@ export const applicationsRouter = createTRPCRouter({
 		.input(z.object({ abroadUniversityId: z.number() }))
 		.mutation(async ({ input, ctx }) => {
 			const session = ctx.session;
-			const homeUniversityId = 1;
+			const homeUniversitySetting = await ctx.db.setting.findFirst({
+				where: {
+					key: "home_university",
+				},
+				select: {
+					id: true,
+				},
+			});
+
+			if (!homeUniversitySetting) {
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Home university not set",
+				});
+			}
+
 			const homeUniversityCourses = await ctx.db.course.findMany({
 				where: {
-					universityId: homeUniversityId,
+					universityId: homeUniversitySetting?.id,
 				},
 			});
 
@@ -113,6 +128,13 @@ export const applicationsRouter = createTRPCRouter({
 
 			// remove course choices
 			await ctx.db.courseChoice.deleteMany({
+				where: {
+					applicationId: input.applicationId,
+				},
+			});
+
+			// delete messages
+			await ctx.db.message.deleteMany({
 				where: {
 					applicationId: input.applicationId,
 				},
