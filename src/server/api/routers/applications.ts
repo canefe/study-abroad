@@ -37,15 +37,17 @@ export const applicationsRouter = createTRPCRouter({
 	}),
 	// takes in an abroad university id, creates an application with home university's courses count coursechoices
 	create: protectedProcedure
-		.input(z.object({ abroadUniversityId: z.number() }))
+		.input(
+			z.object({
+				abroadUniversityId: z.number(),
+				year: z.enum(["SECOND_YEAR", "THIRD_YEAR"]),
+			}),
+		)
 		.mutation(async ({ input, ctx }) => {
 			const session = ctx.session;
 			const homeUniversitySetting = await ctx.db.setting.findFirst({
 				where: {
 					key: "home_university",
-				},
-				select: {
-					id: true,
 				},
 			});
 
@@ -58,7 +60,8 @@ export const applicationsRouter = createTRPCRouter({
 
 			const homeUniversityCourses = await ctx.db.course.findMany({
 				where: {
-					universityId: homeUniversitySetting?.id,
+					universityId: parseInt(homeUniversitySetting?.value),
+					year: input.year,
 				},
 			});
 
@@ -94,6 +97,7 @@ export const applicationsRouter = createTRPCRouter({
 					userId: session.user.id,
 					abroadUniversityId: input.abroadUniversityId,
 					status: "DRAFT",
+					year: input.year,
 				},
 			});
 			// create course choices
@@ -104,6 +108,7 @@ export const applicationsRouter = createTRPCRouter({
 						userId: session.user.id,
 						applicationId: application.id,
 						semester: "FULL_YEAR",
+						year: input.year,
 					},
 				});
 			});

@@ -97,6 +97,28 @@ export const coursesRouter = createTRPCRouter({
 			return course;
 		}),
 
+	// input: university id, and year as optional, name of the course
+	addCourseToUniversity: adminProcedure
+		.input(
+			z.object({
+				universityId: z.number(),
+				year: z.enum(["SECOND_YEAR", "THIRD_YEAR"]).optional(),
+				name: z.string(),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			const course = await ctx.db.course.create({
+				data: {
+					name: input.name,
+					universityId: input.universityId,
+					year: input.year,
+					createdAt: new Date(),
+					createdBy: ctx.session.user.guid || ctx.session.user.name,
+				},
+			});
+			return course;
+		}),
+
 	flagCourse: protectedProcedure
 		.input(z.object({ courseId: z.number() }))
 		.mutation(async ({ input, ctx }) => {

@@ -1,5 +1,23 @@
 import { api } from "@/trpc/react";
 
+export const useCreateApplicationMutation = () => {
+	const utils = api.useUtils();
+	return api.applications.create.useMutation({
+		onSuccess: () => {
+			utils.applications.getList.invalidate();
+		},
+	});
+};
+
+export const useRemoveApplicationMutation = () => {
+	const utils = api.useUtils();
+	return api.applications.remove.useMutation({
+		onSuccess: () => {
+			utils.applications.getList.invalidate();
+		},
+	});
+};
+
 export const useSubmitApplicationMutation = () => {
 	return api.applications.submit.useMutation();
 };
@@ -17,5 +35,10 @@ export const useFlagCourseMutation = () => {
 };
 
 export const useSaveChoicesMutation = () => {
-	return api.choices.saveChoiceChanges.useMutation();
+	const utils = api.useUtils();
+	return api.choices.saveChoiceChanges.useMutation({
+		onSuccess: () => {
+			utils.choices.getList.invalidate();
+		},
+	});
 };

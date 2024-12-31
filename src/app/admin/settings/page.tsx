@@ -1,14 +1,15 @@
 "use client";
 import { Segmented } from "antd";
-import { Flag, Home } from "lucide-react";
+import { Home } from "lucide-react";
 import { useState } from "react";
 import HomeUniversitySettings from "./_sections/HomeUniversitySettings";
 
 export default function Settings() {
 	const [selected, setSelected] = useState("homeUni");
 	return (
-		<div>
+		<div className="flex flex-col gap-2">
 			<Segmented
+				onChange={(value) => setSelected(value)}
 				options={[
 					{
 						label: (
@@ -18,15 +19,6 @@ export default function Settings() {
 							</div>
 						),
 						value: "homeUni",
-					},
-					{
-						label: (
-							<div className="flex items-center gap-1">
-								<Flag size={16} />
-								<span>Flagged Courses</span>
-							</div>
-						),
-						value: "flagged",
 					},
 				]}
 			/>

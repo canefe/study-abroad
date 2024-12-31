@@ -1,6 +1,8 @@
 import {
 	useAddNewCourseMutation,
+	useCreateApplicationMutation,
 	useFlagCourseMutation,
+	useRemoveApplicationMutation,
 	useSaveChoicesMutation,
 	useSubmitApplicationMutation,
 	useWithdrawApplicationMutation,
@@ -11,9 +13,10 @@ import {
 	useGetApplicationQuery,
 } from "@/app/api/queries/application";
 import { api } from "@/trpc/react";
+import { Year } from "@prisma/client";
 
 type useApplicationProps = {
-	applicationId: number;
+	applicationId?: number;
 	admin?: boolean;
 };
 
@@ -23,18 +26,35 @@ export const useApplication = ({
 }: useApplicationProps) => {
 	const utils = api.useUtils();
 
-	const { data: application, isLoading } = admin
-		? useGetApplicationAdminQuery(applicationId)
-		: useGetApplicationQuery(applicationId);
+	let application;
+	let isLoading;
+	let abroadCourses;
+	let isLoadingAbroadCourses;
 
-	const { data: abroadCourses, isLoading: isLoadingAbroadCourses } =
-		useGetAbroadCoursesQuery(application?.abroadUniversityId || 0);
+	if (applicationId) {
+		({ data: application, isLoading } = admin
+			? useGetApplicationAdminQuery(applicationId)
+			: useGetApplicationQuery(applicationId));
 
+		({ data: abroadCourses, isLoading: isLoadingAbroadCourses } =
+			useGetAbroadCoursesQuery(application?.abroadUniversityId || 0));
+	}
+
+	const createApplicationMutation = useCreateApplicationMutation();
+	const removeApplicationMutation = useRemoveApplicationMutation();
 	const submitApplicationMutation = useSubmitApplicationMutation();
 	const withdrawApplicationMutation = useWithdrawApplicationMutation();
 	const addCourseMutation = useAddNewCourseMutation();
 	const flagCourseMutation = useFlagCourseMutation();
 	const saveChoicesMutation = useSaveChoicesMutation();
+
+	const createApplication = (abroadUniversityId: number, year: Year) => {
+		createApplicationMutation.mutate({ abroadUniversityId, year });
+	};
+
+	const removeApplication = (applicationId: number) => {
+		removeApplicationMutation.mutate({ applicationId });
+	};
 
 	const submitApplication = (applicationId: number) => {
 		submitApplicationMutation.mutate({ applicationId });
@@ -67,6 +87,9 @@ export const useApplication = ({
 	};
 
 	return {
+		createApplication,
+		removeApplication,
+		removeApplicationMutation,
 		application,
 		isLoading,
 		submitApplication,

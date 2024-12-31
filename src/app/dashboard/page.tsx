@@ -1,9 +1,13 @@
 "use client";
+import { useApplication } from "@/hooks/useApplication";
+import { useSettings } from "@/hooks/useSettings";
 import { api } from "@/trpc/react";
+import { Year } from "@prisma/client";
 import {
 	Button,
 	Popconfirm,
 	Select,
+	Skeleton,
 	Table,
 	Tag,
 	Tooltip,
@@ -19,6 +23,27 @@ export default function Dashboard() {
 	const [applications] = api.applications.getList.useSuspenseQuery();
 	const [universities] = api.universities.getList.useSuspenseQuery();
 	const [selectedUni, setSelectedUni] = useState("");
+	const [selectedYear, setSelectedYear] = useState<Year>("SECOND_YEAR");
+
+	// Tour
+	const ref1 = useRef(null);
+	const ref2 = useRef(null);
+	const ref3 = useRef(null);
+	const ref4 = useRef(null);
+	const ref5 = useRef(null);
+
+	const [open, setOpen] = useState<boolean>(false);
+
+	const { createApplication, removeApplication, removeApplicationMutation } =
+		useApplication({});
+
+	const { getSetting } = useSettings();
+
+	const homeUniversitySetting = getSetting("home_university");
+
+	if (!homeUniversitySetting) {
+		return <Skeleton />;
+	}
 
 	const dummyApplications = [
 		{
@@ -44,27 +69,9 @@ export default function Dashboard() {
 		},
 	];
 
-	const utils = api.useUtils();
-	const createChoicesApi = api.applications.create.useMutation({
-		onSuccess: async () => {
-			// refresh courses
-			toast.success("Application created successfully");
-			await utils.applications.invalidate();
-		},
-		onError: (error) => {
-			toast.error(error.message);
-		},
-	});
-	const removeChoicesApi = api.applications.remove.useMutation({
-		onSuccess: async () => {
-			// refresh courses
-			await utils.applications.invalidate();
-		},
-	});
-
-	// remove University of Glasgow (home uni)
+	// remove (home uni)
 	let filteredUniversities = universities?.filter((university) => {
-		return university.name !== "University of Glasgow";
+		return university.id !== parseInt(homeUniversitySetting?.value || "0");
 	});
 
 	if (!applications || !universities) {
@@ -98,34 +105,9 @@ export default function Dashboard() {
 			return;
 		}
 
-		createChoicesApi.mutate({
-			abroadUniversityId: selectedUniversity.id,
-		});
+		// create new application
+		createApplication(selectedUniversity.id, selectedYear);
 	}
-
-	const removeApplication = async (applicationId: number) => {
-		await removeChoicesApi.mutate({
-			applicationId: applicationId,
-		});
-	};
-
-	function removeChoices(applicationId: number) {
-		// remove all choices related to the university
-		toast.promise(removeApplication(applicationId), {
-			loading: "Removing application...",
-			success: "Application removed successfully",
-			error: "Failed to remove application",
-		});
-	}
-
-	// Tour
-	const ref1 = useRef(null);
-	const ref2 = useRef(null);
-	const ref3 = useRef(null);
-	const ref4 = useRef(null);
-	const ref5 = useRef(null);
-
-	const [open, setOpen] = useState<boolean>(false);
 
 	const steps: TourProps["steps"] = [
 		{
@@ -244,7 +226,15 @@ export default function Dashboard() {
 										title: "Year",
 										dataIndex: "year",
 										key: "year",
-										render: (text, record) => <span>{record.year}</span>,
+										render: (text, record) => (
+											<span>
+												{record.year
+													? record.year === "SECOND_YEAR"
+														? "2nd Year"
+														: "3rd Year"
+													: ""}
+											</span>
+										),
 									},
 									{
 										title: "Action",
@@ -264,13 +254,13 @@ export default function Dashboard() {
 														if (open) {
 															return;
 														}
-														removeChoices(record.id);
+														removeApplication(record.id);
 													}}
 													okText="Yes"
 													cancelText="No"
 												>
 													<Button
-														loading={removeChoicesApi.isPending}
+														loading={removeApplicationMutation.isLoading}
 														ref={ref4}
 														type="primary"
 														danger
@@ -314,6 +304,23 @@ export default function Dashboard() {
 									</Select.Option>
 								))}
 							</Select>
+							<Select
+								showSearch
+								defaultValue={"Select a year"}
+								className="w-full"
+								filterOption={(input, option) =>
+									String(option?.value ?? "")
+										.toLowerCase()
+										.includes(input.toLowerCase())
+								}
+								onSelect={(value) => {
+									setSelectedYear(value as Year);
+								}}
+								options={[
+									{ label: "2nd Year", value: "SECOND_YEAR" },
+									{ label: "3rd Year", value: "THIRD_YEAR" },
+								]}
+							/>
 							<Button onClick={createChoices}>Create new Choices</Button>
 						</div>
 					) : (
