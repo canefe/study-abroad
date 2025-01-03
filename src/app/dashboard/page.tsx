@@ -6,6 +6,7 @@ import { Year } from "@prisma/client";
 import {
 	Button,
 	Popconfirm,
+	Segmented,
 	Select,
 	Skeleton,
 	Table,
@@ -285,42 +286,37 @@ export default function Dashboard() {
 								You can make up to 3 choices. You have made{" "}
 								{applications.length} choices.
 							</p>
-							<Select
-								showSearch
-								defaultValue={"Select a university"}
-								className="w-full"
-								filterOption={(input, option) =>
-									String(option?.value ?? "")
-										.toLowerCase()
-										.includes(input.toLowerCase())
-								}
-								onSelect={(value) => {
-									setSelectedUni(value);
-								}}
-							>
-								{filteredUniversities?.map((university) => (
-									<Select.Option key={university.id} value={university.name}>
-										{university.name}
-									</Select.Option>
-								))}
-							</Select>
-							<Select
-								showSearch
-								defaultValue={"Select a year"}
-								className="w-full"
-								filterOption={(input, option) =>
-									String(option?.value ?? "")
-										.toLowerCase()
-										.includes(input.toLowerCase())
-								}
-								onSelect={(value) => {
-									setSelectedYear(value as Year);
-								}}
-								options={[
-									{ label: "2nd Year", value: "SECOND_YEAR" },
-									{ label: "3rd Year", value: "THIRD_YEAR" },
-								]}
-							/>
+							<div className="flex w-full items-center gap-1">
+								<Select
+									showSearch
+									defaultValue={"Select a university"}
+									className="w-full flex-1"
+									filterOption={(input, option) =>
+										String(option?.value ?? "")
+											.toLowerCase()
+											.includes(input.toLowerCase())
+									}
+									onSelect={(value) => {
+										setSelectedUni(value);
+									}}
+								>
+									{filteredUniversities?.map((university) => (
+										<Select.Option key={university.id} value={university.name}>
+											{university.name}
+										</Select.Option>
+									))}
+								</Select>
+								<Segmented<string>
+									options={["2nd Year", "3rd Year"]}
+									onChange={(value) => {
+										if (value === "2nd Year") {
+											setSelectedYear("SECOND_YEAR");
+										} else if (value === "3rd Year") {
+											setSelectedYear("THIRD_YEAR");
+										}
+									}}
+								/>
+							</div>
 							<Button onClick={createChoices}>Create new Choices</Button>
 						</div>
 					) : (
