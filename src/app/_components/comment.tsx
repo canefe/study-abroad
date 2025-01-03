@@ -1,12 +1,9 @@
-import { message, Avatar, Tooltip, Tag, Button, Collapse } from "antd";
+import { Avatar, Tooltip, Button } from "antd";
 import dayjs from "dayjs";
-import crypto from "crypto";
 import relativeTime from "dayjs/plugin/relativeTime";
 import CommentForm from "./comment-form";
-import { forwardRef, useState } from "react";
+import { useState } from "react";
 import {
-	ArrowBigDown,
-	ArrowBigRight,
 	Bell,
 	BellOff,
 	CircleMinus,
@@ -14,9 +11,9 @@ import {
 	MessageCircle,
 	Trash,
 } from "lucide-react";
-import { getServerAuthSession } from "@/server/auth";
 import { generateRandomColor } from "@/lib/randomUtils";
 import { useNotifications } from "@/hooks/useNotifications";
+import { motion } from "framer-motion";
 
 dayjs.extend(relativeTime);
 
@@ -78,7 +75,9 @@ const Comment = ({
 
 	return (
 		<>
-			<div
+			<motion.div
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1, transition: { duration: 0.5 } }}
 				key={message.id}
 				onClick={() => setHidden(!hidden)}
 				onMouseEnter={() => onHover()}
@@ -260,7 +259,7 @@ const Comment = ({
 						</div>
 					</Tooltip>
 				)}
-			</div>
+			</motion.div>
 
 			{/** If last message */}
 

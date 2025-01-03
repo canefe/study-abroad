@@ -6,6 +6,7 @@ export const useGetCommentsQuery = (applicationId: number) => {
 		{ applicationId },
 		{
 			enabled: !!applicationId,
+			refetchInterval: 10000,
 		},
 	);
 };
