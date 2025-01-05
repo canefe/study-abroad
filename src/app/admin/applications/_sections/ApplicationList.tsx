@@ -1,12 +1,9 @@
 "use client";
 import { Table } from "antd";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
-import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import Link from "next/link";
 
-export default function StudentList() {
+export default function ApplicationList() {
 	const [users] = api.students.getList.useSuspenseQuery();
 	const utils = api.useUtils();
 

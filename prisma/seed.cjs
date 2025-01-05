@@ -98,56 +98,6 @@ async function main() {
 		skipDuplicates: true,
 	});
 
-	// random course name generator
-	function randomCourseName() {
-		const prefix = ["Intro to", "Advanced", "How to", "Understanding"];
-		// Computer Science courses
-		const courseNames = [
-			"Computer Science",
-			"Data Structures",
-			"Algorithms",
-			"Machine Learning",
-			"Artificial Intelligence",
-			"Operating Systems",
-			"Computer Networks",
-			"Database Management",
-			"Web Development",
-			"Software Engineering",
-		];
-
-		const postfix = [
-			"101",
-			"I",
-			"II",
-			"III",
-			"IV",
-			"V",
-			"VI",
-			"VII",
-			"VIII",
-			"IX",
-			"X",
-		];
-
-		const randomPrefix = prefix[Math.floor(Math.random() * prefix.length)];
-		const randomCourseName =
-			courseNames[Math.floor(Math.random() * courseNames.length)];
-		const randomPostfix = postfix[Math.floor(Math.random() * postfix.length)];
-		return `${randomPrefix} ${randomCourseName} ${randomPostfix}`;
-	}
-
-	// Create Courses
-	await prisma.course.createMany({
-		data: [
-			// Generate random courses for university id 2
-			...Array.from({ length: 10 }, (_, i) => ({
-				name: randomCourseName(),
-				universityId: 2,
-			})),
-		],
-		skipDuplicates: true,
-	});
-
 	// Create Users
 	await prisma.user.createMany({
 		data: [

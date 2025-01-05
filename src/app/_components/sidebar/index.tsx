@@ -1,8 +1,10 @@
 import {
 	Flag,
 	Home,
+	Paperclip,
 	Settings,
 	ShieldQuestion,
+	University,
 	User,
 	Verified,
 } from "lucide-react";
@@ -43,8 +45,26 @@ const items = [
 		url: "/admin/students",
 		icon: User,
 		role: "admin",
-		category: "Students",
+		category: "General",
 	},
+
+	{
+		title: "Universities",
+		url: "/admin/universities",
+		icon: University,
+		role: "admin",
+		category: "General",
+	},
+	{
+		title: "Applications",
+		url: "/admin/applications",
+		icon: Paperclip,
+		role: "admin",
+		category: "General",
+	},
+	/* 
+		Courses
+	*/
 	{
 		title: "Verified Courses",
 		url: "/admin/courses/verified",
@@ -76,7 +96,7 @@ const items = [
 		url: "/admin/settings",
 		icon: Settings,
 		role: "admin",
-		category: "General",
+		category: "Other",
 	},
 
 	/* 
