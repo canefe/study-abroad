@@ -1,18 +1,31 @@
 "use client";
-import { Table } from "antd";
+import { AutoComplete, Button, Table } from "antd";
 import { api } from "@/trpc/react";
 import Link from "next/link";
+import ShortId from "@/app/_components/short-id";
+import { useState } from "react";
+import { debounce } from "lodash";
+import { Filter } from "lucide-react";
 
 export default function StudentList() {
-	const [users] = api.students.getList.useSuspenseQuery();
-	const utils = api.useUtils();
+	const [search, setSearch] = useState("");
+	const [page, setPage] = useState(1);
+	const { data: users, isLoading } = api.students.getList.useQuery({
+		q: search,
+		page: page,
+		pageSize: 10,
+	});
+
+	const handleSearch = debounce((value: string) => {
+		setSearch(value);
+	}, 500);
 
 	const columns = [
 		{
 			title: "#",
 			dataIndex: "id",
 			key: "id",
-			render: (id) => <span className="text-gray-400">{id}</span>,
+			render: (id) => <ShortId id={id} />,
 		},
 		{
 			title: "Name",
@@ -34,33 +47,44 @@ export default function StudentList() {
 			dataIndex: "applications",
 			key: "applications",
 			render: (applications: any) => {
-				return applications.map((application: any) => {
-					return (
-						<div key={application.id}>
-							{application.status === "SUBMITTED" ? (
-								<Link
-									href={`/admin/applications/${application.id}`}
-									className="text-blue-500"
-								>
-									{application.abroadUniversity.name}
-								</Link>
-							) : (
-								application.abroadUniversity.name + " (Draft)"
-							)}
-						</div>
-					);
-				});
+				return (
+					<div className="flex cursor-pointer items-center text-blue-500">
+						{applications.length}
+					</div>
+				);
 			},
 		},
 	];
 
 	return (
-		<div className="w-full">
+		<div className="flex w-full flex-col gap-2">
+			<div className="flex items-center gap-2">
+				<AutoComplete
+					options={users?.users.map((user) => ({
+						value: user.name,
+						label: user.name,
+					}))}
+					onSearch={handleSearch}
+					placeholder="Search for a student"
+					className="w-full"
+				/>
+				<Button type="default" icon={<Filter size={16} />} className="w-fit">
+					Filter
+				</Button>
+			</div>
 			<Table
 				size="small"
-				dataSource={users}
+				dataSource={users?.users}
+				pagination={{
+					total: users?.total,
+					pageSize: 10,
+					current: page,
+					onChange(page, pageSize) {
+						setPage(page);
+					},
+				}}
 				columns={columns}
-				loading={!users}
+				loading={!users || isLoading}
 			/>
 		</div>
 	);

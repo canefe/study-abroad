@@ -1,6 +1,8 @@
 // prisma/seed.js
 const { PrismaClient } = require("@prisma/client");
+const { faker } = require("@faker-js/faker");
 const prisma = new PrismaClient();
+const { Role } = require("@prisma/client");
 
 async function main() {
 	// Create Universities
@@ -95,6 +97,29 @@ async function main() {
 			name: university.name,
 			location: university.location,
 		})),
+		skipDuplicates: true,
+	});
+
+	// guid is 7 random numbers and surname first letter
+
+	// a random user generator
+	function generateRandomUser() {
+		const firstName = faker.person.firstName();
+		const lastName = faker.person.lastName();
+		const guid = `${faker.number.int({ min: 1000000, max: 9999999 })}${lastName[0]}`;
+		return {
+			id: faker.string.uuid(),
+			name: `${firstName} ${lastName}`,
+			email: `${guid}@student.gla.ac.uk`,
+			role: Role.STUDENT,
+			guid: guid,
+		};
+	}
+
+	// Create 100 random users
+	const randomUsers = Array.from({ length: 20 }, generateRandomUser);
+	await prisma.user.createMany({
+		data: randomUsers,
 		skipDuplicates: true,
 	});
 

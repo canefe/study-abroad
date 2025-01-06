@@ -20,22 +20,53 @@ export const studentsRouter = createTRPCRouter({
 		return ctx.session.user;
 	}),
 
-	getList: adminProcedure.query(async ({ ctx }) => {
-		const users = await ctx.db.user.findMany({
-			where: {
-				role: "STUDENT",
-			},
-			include: {
-				applications: {
-					include: {
-						//courseChoices: true,
-						abroadUniversity: true,
+	getList: adminProcedure
+		.input(
+			z.object({
+				q: z.string().optional(),
+				page: z.number().default(1),
+				pageSize: z.number().default(10),
+			}),
+		)
+		.query(async ({ input, ctx }) => {
+			const { q, page, pageSize } = input;
+			const skip = (page - 1) * pageSize;
+			const users = await ctx.db.user.findMany({
+				where: {
+					role: "STUDENT",
+					OR: [
+						{ name: { contains: q, mode: "insensitive" } },
+						{ guid: { contains: q, mode: "insensitive" } },
+					],
+				},
+				include: {
+					applications: {
+						include: {
+							//courseChoices: true,
+							abroadUniversity: true,
+						},
 					},
 				},
-			},
-		});
-		return users;
-	}),
+				skip,
+				take: pageSize,
+			});
+			const total = await ctx.db.user.count({
+				where: {
+					role: "STUDENT",
+					OR: [
+						{ name: { contains: q, mode: "insensitive" } },
+						{ guid: { contains: q, mode: "insensitive" } },
+					],
+				},
+			});
+
+			return {
+				users,
+				total,
+				totalPages: Math.ceil(total / pageSize),
+				currentPage: page,
+			};
+		}),
 
 	getStudent: adminProcedure
 		.input(z.object({ id: z.string() }))
