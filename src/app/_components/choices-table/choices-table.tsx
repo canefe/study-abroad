@@ -1,6 +1,13 @@
 "use client";
 import { api } from "@/trpc/react";
-import { Button, Popconfirm, Skeleton, Table, Tooltip } from "antd";
+import {
+	AutoComplete,
+	Button,
+	Popconfirm,
+	Skeleton,
+	Table,
+	Tooltip,
+} from "antd";
 import {
 	DndContext,
 	DragOverlay,
@@ -12,7 +19,7 @@ import { useEffect, useRef, useState } from "react";
 import { getCourseNameById, useCombinedRefs } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { usePathname } from "next/navigation";
-import { FlagIcon } from "lucide-react";
+import { FlagIcon, PlusIcon } from "lucide-react";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import CommentSection from "@/app/_components/comment-section";
 import MobileChoicesTable from "../mobile-choices-table";
@@ -65,6 +72,7 @@ export default function ChoicesTable({
 	const [sidebarHeight, setSidebarHeight] = useState("auto"); // Sidebar height state
 	const tableRef = useRef(null); // Reference to the table
 	const [activeId, setActiveId] = useState(null);
+	const [searchCourse, setSearchCourse] = useState("");
 	const pathname = usePathname();
 	const [agreedToTerms, setAgreedToTerms] = useState(false); // State to track if the user has agreed to the terms of course creation to avoid multiple popups
 
@@ -377,6 +385,23 @@ export default function ChoicesTable({
 		await addCourse(name, application.abroadUniversityId);
 	};
 
+	const handleSearch = (value) => {
+		setSearchCourse(value);
+	};
+
+	const searchedCourses = availableAbroadCourses?.filter((course) =>
+		course.name.toLowerCase().includes(searchCourse.toLowerCase()),
+	);
+
+	const removeAllChoices = () => {
+		// remove all choices
+		Object.keys(choices).forEach((homeCourseId) => {
+			removeChoices(parseInt(homeCourseId), "primary");
+			removeChoices(parseInt(homeCourseId), "alt1");
+			removeChoices(parseInt(homeCourseId), "alt2");
+		});
+	};
+
 	return (
 		<DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
 			<div className="flex w-full flex-col items-center justify-between gap-2 md:flex-row">
@@ -446,73 +471,6 @@ export default function ChoicesTable({
 							Withdraw
 						</Button>
 					)}
-					{/* Add a New Course Button */}
-					<Popconfirm
-						title="Adding a new course"
-						disabled={agreedToTerms}
-						description={
-							<>
-								<p>Before adding a course you must accept these terms:</p>
-								<ul className="list-inside list-decimal">
-									<li>Course must be related to the university</li>
-									<li>Course must be available in the university</li>
-									<li>Course must be a valid course</li>
-								</ul>
-							</>
-						}
-						onConfirm={() => {
-							const name = prompt("Enter course name", "Course Name");
-							if (name !== null) {
-								if (!agreedToTerms) {
-									setAgreedToTerms(true);
-								}
-								toast.promise(
-									onAddCourse(name),
-									{
-										loading: "Adding course...",
-										success: "Course added successfully",
-										error: (err) => `${err.toString()}`,
-									},
-									{
-										style: {
-											minWidth: "250px",
-										},
-									},
-								);
-							}
-						}}
-						okText="I accept"
-						cancelText="Cancel"
-						placement="top"
-					>
-						<Button
-							onClick={() => {
-								if (!agreedToTerms) {
-									return;
-								}
-								const name = prompt("Enter course name", "Course Name");
-								if (name !== null) {
-									toast.promise(
-										onAddCourse(name),
-										{
-											loading: "Adding course...",
-											success: "Course added successfully",
-											error: (err) => `${err.toString()}`,
-										},
-										{
-											style: {
-												minWidth: "250px",
-											},
-										},
-									);
-								}
-							}}
-							className="cursor-pointer"
-							size="large"
-						>
-							Add Course
-						</Button>
-					</Popconfirm>
 				</div>
 			</div>
 			<div className="mt-4 flex flex-col space-x-5 md:flex-row">
@@ -556,7 +514,85 @@ export default function ChoicesTable({
 									<li>You can add a new course</li>
 								</ul>
 							)}
-							{availableAbroadCourses?.map((course) => (
+							<div className="flex items-center gap-1">
+								<AutoComplete
+									options={searchedCourses?.map((course) => ({
+										value: course.name,
+										label: course.name,
+									}))}
+									onSearch={handleSearch}
+									placeholder="Search course"
+									className="w-full"
+									placement={"topLeft"}
+								/>
+								{/* Add a New Course Button */}
+								<Popconfirm
+									title="Adding a new course"
+									disabled={agreedToTerms}
+									description={
+										<>
+											<p>Before adding a course you must accept these terms:</p>
+											<ul className="list-inside list-decimal">
+												<li>Course must be related to the university</li>
+												<li>Course must be available in the university</li>
+												<li>Course must be a valid course</li>
+											</ul>
+										</>
+									}
+									onConfirm={() => {
+										const name = prompt("Enter course name", "Course Name");
+										if (name !== null) {
+											if (!agreedToTerms) {
+												setAgreedToTerms(true);
+											}
+											toast.promise(
+												onAddCourse(name),
+												{
+													loading: "Adding course...",
+													success: "Course added successfully",
+													error: (err) => `${err.toString()}`,
+												},
+												{
+													style: {
+														minWidth: "250px",
+													},
+												},
+											);
+										}
+									}}
+									okText="I accept"
+									cancelText="Cancel"
+									placement="top"
+								>
+									<Button
+										onClick={() => {
+											if (!agreedToTerms) {
+												return;
+											}
+											const name = prompt("Enter course name", "Course Name");
+											if (name !== null) {
+												toast.promise(
+													onAddCourse(name),
+													{
+														loading: "Adding course...",
+														success: "Course added successfully",
+														error: (err) => `${err.toString()}`,
+													},
+													{
+														style: {
+															minWidth: "250px",
+														},
+													},
+												);
+											}
+										}}
+										className="cursor-pointer"
+									>
+										<PlusIcon size={16} />
+									</Button>
+								</Popconfirm>
+							</div>
+							{searchedCourses?.map((course) => (
 								<div key={course.id} className="flex items-center gap-2">
 									<DraggableCourse
 										key={course.id}
