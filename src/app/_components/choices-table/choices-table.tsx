@@ -508,12 +508,6 @@ export default function ChoicesTable({
 						style={{ height: sidebarHeight }}
 					>
 						<div className="grid grid-cols-1 gap-2">
-							{availableAbroadCourses?.length === 0 && (
-								<ul className="w-fit list-inside text-sm text-gray-500">
-									<li>No courses available</li>
-									<li>You can add a new course</li>
-								</ul>
-							)}
 							<div className="flex items-center gap-1">
 								<AutoComplete
 									options={searchedCourses?.map((course) => ({
@@ -592,6 +586,12 @@ export default function ChoicesTable({
 									</Button>
 								</Popconfirm>
 							</div>
+							{availableAbroadCourses?.length === 0 && (
+								<ul className="w-fit list-inside text-sm text-gray-500">
+									<li>No courses available</li>
+									<li>You can add a new course</li>
+								</ul>
+							)}
 							{searchedCourses?.map((course) => (
 								<div key={course.id} className="flex items-center gap-2">
 									<DraggableCourse
