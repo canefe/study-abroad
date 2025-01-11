@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 import {
+	adminProcedure,
 	createTRPCRouter,
 	protectedProcedure,
-	publicProcedure,
 } from "@/server/api/trpc";
 
 export const choicesRouter = createTRPCRouter({
@@ -55,6 +55,32 @@ export const choicesRouter = createTRPCRouter({
 			console.log(result);
 			console.log("=====================================");
 			console.log("     ");
+			return result;
+		}),
+
+	// admin save choices of a student
+	saveChoicesAdmin: adminProcedure
+		.input(
+			z.object({
+				userId: z.string(),
+				homeCourseId: z.number(),
+				primaryCourseId: z.number().nullable().optional(),
+				alternativeCourse1Id: z.number().nullable().optional(),
+				alternativeCourse2Id: z.number().nullable().optional(),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			const result = await ctx.db.courseChoice.updateMany({
+				where: {
+					userId: input.userId,
+					homeCourseId: input.homeCourseId,
+				},
+				data: {
+					primaryCourseId: input.primaryCourseId,
+					alternativeCourse1Id: input.alternativeCourse1Id,
+					alternativeCourse2Id: input.alternativeCourse2Id,
+				},
+			});
 			return result;
 		}),
 

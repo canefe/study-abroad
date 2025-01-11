@@ -67,7 +67,14 @@ export const studentsRouter = createTRPCRouter({
 				currentPage: page,
 			};
 		}),
-
+	getCount: adminProcedure.query(async ({ ctx }) => {
+		const total = await ctx.db.user.count({
+			where: {
+				role: "STUDENT",
+			},
+		});
+		return total;
+	}),
 	getStudent: adminProcedure
 		.input(z.object({ id: z.string() }))
 		.query(async ({ input, ctx }) => {

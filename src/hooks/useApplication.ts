@@ -6,6 +6,7 @@ import {
 	useSaveChoicesMutation,
 	useSubmitApplicationMutation,
 	useWithdrawApplicationMutation,
+	useSaveChoicesAdminMutation,
 } from "@/app/api/mutations/application";
 import {
 	useGetAbroadCoursesQuery,
@@ -46,7 +47,9 @@ export const useApplication = ({
 	const withdrawApplicationMutation = useWithdrawApplicationMutation();
 	const addCourseMutation = useAddNewCourseMutation();
 	const flagCourseMutation = useFlagCourseMutation();
-	const saveChoicesMutation = useSaveChoicesMutation();
+	const saveChoicesMutation = admin
+		? useSaveChoicesAdminMutation()
+		: useSaveChoicesMutation();
 
 	const createApplication = (abroadUniversityId: number, year: Year) => {
 		createApplicationMutation.mutate({ abroadUniversityId, year });

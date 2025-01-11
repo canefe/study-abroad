@@ -1,13 +1,22 @@
+"use client";
 import { shortenText } from "@/lib/textUtils";
 import { Tooltip } from "antd";
 import { Copy } from "lucide-react";
+import toast from "react-hot-toast";
 
 type ShortIdProps = {
 	id: string;
 };
 export default function ShortId({ id }: ShortIdProps) {
 	const copyId = () => {
-		navigator.clipboard.writeText(id);
+		if (typeof navigator !== "undefined") {
+			if (navigator.clipboard) {
+				navigator.clipboard.writeText(id);
+				toast.success("ID copied to clipboard");
+			} else {
+				toast.error("Clipboard not supported");
+			}
+		}
 	};
 
 	return (

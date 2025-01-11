@@ -28,6 +28,8 @@ export const applicationsRouter = createTRPCRouter({
 			const applications = await ctx.db.application.findMany({
 				include: {
 					courseChoices: true,
+					abroadUniversity: true,
+					user: true,
 				},
 			});
 			return applications;

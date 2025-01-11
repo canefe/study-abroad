@@ -252,6 +252,7 @@ export default function ChoicesTable({
 				Object.entries(choices).map(async ([homeCourseId, choice]) => {
 					if (application) {
 						await saveChoices({
+							userId: application?.userId,
 							homeCourseId: parseInt(homeCourseId),
 							abroadUniversityId: application?.abroadUniversityId,
 							primaryCourseId: (choice as any).primary,
@@ -406,8 +407,14 @@ export default function ChoicesTable({
 		<DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
 			<div className="flex w-full flex-col items-center justify-between gap-2 md:flex-row">
 				<h2 className="text-xl font-medium">
-					{application?.abroadUniversity.name}
+					{application?.abroadUniversity.name} - {application?.year} -{" "}
+					{application?.semester}
 				</h2>
+				{application?.user && (
+					<h2>
+						{application?.user?.name} - {application?.user?.guid}
+					</h2>
+				)}
 				<h2
 					className="bg-gray-100 p-2 text-lg font-bold uppercase text-white"
 					style={{
@@ -504,8 +511,11 @@ export default function ChoicesTable({
 				{/* Sidebar for Available Courses */}
 				<div>
 					<div
-						className="relative !z-0 w-52 overflow-auto rounded bg-gray-50 p-3"
-						style={{ height: sidebarHeight }}
+						className="relative !z-0 hidden max-h-60 w-52 transform overflow-auto rounded bg-gray-50 p-3 transition-all duration-500 ease-in-out md:block"
+						style={{
+							height: sidebarHeight,
+							transition: "height 0.15s ease-out",
+						}}
 					>
 						<div className="grid grid-cols-1 gap-2">
 							<div className="flex items-center gap-1">

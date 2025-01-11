@@ -42,3 +42,12 @@ export const useSaveChoicesMutation = () => {
 		},
 	});
 };
+
+export const useSaveChoicesAdminMutation = () => {
+	const utils = api.useUtils();
+	return api.choices.saveChoicesAdmin.useMutation({
+		onSuccess: () => {
+			utils.choices.getList.invalidate();
+		},
+	});
+};

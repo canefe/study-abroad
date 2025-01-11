@@ -4,18 +4,25 @@ import { api } from "@/trpc/react";
 import Link from "next/link";
 
 export default function ApplicationList() {
-	const [users] = api.students.getList.useSuspenseQuery();
+	const [applications] = api.applications.getAll.useSuspenseQuery();
 	const utils = api.useUtils();
 
 	const columns = [
 		{
-			title: "Name",
-			dataIndex: "name",
+			title: "#",
+			dataIndex: "id",
+			key: "id",
+			render: (id: string) => <span className="text-gray-500">{id}</span>,
+		},
+		{
+			title: "Student",
+			dataIndex: ["user", "name"],
 			key: "name",
+			render: (name: string) => <span>{name}</span>,
 		},
 		{
 			title: "GUID",
-			dataIndex: "guid",
+			dataIndex: ["user", "guid"],
 			key: "guid",
 			render: (guid: string) => (
 				<Link href={`/admin/students/${guid}`} className="text-blue-500">
@@ -24,26 +31,30 @@ export default function ApplicationList() {
 			),
 		},
 		{
-			title: "Applications",
-			dataIndex: "applications",
-			key: "applications",
-			render: (applications: any) => {
-				return applications.map((application: any) => {
-					return (
-						<div key={application.id}>
-							{application.status === "SUBMITTED" ? (
-								<Link
-									href={`/admin/applications/${application.id}`}
-									className="text-blue-500"
-								>
-									{application.abroadUniversity.name}
-								</Link>
-							) : (
-								application.abroadUniversity.name + " (Draft)"
-							)}
-						</div>
-					);
-				});
+			title: "University",
+			dataIndex: ["abroadUniversity", "name"],
+			key: "university",
+		},
+		{
+			title: "Status",
+			dataIndex: "status",
+			key: "status",
+			render: (status: string) => {
+				return <span style={{ color: "red" }}>{status}</span>;
+			},
+		},
+		{
+			title: "Actions",
+			key: "actions",
+			render: (record: any) => {
+				return (
+					<Link
+						href={`/admin/applications/${record.id}`}
+						className="text-blue-500"
+					>
+						View
+					</Link>
+				);
 			},
 		},
 	];
@@ -51,10 +62,10 @@ export default function ApplicationList() {
 	return (
 		<div className="w-full">
 			<Table
-				size="large"
-				dataSource={users}
+				size={"middle"}
+				dataSource={applications}
 				columns={columns}
-				loading={!users}
+				loading={!applications}
 			/>
 		</div>
 	);

@@ -3,7 +3,7 @@ import { api } from "@/trpc/react";
 import StatsCard from ".";
 
 export default function StudentStatsCard() {
-	const [students] = api.students.getList.useSuspenseQuery();
+	const [studentCount] = api.students.getCount.useSuspenseQuery();
 
-	return <StatsCard title="Students" value={students?.length} />;
+	return <StatsCard title="Students" value={studentCount} />;
 }
