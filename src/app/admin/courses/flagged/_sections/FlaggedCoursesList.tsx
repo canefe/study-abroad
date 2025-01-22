@@ -8,7 +8,7 @@ import {
 } from "@/hooks/useCourses";
 import { api } from "@/trpc/react";
 import { Button, Table } from "antd";
-import { FlagIcon, FlagOffIcon, Trash } from "lucide-react";
+import { FlagOffIcon, Trash } from "lucide-react";
 
 export default function FlaggedCoursesList() {
 	const getCoursesApi = api.courses.getFlaggedList;
@@ -40,6 +40,19 @@ export default function FlaggedCoursesList() {
 			title: "Course Name",
 			dataIndex: "name",
 			key: "name",
+			render: (name: string, record: any) => (
+				<div className="flex flex-col gap-1">
+					<span>{name}</span>
+					<a
+						href={record.link}
+						target="_blank"
+						rel="noreferrer"
+						className="text-blue-500"
+					>
+						{record.link}
+					</a>
+				</div>
+			),
 		},
 		{
 			title: "University",

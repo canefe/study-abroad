@@ -23,6 +23,19 @@ export default function UnverifiedCoursesList() {
 			title: "Course Name",
 			dataIndex: "name",
 			key: "name",
+			render: (name: string, record: any) => (
+				<div className="flex flex-col gap-1">
+					<span>{name}</span>
+					<a
+						href={record.link}
+						target="_blank"
+						rel="noreferrer"
+						className="text-blue-500"
+					>
+						{record.link}
+					</a>
+				</div>
+			),
 		},
 		{
 			title: "University",
@@ -52,7 +65,7 @@ export default function UnverifiedCoursesList() {
 							handleVerify(record.id);
 						}}
 					>
-						Verify Course
+						Verify
 					</Button>
 				</div>
 			),

@@ -166,6 +166,7 @@ model Course {
     createdBy                 String? // The user who created the course
     verified                  Boolean        @default(false) // Verified courses are courses that have been reviewed by an admin
     year                      Year?
+    link                      String?
     homeCourseChoices         CourseChoice[] @relation("HomeCourse")
     primaryCourseChoices      CourseChoice[] @relation("PrimaryCourse")
     alternativeCourse1Choices CourseChoice[] @relation("AlternativeCourse1")

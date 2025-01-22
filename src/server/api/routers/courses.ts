@@ -84,14 +84,21 @@ export const coursesRouter = createTRPCRouter({
 
 	// input: the abroad university id, name of the course creates an abroad course
 	addCourse: protectedProcedure
-		.input(z.object({ name: z.string(), abroadUniversityId: z.number() }))
+		.input(
+			z.object({
+				name: z.string(),
+				abroadUniversityId: z.number(),
+				link: z.string().optional(),
+			}),
+		)
 		.mutation(async ({ input, ctx }) => {
 			const course = await ctx.db.course.create({
 				data: {
 					name: input.name,
 					universityId: input.abroadUniversityId,
 					createdAt: new Date(),
-					createdBy: ctx.session.user.guid || ctx.session.user.name,
+					createdBy: ctx.session?.user.guid || ctx.session?.user.name,
+					link: input.link,
 				},
 			});
 			return course;
@@ -104,6 +111,7 @@ export const coursesRouter = createTRPCRouter({
 				universityId: z.number(),
 				year: z.enum(["SECOND_YEAR", "THIRD_YEAR"]).optional(),
 				name: z.string(),
+				link: z.string().optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -113,7 +121,8 @@ export const coursesRouter = createTRPCRouter({
 					universityId: input.universityId,
 					year: input.year,
 					createdAt: new Date(),
-					createdBy: ctx.session.user.guid || ctx.session.user.name,
+					createdBy: ctx.session?.user.guid || ctx.session?.user.name,
+					link: input.link,
 				},
 			});
 			return course;
