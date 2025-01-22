@@ -3,6 +3,9 @@ import { api } from "@/trpc/react";
 import {
 	AutoComplete,
 	Button,
+	Form,
+	Input,
+	Modal,
 	Popconfirm,
 	Skeleton,
 	Table,
@@ -79,6 +82,8 @@ export default function ChoicesTable({
 	const handleDragStart = (event: DragStartEvent) => {
 		setActiveId(event.active.id);
 	};
+
+	const [addCourseModalOpen, setAddCourseModalOpen] = useState(false); // State to track if the add course modal is open
 
 	const [choices, setChoices] = useState<Choices>({}); // Tracks the selected choices for each home course
 	const [initialEffectRun, setInitialEffectRun] = useState(false); // this is to fix unsaved changes going away on application data refreshes
@@ -372,7 +377,7 @@ export default function ChoicesTable({
 		});
 	};
 
-	const onAddCourse = async (name: string) => {
+	const onAddCourse = async (name: string, link: string) => {
 		//add course
 		if (!name) {
 			return Promise.reject("Course name is required");
@@ -383,7 +388,7 @@ export default function ChoicesTable({
 		if (!application?.abroadUniversityId) {
 			return Promise.reject("University not found");
 		}
-		await addCourse(name, application.abroadUniversityId);
+		await addCourse(name, application.abroadUniversityId, link);
 	};
 
 	const handleSearch = (value) => {
@@ -544,25 +549,7 @@ export default function ChoicesTable({
 										</>
 									}
 									onConfirm={() => {
-										const name = prompt("Enter course name", "Course Name");
-										if (name !== null) {
-											if (!agreedToTerms) {
-												setAgreedToTerms(true);
-											}
-											toast.promise(
-												onAddCourse(name),
-												{
-													loading: "Adding course...",
-													success: "Course added successfully",
-													error: (err) => `${err.toString()}`,
-												},
-												{
-													style: {
-														minWidth: "250px",
-													},
-												},
-											);
-										}
+										setAddCourseModalOpen(true);
 									}}
 									okText="I accept"
 									cancelText="Cancel"
@@ -570,25 +557,7 @@ export default function ChoicesTable({
 								>
 									<Button
 										onClick={() => {
-											if (!agreedToTerms) {
-												return;
-											}
-											const name = prompt("Enter course name", "Course Name");
-											if (name !== null) {
-												toast.promise(
-													onAddCourse(name),
-													{
-														loading: "Adding course...",
-														success: "Course added successfully",
-														error: (err) => `${err.toString()}`,
-													},
-													{
-														style: {
-															minWidth: "250px",
-														},
-													},
-												);
-											}
+											if (agreedToTerms) setAddCourseModalOpen(true);
 										}}
 										className="cursor-pointer"
 									>
@@ -596,6 +565,72 @@ export default function ChoicesTable({
 									</Button>
 								</Popconfirm>
 							</div>
+							<Modal
+								title="Add New Course"
+								open={addCourseModalOpen}
+								onCancel={() => setAddCourseModalOpen(false)}
+								onClose={() => setAddCourseModalOpen(false)}
+								footer={null}
+							>
+								<Form
+									layout="vertical"
+									onFinish={(values) => {
+										setAddCourseModalOpen(false);
+										const { name, link } = values;
+										toast.promise(
+											onAddCourse(name, link),
+											{
+												loading: "Adding course...",
+												success: "Course added successfully",
+												error: (err) => `${err.toString()}`,
+											},
+											{
+												style: {
+													minWidth: "250px",
+												},
+											},
+										);
+									}}
+								>
+									<Form.Item
+										layout={"vertical"}
+										label="Course Name"
+										name="name"
+										rules={[
+											{
+												required: true,
+												message: "Please enter a course name",
+											},
+											{
+												min: 5,
+												message: "Course name must be at least 5 characters",
+											},
+										]}
+										required
+									>
+										<Input placeholder="Course Name" />
+									</Form.Item>
+									<Form.Item
+										layout={"vertical"}
+										label="Course Link"
+										name="link"
+										required
+										rules={[
+											{
+												type: "url",
+												message: "Please enter a valid URL",
+											},
+										]}
+									>
+										<Input placeholder="Course Link" />
+									</Form.Item>
+									<Form.Item label={null}>
+										<Button type="primary" htmlType="submit">
+											Submit
+										</Button>
+									</Form.Item>
+								</Form>
+							</Modal>
 							{availableAbroadCourses?.length === 0 && (
 								<ul className="w-fit list-inside text-sm text-gray-500">
 									<li>No courses available</li>
