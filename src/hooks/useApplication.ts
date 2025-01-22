@@ -67,9 +67,13 @@ export const useApplication = ({
 		withdrawApplicationMutation.mutate({ applicationId });
 	};
 
-	const addCourse = (name: string, abroadUniversityId: number) => {
+	const addCourse = (
+		name: string,
+		abroadUniversityId: number,
+		link: string,
+	) => {
 		addCourseMutation.mutate(
-			{ name, abroadUniversityId },
+			{ name, abroadUniversityId, link },
 			{
 				onSuccess: () => {
 					utils.courses.invalidate();

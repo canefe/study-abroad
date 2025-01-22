@@ -1,14 +1,3 @@
-import {
-	Flag,
-	Home,
-	Paperclip,
-	Settings,
-	ShieldQuestion,
-	University,
-	User,
-	Verified,
-} from "lucide-react";
-
 import Image from "next/image";
 import Logo from "@/app/assets/logo.png";
 
@@ -25,109 +14,14 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { getServerAuthSession } from "@/server/auth";
-import { Tag } from "antd";
-import { FlaggedCoursesCount } from "./courses-count";
+import useNavData from "@/hooks/useNavData";
 
 // Menu items. That checks ROLE and displays the menu items accordingly
-const items = [
-	/* 
-  ADMIN MENU ITEMS START
-  */
-	{
-		title: "Home",
-		url: "/admin/dashboard",
-		icon: Home,
-		role: "admin",
-		category: "Main",
-	},
-	{
-		title: "Students",
-		url: "/admin/students",
-		icon: User,
-		role: "admin",
-		category: "General",
-	},
-
-	{
-		title: "Universities",
-		url: "/admin/universities",
-		icon: University,
-		role: "admin",
-		category: "General",
-	},
-	{
-		title: "Applications",
-		url: "/admin/applications",
-		icon: Paperclip,
-		role: "admin",
-		category: "General",
-	},
-	/* 
-		Courses
-	*/
-	{
-		title: "Verified Courses",
-		url: "/admin/courses/verified",
-		icon: Verified,
-		role: "admin",
-		category: "Courses",
-	},
-	{
-		title: "Flagged Courses",
-		url: "/admin/courses/flagged",
-		icon: Flag,
-		role: "admin",
-		suffix: (
-			<Tag color="red" className="rounded-full">
-				<FlaggedCoursesCount />
-			</Tag>
-		),
-		category: "Courses",
-	},
-	{
-		title: "Unverified Courses",
-		url: "/admin/courses/unverified",
-		icon: ShieldQuestion,
-		role: "admin",
-		category: "Courses",
-	},
-	{
-		title: "Settings",
-		url: "/admin/settings",
-		icon: Settings,
-		role: "admin",
-		category: "Other",
-	},
-
-	/* 
-  ADMIN MENU ITEMS END
-  */
-
-	/*
-  STUDENT MENU ITEMS START
-  */
-	{
-		title: "Home",
-		url: "/dashboard",
-		icon: Home,
-		role: "student",
-		category: "Student",
-	},
-	/*
-  STUDENT MENU ITEMS END
-  */
-];
 
 export default async function AppSidebar() {
 	const session = await getServerAuthSession();
 
-	// remove menu items that are not allowed for the user
-	const filteredItems = items.filter((item) => {
-		if (item.role) {
-			return item.role.toLowerCase() === session?.user.role.toLowerCase();
-		}
-		return true;
-	});
+	const { filteredItems } = useNavData(session);
 
 	// Group items by category
 	const groupedItems = filteredItems.reduce((acc, item) => {
