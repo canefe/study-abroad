@@ -49,21 +49,21 @@ export default function Dashboard() {
 		{
 			id: 1,
 			abroadUniversity: {
-				name: "University of Edinburgh",
+				name: "University of Melbourne",
 			},
 			status: "DRAFT",
 		},
 		{
 			id: 2,
 			abroadUniversity: {
-				name: "University of St Andrews",
+				name: "University of Ottawa",
 			},
 			status: "PENDING",
 		},
 		{
 			id: 3,
 			abroadUniversity: {
-				name: "University of Aberdeen",
+				name: "University of Helsinki",
 			},
 			status: "ACCEPTED",
 		},
@@ -304,7 +304,7 @@ export default function Dashboard() {
 								</Select>
 								<Select
 									defaultValue={"2nd Year"}
-									className="w-full"
+									className="w-1/2"
 									options={[
 										{
 											label: "2nd Year Single Honours (Full Year)",
