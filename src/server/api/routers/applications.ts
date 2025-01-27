@@ -12,7 +12,7 @@ export const applicationsRouter = createTRPCRouter({
 		const session = ctx.session;
 		const applications = await ctx.db.application.findMany({
 			where: {
-				userId: session.user.id,
+				userId: session?.user?.id,
 			},
 			include: {
 				courseChoices: true,

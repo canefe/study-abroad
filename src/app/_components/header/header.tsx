@@ -4,7 +4,7 @@ import Breadcrumbs from "../breadcrumb";
 import NotificationBell from "./notification-bell";
 
 export default async function Header() {
-	const session = getServerAuthSession();
+	const session = await getServerAuthSession();
 
 	return (
 		<div className="container flex w-full items-center justify-between border-b pr-3">
@@ -14,7 +14,7 @@ export default async function Header() {
 				</div>
 				<div className="mb-3 flex h-6 items-center gap-2">
 					<div className="flex h-10 w-10 items-center justify-center">
-						{(await session) && <NotificationBell />}
+						{session && <NotificationBell />}
 					</div>
 					<UserAvatar />
 				</div>

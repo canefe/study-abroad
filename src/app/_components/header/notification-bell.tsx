@@ -10,7 +10,7 @@ import { motion, useAnimation } from "framer-motion";
 import { parseNotificationMessage } from "@/lib/notificationUtils";
 import { generateRandomColor } from "@/lib/randomUtils";
 import { useNotifications } from "@/hooks/useNotifications";
-var relativeTime = require("dayjs/plugin/relativeTime");
+const relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
 
 export default function NotificationBell() {

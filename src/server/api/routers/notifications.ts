@@ -12,7 +12,7 @@ export const notificationsRouter = createTRPCRouter({
 		const session = ctx.session;
 		const notifications = await ctx.db.notification.findMany({
 			where: {
-				userId: session?.user.id,
+				userId: session?.user?.id,
 			},
 			include: {
 				sender: {

@@ -5,30 +5,42 @@ import { getServerAuthSession } from "@/server/auth";
 import { redirect } from "next/navigation";
 
 import { Toaster } from "react-hot-toast";
+import { api, HydrateClient } from "@/trpc/server";
 
 export default async function DashboardLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
 	const session = await getServerAuthSession();
-	console.log(session);
+
+	if (!session?.user) {
+		redirect("/");
+	}
+
 	// check if the user is admin or not
 	if (session?.user.role != "ADMIN") {
-		// redirect to dashboard if user is not admin
 		redirect("/dashboard");
 	}
 
+	if (session?.user) {
+		void api.notifications.getList.prefetch();
+		void api.applications.getAll.prefetch();
+		void api.students.me.prefetch();
+		void api.students.getCount.prefetch();
+		void api.universities.getList.prefetch();
+	}
+
 	return (
-		<>
+		<HydrateClient>
 			<SidebarProvider>
 				<AppSidebar />
 				<main className="flex w-full flex-col items-center px-4 py-6">
-					<Header />
+					{session?.user && <Header />}
 					<div className="mt-4 flex w-full items-center justify-center">
-						<div className="container">{children}</div>
+						{session?.user && <div className="container">{children}</div>}
 					</div>
 				</main>
 			</SidebarProvider>
 			<Toaster />
-		</>
+		</HydrateClient>
 	);
 }
