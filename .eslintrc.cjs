@@ -27,7 +27,12 @@ module.exports = {
 	},
 	plugins: ["@typescript-eslint", "react", "prettier", "unused-imports"],
 	rules: {
-		"prettier/prettier": "error", // Treat Prettier issues as ESLint errors
+		"prettier/prettier": [
+			"error",
+			{
+				endOfLine: "auto",
+			},
+		],
 		//indent: ["error", "tab"], // Enforce tabs for indentation
 		"react/react-in-jsx-scope": "off", // Disable React in scope rule (React 17+)
 		"@typescript-eslint/explicit-module-boundary-types": "off", // Adjust TypeScript linting preferences
