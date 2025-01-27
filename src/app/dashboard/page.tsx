@@ -6,7 +6,6 @@ import { Year } from "@prisma/client";
 import {
 	Button,
 	Popconfirm,
-	Segmented,
 	Select,
 	Skeleton,
 	Table,
@@ -278,10 +277,7 @@ export default function Dashboard() {
 					</div>
 					<div className="my-5 border-b-2 border-t-2 border-gray-200"></div>
 					{open || applications.length < 3 ? (
-						<div
-							ref={ref5}
-							className="flex flex-col items-start gap-3 md:w-2/3"
-						>
+						<div ref={ref5} className="flex flex-col items-start gap-3">
 							<p>
 								You can make up to 3 choices. You have made{" "}
 								{applications.length} choices.
@@ -306,14 +302,45 @@ export default function Dashboard() {
 										</Select.Option>
 									))}
 								</Select>
-								<Segmented<string>
-									options={["2nd Year", "3rd Year"]}
+								<Select
+									defaultValue={"2nd Year"}
+									className="w-full"
+									options={[
+										{
+											label: "2nd Year Single Honours (Full Year)",
+											value: "SECOND_YEAR",
+										},
+										{
+											label: "2nd Year Joint Honours (Full Year)",
+											value: "SECOND_YEAR_JOINT",
+										},
+										{
+											label: "2nd Year Single Honours (Semester 1)",
+											value: "SECOND_YEAR_SINGLE_SEMESTER_1",
+										},
+										{
+											label: "2nd Year Joint Honours (Semester 1)",
+											value: "SECOND_YEAR_JOINT_SEMESTER_1",
+										},
+										{
+											label: "2nd Year Single Honours (Semester 2)",
+											value: "SECOND_YEAR_JOINT_SEMESTER_2",
+										},
+										{
+											label: "2nd Year Single Honours (Semester 2)",
+											value: "SECOND_YEAR_SINGLE_SEMESTER_2",
+										},
+										{
+											label: "3rd Year Single Honours (Full Year)",
+											value: "THIRD_YEAR",
+										},
+										{
+											label: "3rd Year Joint Honours (Full Year)",
+											value: "THIRD_YEAR_JOINT",
+										},
+									]}
 									onChange={(value) => {
-										if (value === "2nd Year") {
-											setSelectedYear("SECOND_YEAR");
-										} else if (value === "3rd Year") {
-											setSelectedYear("THIRD_YEAR");
-										}
+										setSelectedYear(value as Year);
 									}}
 								/>
 							</div>
