@@ -22,7 +22,7 @@ import { useEffect, useRef, useState } from "react";
 import { getCourseNameById, useCombinedRefs } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { usePathname } from "next/navigation";
-import { FlagIcon, PlusIcon } from "lucide-react";
+import { ExternalLink, FlagIcon, Link2, PlusIcon } from "lucide-react";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import CommentSection from "@/app/_components/comment-section";
 import MobileChoicesTable from "../mobile-choices-table";
@@ -72,8 +72,9 @@ export default function ChoicesTable({
 
 	const { comments } = useComments({ applicationId });
 
-	const [sidebarHeight, setSidebarHeight] = useState("auto"); // Sidebar height state
+	const [sidebarHeight, setSidebarHeight] = useState("200px"); // Sidebar height state
 	const tableRef = useRef(null); // Reference to the table
+	const sidebarRef = useRef(null); // Reference to the sidebar
 	const [activeId, setActiveId] = useState(null);
 	const [searchCourse, setSearchCourse] = useState("");
 	const pathname = usePathname();
@@ -215,6 +216,7 @@ export default function ChoicesTable({
 		if (tableRef.current) {
 			const tableHeight = tableRef.current.offsetHeight;
 			setSidebarHeight(`${tableHeight}px`);
+			sidebarRef.current.style.height = `${tableHeight}px`;
 			console.log("Sidebar height updated to", tableHeight);
 		}
 	};
@@ -514,12 +516,12 @@ export default function ChoicesTable({
 					</div>
 				</div>
 				{/* Sidebar for Available Courses */}
-				<div>
+				<div className="w-full min-w-52 max-w-xl">
 					<div
-						className="relative !z-0 hidden max-h-60 w-52 transform overflow-auto rounded bg-gray-50 p-3 transition-all duration-500 ease-in-out md:block"
+						className="relative !z-0 hidden transform overflow-auto rounded bg-gray-50 p-3 transition-all duration-500 ease-in-out md:block"
+						ref={sidebarRef}
 						style={{
 							height: sidebarHeight,
-							transition: "height 0.15s ease-out",
 						}}
 					>
 						<div className="grid grid-cols-1 gap-2">
@@ -648,28 +650,39 @@ export default function ChoicesTable({
 										verified={course.verified}
 									/>
 									{course.flagged === false && !course.verified && (
-										<Popconfirm
-											title="Are you sure to flag this course?"
-											description={
-												<>
-													<p>
-														Please flag the course if it is unrelated to the
-														university or if it is a mistake.
-													</p>
-												</>
-											}
-											onConfirm={() => {
-												flagCourse(course.id);
-											}}
-											okText="Yes"
-											cancelText="No"
-										>
-											<FlagIcon
+										<Tooltip title="Flag course">
+											<Popconfirm
+												title="Are you sure to flag this course?"
+												description={
+													<>
+														<p>
+															Please flag the course if it is unrelated to the
+															university or if it is a mistake.
+														</p>
+													</>
+												}
+												onConfirm={() => {
+													flagCourse(course.id);
+												}}
+												okText="Yes"
+												cancelText="No"
+											>
+												<FlagIcon
+													size={16}
+													fill="#ef4444"
+													className="w-fit cursor-pointer text-red-500 hover:text-red-700"
+												/>
+											</Popconfirm>
+										</Tooltip>
+									)}
+									{course.link && (
+										<Tooltip title="View course link">
+											<ExternalLink
 												size={16}
-												fill="#ef4444"
-												className="w-fit cursor-pointer text-red-500 hover:text-red-700"
+												className="cursor-pointer text-blue-500"
+												onClick={() => window.open(course.link, "_blank")}
 											/>
-										</Popconfirm>
+										</Tooltip>
 									)}
 								</div>
 							))}
@@ -812,11 +825,13 @@ const DraggableCourse = ({
 			key={id}
 			className="w-full flex-1 cursor-pointer bg-gray-200 p-3 hover:bg-blue-100"
 		>
-			<div className="flex items-center gap-2">
-				<h2 className="text-sm font-semibold">{title}</h2>
-				{flagged && !verified && <FlaggedBadge />}
-				{verified && <VerifiedBadge />}
-			</div>
+			<Tooltip title="Drag to select">
+				<div className="flex items-center gap-2">
+					<h2 className="text-sm font-semibold">{title}</h2>
+					{flagged && !verified && <FlaggedBadge />}
+					{verified && <VerifiedBadge />}
+				</div>
+			</Tooltip>
 		</div>
 	);
 };
