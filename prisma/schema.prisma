@@ -93,7 +93,18 @@ model University {
     location      String
     courses       Course[]
     applications  Application[]
+    school        School[]
     courseChoices CourseChoice[]
+}
+
+// A model for University's Schools, every school will have its own courses and applications
+model School {
+    id           Int           @id @default(autoincrement())
+    name         String
+    universityId Int
+    university   University    @relation(fields: [universityId], references: [id])
+    courses      Course[]
+    applications Application[]
 }
 
 enum Semester {
@@ -137,6 +148,8 @@ model Application {
     courseChoices      CourseChoice[]
     year               Year?
     semester           Semester?
+    schoolId           Int?
+    school             School?        @relation(fields: [schoolId], references: [id])
 
     user             User       @relation(fields: [userId], references: [id])
     abroadUniversity University @relation(fields: [abroadUniversityId], references: [id])
@@ -167,6 +180,8 @@ model Course {
     verified                  Boolean        @default(false) // Verified courses are courses that have been reviewed by an admin
     year                      Year?
     link                      String?
+    schoolId                  Int?
+    school                    School?        @relation(fields: [schoolId], references: [id])
     homeCourseChoices         CourseChoice[] @relation("HomeCourse")
     primaryCourseChoices      CourseChoice[] @relation("PrimaryCourse")
     alternativeCourse1Choices CourseChoice[] @relation("AlternativeCourse1")
