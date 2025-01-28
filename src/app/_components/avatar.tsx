@@ -12,11 +12,10 @@ import { api } from "@/trpc/react";
 import { Avatar } from "antd";
 import { useRouter } from "next/navigation";
 
-export default function UserAvatar() {
+export default function UserAvatar({ user }: { user: any }) {
 	// next-navigation redirect
 	const router = useRouter();
-	const meApi = api.students.me.useQuery();
-	const me = meApi.data;
+	const me = user;
 
 	return (
 		<DropdownMenu>
@@ -31,7 +30,7 @@ export default function UserAvatar() {
 						),
 					}}
 				>
-					{me?.name?.charAt(0).toUpperCase()}
+					{me.name.charAt(0).toUpperCase()}
 				</Avatar>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent>

@@ -4,6 +4,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { api } from "@/trpc/react";
 import { Year } from "@prisma/client";
 import {
+	Alert,
 	Button,
 	Popconfirm,
 	Select,
@@ -41,10 +42,6 @@ export default function Dashboard() {
 
 	const homeUniversitySetting = getSetting("home_university");
 
-	if (!homeUniversitySetting) {
-		return <Skeleton />;
-	}
-
 	const dummyApplications = [
 		{
 			id: 1,
@@ -74,8 +71,8 @@ export default function Dashboard() {
 		return university.id !== parseInt(homeUniversitySetting?.value || "0");
 	});
 
-	if (!applications || !universities) {
-		return <div>Loading...</div>;
+	if (!applications || !universities || !homeUniversitySetting) {
+		return <Skeleton active />;
 	}
 
 	// further filter universities to only show those that are not already chosen
