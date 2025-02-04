@@ -17,3 +17,12 @@ export const useDeleteCourseMutation = () => {
 		},
 	});
 };
+
+export const useSetYearOfCourseMutation = () => {
+	const utils = api.useUtils();
+	return api.courses.setYearOfCourse.useMutation({
+		onSuccess: () => {
+			utils.courses.invalidate();
+		},
+	});
+};

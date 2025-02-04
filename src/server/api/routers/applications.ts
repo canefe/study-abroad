@@ -6,6 +6,7 @@ import {
 	protectedProcedure,
 } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
+import { Year } from "@prisma/client";
 
 export const applicationsRouter = createTRPCRouter({
 	getList: protectedProcedure.query(async ({ ctx }) => {
@@ -42,7 +43,7 @@ export const applicationsRouter = createTRPCRouter({
 		.input(
 			z.object({
 				abroadUniversityId: z.number(),
-				year: z.enum(["SECOND_YEAR", "THIRD_YEAR"]),
+				year: z.enum([...Object.values(Year)] as [string, ...string[]]),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -63,7 +64,9 @@ export const applicationsRouter = createTRPCRouter({
 			const homeUniversityCourses = await ctx.db.course.findMany({
 				where: {
 					universityId: parseInt(homeUniversitySetting?.value),
-					year: input.year,
+					year: {
+						has: input.year as Year,
+					},
 				},
 			});
 
@@ -133,6 +136,31 @@ export const applicationsRouter = createTRPCRouter({
 				return new Response("Forbidden", { status: 403 });
 			}
 
+			// remove course choices
+			await ctx.db.courseChoice.deleteMany({
+				where: {
+					applicationId: input.applicationId,
+				},
+			});
+
+			// delete messages
+			await ctx.db.message.deleteMany({
+				where: {
+					applicationId: input.applicationId,
+				},
+			});
+
+			// remove application
+			await ctx.db.application.delete({
+				where: {
+					id: input.applicationId,
+				},
+			});
+			return "Success";
+		}),
+	adminDelete: adminProcedure
+		.input(z.object({ applicationId: z.number() }))
+		.mutation(async ({ input, ctx }) => {
 			// remove course choices
 			await ctx.db.courseChoice.deleteMany({
 				where: {

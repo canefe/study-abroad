@@ -3,6 +3,7 @@ import { api } from "@/trpc/react";
 import {
 	AutoComplete,
 	Button,
+	ConfigProvider,
 	Form,
 	Input,
 	Modal,
@@ -60,6 +61,7 @@ export default function ChoicesTable({
 		withdrawApplicationMutation,
 		addCourse,
 		saveChoices,
+		removeApplication,
 		saveChoicesMutation,
 		flagCourse,
 	} = useApplication({
@@ -489,10 +491,42 @@ export default function ChoicesTable({
 			</div>
 			<div className="mt-4 flex flex-col space-x-5 md:flex-row">
 				{/* Table for Home Courses */}
-				<div ref={tableRef} className="h-fit flex-1">
+				<div ref={tableRef} className="flex h-fit flex-1 flex-col gap-2">
+					<h1>Mandatory Courses</h1>
+					<ConfigProvider
+						renderEmpty={() => (
+							<p className="font-medium text-red-500">
+								No home courses are available.
+								<p>Please delete this application and create a new one.</p>
+								<Button
+									onClick={() => {
+										removeApplication(applicationId);
+										document.location.reload();
+									}}
+									type="default"
+									danger
+								>
+									Delete Application
+								</Button>
+							</p>
+						)}
+					>
+						<Table
+							size={"small"}
+							className="hidden md:block"
+							columns={columns}
+							dataSource={filteredDataSource.sort((a, b) =>
+								a.id > b.id ? 1 : -1,
+							)}
+							loading={isLoading}
+							bordered
+							pagination={false}
+						/>
+					</ConfigProvider>
+					<h1>Other Courses</h1>
 					<Table
 						size={"small"}
-						className="hidden md:block"
+						className="md:block"
 						columns={columns}
 						dataSource={filteredDataSource.sort((a, b) =>
 							a.id > b.id ? 1 : -1,

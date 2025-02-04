@@ -1,6 +1,7 @@
 import {
 	useAddCourseWithYearMutation,
 	useDeleteCourseMutation,
+	useSetYearOfCourseMutation,
 } from "@/app/api/mutations/courses";
 import { api } from "@/trpc/react";
 import { Year } from "@prisma/client";
@@ -9,6 +10,7 @@ import toast from "react-hot-toast";
 export const useCourses = () => {
 	const addCourseWithYear = useAddCourseWithYearMutation();
 	const deleteCourse = useDeleteCourseMutation();
+	const setYearOfCourse = useSetYearOfCourseMutation();
 
 	return {
 		addCourseWithYear: async (
@@ -30,6 +32,13 @@ export const useCourses = () => {
 				loading: "Deleting course...",
 				success: "Course deleted successfully",
 				error: "Failed to delete course",
+			});
+		},
+		setYearOfCourse: async (courseId: number, year: Year) => {
+			await toast.promise(setYearOfCourse.mutateAsync({ id: courseId, year }), {
+				loading: "Setting year...",
+				success: "Year set successfully",
+				error: "Failed to set year",
 			});
 		},
 	};

@@ -21,11 +21,10 @@ export default function Breadcrumbs() {
 	return (
 		<Breadcrumb>
 			<BreadcrumbList>
-				<BreadcrumbItem>
+				<BreadcrumbItem key="homess">
 					<Link href={homePath}>Home</Link>
 				</BreadcrumbItem>
 				<BreadcrumbSeparator />
-				{breadcrumbs}
 			</BreadcrumbList>
 		</Breadcrumb>
 	);

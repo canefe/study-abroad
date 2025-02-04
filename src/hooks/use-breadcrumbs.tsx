@@ -28,7 +28,7 @@ export function useBreadcrumbs() {
 		if (paths.includes("my-choices")) {
 			return (
 				<>
-					<BreadcrumbItem>
+					<BreadcrumbItem key={"my-choices"}>
 						<Link href={pathname}>My Choices</Link>
 					</BreadcrumbItem>
 				</>
@@ -38,7 +38,7 @@ export function useBreadcrumbs() {
 		if (paths.includes("applications")) {
 			return (
 				<>
-					<BreadcrumbItem>
+					<BreadcrumbItem key={"applicationss"}>
 						<Link href={pathname}>Applications</Link>
 					</BreadcrumbItem>
 				</>
@@ -48,7 +48,7 @@ export function useBreadcrumbs() {
 		if (paths.includes("courses")) {
 			return (
 				<>
-					<BreadcrumbItem>
+					<BreadcrumbItem key={"courses"}>
 						<Link href={pathname}>Courses</Link>
 					</BreadcrumbItem>
 				</>
@@ -66,7 +66,7 @@ export function useBreadcrumbs() {
 			if (regex.test(fullUrl)) {
 				return (
 					<>
-						<BreadcrumbItem>
+						<BreadcrumbItem key={"students"}>
 							<Link href={pathToStudents}>Students</Link>
 						</BreadcrumbItem>
 						<BreadcrumbSeparator />

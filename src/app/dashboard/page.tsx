@@ -1,6 +1,8 @@
 "use client";
 import { useApplication } from "@/hooks/useApplication";
 import { useSettings } from "@/hooks/useSettings";
+import { shortenText } from "@/lib/textUtils";
+import { yearToString } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { Year } from "@prisma/client";
 import {
@@ -24,7 +26,9 @@ export default function Dashboard() {
 	const [applications] = api.applications.getList.useSuspenseQuery();
 	const [universities] = api.universities.getList.useSuspenseQuery();
 	const [selectedUni, setSelectedUni] = useState("");
-	const [selectedYear, setSelectedYear] = useState<Year>("SECOND_YEAR");
+	const [selectedYear, setSelectedYear] = useState<Year>(
+		"SECOND_YEAR_SINGLE_FULL_YEAR",
+	);
 
 	// Tour
 	const ref1 = useRef(null);
@@ -49,6 +53,7 @@ export default function Dashboard() {
 				name: "University of Melbourne",
 			},
 			status: "DRAFT",
+			year: "SECOND_YEAR_SINGLE_FULL_YEAR",
 		},
 		{
 			id: 2,
@@ -56,6 +61,7 @@ export default function Dashboard() {
 				name: "University of Ottawa",
 			},
 			status: "PENDING",
+			year: "SECOND_YEAR_SINGLE_FULL_YEAR",
 		},
 		{
 			id: 3,
@@ -63,6 +69,7 @@ export default function Dashboard() {
 				name: "University of Helsinki",
 			},
 			status: "ACCEPTED",
+			year: "SECOND_YEAR_SINGLE_FULL_YEAR",
 		},
 	];
 
@@ -224,13 +231,14 @@ export default function Dashboard() {
 										dataIndex: "year",
 										key: "year",
 										render: (text, record) => (
-											<span>
-												{record.year
-													? record.year === "SECOND_YEAR"
-														? "2nd Year"
-														: "3rd Year"
-													: ""}
-											</span>
+											<div>
+												<span className="block xl:hidden">
+													{shortenText(yearToString(record.year as Year), 15)}
+												</span>
+												<span className="hidden xl:block">
+													{yearToString(record.year as Year)}
+												</span>
+											</div>
 										),
 									},
 									{
@@ -279,11 +287,11 @@ export default function Dashboard() {
 								You can make up to 3 choices. You have made{" "}
 								{applications.length} choices.
 							</p>
-							<div className="flex w-full items-center gap-1">
+							<div className="flex w-full flex-col items-center gap-1 xl:flex-row">
 								<Select
 									showSearch
 									defaultValue={"Select a university"}
-									className="w-full flex-1"
+									className="w-full"
 									filterOption={(input, option) =>
 										String(option?.value ?? "")
 											.toLowerCase()
@@ -300,42 +308,12 @@ export default function Dashboard() {
 									))}
 								</Select>
 								<Select
-									defaultValue={"2nd Year"}
-									className="w-1/2"
-									options={[
-										{
-											label: "2nd Year Single Honours (Full Year)",
-											value: "SECOND_YEAR",
-										},
-										{
-											label: "2nd Year Joint Honours (Full Year)",
-											value: "SECOND_YEAR_JOINT",
-										},
-										{
-											label: "2nd Year Single Honours (Semester 1)",
-											value: "SECOND_YEAR_SINGLE_SEMESTER_1",
-										},
-										{
-											label: "2nd Year Joint Honours (Semester 1)",
-											value: "SECOND_YEAR_JOINT_SEMESTER_1",
-										},
-										{
-											label: "2nd Year Single Honours (Semester 2)",
-											value: "SECOND_YEAR_JOINT_SEMESTER_2",
-										},
-										{
-											label: "2nd Year Single Honours (Semester 2)",
-											value: "SECOND_YEAR_SINGLE_SEMESTER_2",
-										},
-										{
-											label: "3rd Year Single Honours (Full Year)",
-											value: "THIRD_YEAR",
-										},
-										{
-											label: "3rd Year Joint Honours (Full Year)",
-											value: "THIRD_YEAR_JOINT",
-										},
-									]}
+									defaultValue={yearToString(selectedYear)}
+									className="w-full"
+									options={Object.values(Year).map((year) => ({
+										label: yearToString(year),
+										value: year,
+									}))}
 									onChange={(value) => {
 										setSelectedYear(value as Year);
 									}}

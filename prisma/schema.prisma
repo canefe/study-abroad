@@ -114,8 +114,18 @@ enum Semester {
 }
 
 enum Year {
-    SECOND_YEAR
-    THIRD_YEAR
+    // SECOND YEAR SINGLE COURSES
+    SECOND_YEAR_SINGLE_FULL_YEAR
+    SECOND_YEAR_SINGLE_FIRST_SEMESTER
+    SECOND_YEAR_SINGLE_SECOND_SEMESTER
+    // SECOND YEAR JOINT COURSES
+    SECOND_YEAR_JOINT_FULL_YEAR
+    SECOND_YEAR_JOINT_FIRST_SEMESTER
+    SECOND_YEAR_JOINT_SECOND_SEMESTER
+
+    // THIRD YEAR
+    THIRD_YEAR_SINGLE_FULL_YEAR
+    THIRD_YEAR_JOINT_FULL_YEAR
 }
 
 model CourseChoice {
@@ -178,7 +188,8 @@ model Course {
     createdAt                 DateTime       @default(now())
     createdBy                 String? // The user who created the course
     verified                  Boolean        @default(false) // Verified courses are courses that have been reviewed by an admin
-    year                      Year?
+    year                      Year[]
+    semester                  Semester?
     link                      String?
     schoolId                  Int?
     school                    School?        @relation(fields: [schoolId], references: [id])

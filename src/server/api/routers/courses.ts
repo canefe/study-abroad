@@ -6,6 +6,7 @@ import {
 	protectedProcedure,
 	publicProcedure,
 } from "@/server/api/trpc";
+import { Year } from "@prisma/client";
 
 export const coursesRouter = createTRPCRouter({
 	hello: publicProcedure
@@ -109,7 +110,9 @@ export const coursesRouter = createTRPCRouter({
 		.input(
 			z.object({
 				universityId: z.number(),
-				year: z.enum(["SECOND_YEAR", "THIRD_YEAR"]).optional(),
+				year: z
+					.enum([...Object.values(Year)] as [string, ...string[]])
+					.optional(),
 				name: z.string(),
 				link: z.string().optional(),
 			}),
@@ -119,7 +122,7 @@ export const coursesRouter = createTRPCRouter({
 				data: {
 					name: input.name,
 					universityId: input.universityId,
-					year: input.year,
+					year: [input.year as Year],
 					createdAt: new Date(),
 					createdBy: ctx.session?.user.guid || ctx.session?.user.name,
 					link: input.link,
@@ -191,11 +194,57 @@ export const coursesRouter = createTRPCRouter({
 	deleteCourse: adminProcedure
 		.input(z.object({ id: z.number() }))
 		.mutation(async ({ input, ctx }) => {
+			// first delete the coursechoices that use this course
+			await ctx.db.courseChoice.deleteMany({
+				where: {
+					homeCourseId: input.id,
+				},
+			});
+
 			const course = await ctx.db.course.delete({
 				where: {
 					id: input.id,
 				},
 			});
 			return course;
+		}),
+	setYearOfCourse: adminProcedure
+		.input(
+			z.object({
+				id: z.number(),
+				year: z.enum([...Object.values(Year)] as [string, ...string[]]),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			const course = await ctx.db.course.findUnique({
+				where: {
+					id: input.id,
+				},
+				select: {
+					year: true,
+				},
+			});
+
+			if (!course) {
+				throw new Error("Course not found");
+			}
+
+			let updatedYears;
+			if (course.year.includes(input.year as Year)) {
+				updatedYears = course.year.filter((y) => y !== input.year);
+			} else {
+				updatedYears = [...course.year, input.year as Year];
+			}
+
+			const updatedCourse = await ctx.db.course.update({
+				where: {
+					id: input.id,
+				},
+				data: {
+					year: updatedYears,
+				},
+			});
+
+			return updatedCourse;
 		}),
 });

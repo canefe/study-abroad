@@ -3,10 +3,12 @@
 import { useGetAbroadCoursesQuery } from "@/app/api/queries/application";
 import { useCourses } from "@/hooks/useCourses";
 import { useSettings } from "@/hooks/useSettings";
+import { yearToString } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { Year } from "@prisma/client";
-import { Button, List, Select } from "antd";
+import { Button, List, Popconfirm, Select } from "antd";
 import { X } from "lucide-react";
+import { useState } from "react";
 
 export default function HomeUniversitySettings() {
 	const { getSetting, setSetting, setSettingMutation } = useSettings();
@@ -19,19 +21,13 @@ export default function HomeUniversitySettings() {
 		(uni) => uni.id.toString() === setting?.value,
 	);
 
-	const { addCourseWithYear, deleteCourse } = useCourses();
+	const { addCourseWithYear, deleteCourse, setYearOfCourse } = useCourses();
 
 	const { data: courses, isLoading } = useGetAbroadCoursesQuery(
-		parseInt(setting?.value) || 0,
+		parseInt(setting?.value as string) || 0,
 	);
 
-	const secondYearCourses = courses?.filter(
-		(course) => course.year === "SECOND_YEAR",
-	);
-
-	const thirdYearCourses = courses?.filter(
-		(course) => course.year === "THIRD_YEAR",
-	);
+	// categorize courses by year
 
 	function addCourse(year: Year) {
 		const name = prompt("Enter course name");
@@ -57,66 +53,64 @@ export default function HomeUniversitySettings() {
 					}}
 				/>
 			</div>
-			<div className="flex items-center gap-2">
-				<div className="flex w-full flex-col gap-2">
-					<div className="flex items-center gap-2">
-						<b>2nd Year Course Selection</b>
-						<Button
-							type="default"
-							disabled={!selectedUni}
-							size="small"
-							onClick={() => addCourse("SECOND_YEAR")}
-						>
-							Add Course
-						</Button>
-					</div>
-					<List
-						loading={isLoading}
-						dataSource={secondYearCourses}
-						renderItem={(course) => (
-							<List.Item>
-								<span>{course.name}</span>
+			<div className="flex flex-col items-center gap-2">
+				<div className="grid w-full grid-cols-1 gap-2 xl:grid-cols-2">
+					{Object.values(Year).map((year) => (
+						<div key={year} className="col-span-1">
+							<div className="flex items-center gap-2">
+								<b>{yearToString(year)}</b>
 								<Button
-									type="text"
+									type="default"
+									disabled={!selectedUni}
 									size="small"
-									color="danger"
-									onClick={() => deleteCourse(course.id)}
+									onClick={() => addCourse(year)}
 								>
-									<X color="red" />
+									Add Course
 								</Button>
-							</List.Item>
-						)}
-					/>
-				</div>
-				<div className="flex w-full flex-col gap-2">
-					<div className="flex items-center gap-2">
-						<b>3rd Year Course Selection</b>
-						<Button
-							type="default"
-							disabled={!selectedUni}
-							size="small"
-							onClick={() => addCourse("THIRD_YEAR")}
-						>
-							Add Course
-						</Button>
-					</div>
-					<List
-						loading={isLoading}
-						dataSource={thirdYearCourses}
-						renderItem={(course) => (
-							<List.Item>
-								<span>{course.name}</span>
-								<Button
-									type="text"
-									size="small"
-									color="danger"
-									onClick={() => deleteCourse(course.id)}
-								>
-									<X color="red" />
-								</Button>
-							</List.Item>
-						)}
-					/>
+							</div>
+							<List
+								loading={isLoading}
+								dataSource={courses?.filter((course) =>
+									course.year.includes(year),
+								)}
+								renderItem={(course) => (
+									<List.Item className="bg-gray-50">
+										<span className="ml-4">{course.name}</span>
+										<Popconfirm
+											title={
+												<>
+													Are you sure?
+													<p className="font-medium">
+														This could delete applications that use this course.
+													</p>
+												</>
+											}
+											okText="Yes"
+											cancelText="No"
+											onConfirm={() => deleteCourse(course.id)}
+										>
+											<Button type="text" size="small" color="danger">
+												<X color="red" />
+											</Button>
+										</Popconfirm>
+									</List.Item>
+								)}
+							/>
+							<Select
+								showSearch
+								className="w-full"
+								placeholder="Select a course"
+								options={courses?.map((course) => ({
+									label: course.name,
+									value: course.id,
+								}))}
+								showAction={["focus"]}
+								onSelect={(value) => {
+									setYearOfCourse(value as number, year);
+								}}
+							/>
+						</div>
+					))}
 				</div>
 			</div>
 			{/* TODO: 2nd year, 3rd year course selection, select home uni*/}
