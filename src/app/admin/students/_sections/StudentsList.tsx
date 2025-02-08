@@ -23,12 +23,6 @@ export default function StudentList() {
 
 	const columns = [
 		{
-			title: "#",
-			dataIndex: "id",
-			key: "id",
-			render: (id) => <ShortId id={id} />,
-		},
-		{
 			title: "Name",
 			dataIndex: "name",
 			key: "name",
