@@ -1,5 +1,5 @@
 // prisma/seed.js
-const { PrismaClient } = require("@prisma/client");
+const { PrismaClient, Year } = require("@prisma/client");
 const { faker } = require("@faker-js/faker");
 const prisma = new PrismaClient();
 const { Role } = require("@prisma/client");
@@ -97,6 +97,140 @@ async function main() {
 			name: university.name,
 			location: university.location,
 		})),
+		skipDuplicates: true,
+	});
+
+	// Retrieve the ID of the "University of Glasgow"
+	const glasgowUniversity = await prisma.university.findFirst({
+		where: { name: "University of Glasgow" },
+	});
+
+	if (!glasgowUniversity) {
+		throw new Error("University of Glasgow not found");
+	}
+
+	// Set the home university setting to the ID of the "University of Glasgow"
+	await prisma.setting.upsert({
+		where: { key: "home_university" },
+		update: { value: glasgowUniversity.id.toString() },
+		create: {
+			key: "home_university",
+			value: glasgowUniversity.id.toString(),
+		},
+	});
+
+	// Generate default home courses for each year
+	await prisma.course.createMany({
+		data: [
+			{
+				universityId: glasgowUniversity.id,
+				name: "IOOP",
+				year: [
+					Year.SECOND_YEAR_SINGLE_FULL_YEAR,
+					Year.SECOND_YEAR_SINGLE_FIRST_SEMESTER,
+					Year.SECOND_YEAR_JOINT_FULL_YEAR,
+					Year.SECOND_YEAR_JOINT_FIRST_SEMESTER,
+				],
+			},
+			{
+				universityId: glasgowUniversity.id,
+				name: "AF2",
+				year: [
+					Year.SECOND_YEAR_SINGLE_FULL_YEAR,
+					Year.SECOND_YEAR_SINGLE_FIRST_SEMESTER,
+				],
+			},
+			{
+				universityId: glasgowUniversity.id,
+				name: "NOSE2",
+				year: [
+					Year.SECOND_YEAR_SINGLE_FULL_YEAR,
+					Year.SECOND_YEAR_JOINT_FULL_YEAR,
+					Year.SECOND_YEAR_JOINT_FIRST_SEMESTER,
+					Year.SECOND_YEAR_SINGLE_FIRST_SEMESTER,
+				],
+			},
+			{
+				universityId: glasgowUniversity.id,
+				name: "ADS2",
+				year: [
+					Year.SECOND_YEAR_SINGLE_FULL_YEAR,
+					Year.SECOND_YEAR_SINGLE_SECOND_SEMESTER,
+					Year.SECOND_YEAR_JOINT_FULL_YEAR,
+					Year.SECOND_YEAR_JOINT_SECOND_SEMESTER,
+				],
+			},
+			{
+				universityId: glasgowUniversity.id,
+				name: "OOSE2",
+				year: [
+					Year.SECOND_YEAR_SINGLE_FULL_YEAR,
+					Year.SECOND_YEAR_SINGLE_SECOND_SEMESTER,
+					Year.SECOND_YEAR_JOINT_FULL_YEAR,
+					Year.SECOND_YEAR_JOINT_SECOND_SEMESTER,
+				],
+			},
+			{
+				universityId: glasgowUniversity.id,
+				name: "WAD2",
+				year: [
+					Year.SECOND_YEAR_SINGLE_FULL_YEAR,
+					Year.SECOND_YEAR_SINGLE_SECOND_SEMESTER,
+					Year.SECOND_YEAR_JOINT_FULL_YEAR,
+					Year.SECOND_YEAR_JOINT_SECOND_SEMESTER,
+				],
+			},
+			/*
+			3rd year single honours full year
+Match all of ALG1, SP, HCSDE, DF, PSD, TP
+
+ 
+3rd year joint honours full year
+Match all of ALG1, SP, PSD, TP
+			*/
+			{
+				universityId: glasgowUniversity.id,
+				name: "ALG1",
+				year: [
+					Year.THIRD_YEAR_SINGLE_FULL_YEAR,
+					Year.THIRD_YEAR_JOINT_FULL_YEAR,
+				],
+			},
+			{
+				universityId: glasgowUniversity.id,
+				name: "SP",
+				year: [
+					Year.THIRD_YEAR_SINGLE_FULL_YEAR,
+					Year.THIRD_YEAR_JOINT_FULL_YEAR,
+				],
+			},
+			{
+				universityId: glasgowUniversity.id,
+				name: "HCSDE",
+				year: [Year.THIRD_YEAR_SINGLE_FULL_YEAR],
+			},
+			{
+				universityId: glasgowUniversity.id,
+				name: "DF",
+				year: [Year.THIRD_YEAR_SINGLE_FULL_YEAR],
+			},
+			{
+				universityId: glasgowUniversity.id,
+				name: "PSD",
+				year: [
+					Year.THIRD_YEAR_SINGLE_FULL_YEAR,
+					Year.THIRD_YEAR_JOINT_FULL_YEAR,
+				],
+			},
+			{
+				universityId: glasgowUniversity.id,
+				name: "TP",
+				year: [
+					Year.THIRD_YEAR_SINGLE_FULL_YEAR,
+					Year.THIRD_YEAR_JOINT_FULL_YEAR,
+				],
+			},
+		],
 		skipDuplicates: true,
 	});
 
