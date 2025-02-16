@@ -1,5 +1,5 @@
 "use client";
-import { Bell, BellOff, Eye, EyeClosed, Trash } from "lucide-react";
+import { Bell, BellOff, Eye, EyeClosed, MailOpen, Trash } from "lucide-react";
 
 import { Avatar, Badge, Button, Dropdown, Popover, Spin, Tooltip } from "antd";
 import { api } from "@/trpc/react";
@@ -10,6 +10,9 @@ import { motion, useAnimation } from "framer-motion";
 import { parseNotificationMessage } from "@/lib/notificationUtils";
 import { generateRandomColor } from "@/lib/randomUtils";
 import { useNotifications } from "@/hooks/useNotifications";
+
+import { useDropdown } from "./dropdown-context";
+
 const relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
 
@@ -20,10 +23,11 @@ export default function NotificationBell() {
 	const [user] = api.students.me.useSuspenseQuery();
 	const copyNotifications = [...notifications];
 	const unreadNotifications = notifications?.filter((n) => !n.read);
-	const [clicked, setClicked] = useState(false);
 	const [cachedNotifications, setCachedNotifications] = useState<
 		undefined | typeof notifications
 	>(undefined);
+
+	const { openDropdown, toggleDropdown } = useDropdown();
 
 	const {
 		muteUser,
@@ -78,17 +82,26 @@ export default function NotificationBell() {
 		}
 	}, [notifications, controls]);
 
-	const hide = () => {
-		setClicked(false);
-	};
-
 	const handleClickChange = (open: boolean) => {
-		setClicked(open);
+		if (open) {
+			toggleDropdown("bell");
+		} else {
+			toggleDropdown(null);
+		}
 	};
 
 	const content = (
 		<div className="flex flex-col justify-between gap-2 p-2">
-			<span className="p-2 text-lg font-bold">Notifications</span>
+			<div className="flex w-full items-center justify-between p-2 pt-3">
+				<span className="text-lg font-bold">Notifications</span>
+				<Tooltip title="Mark all as read">
+					<MailOpen
+						size={24}
+						className="cursor-pointer hover:text-orange-500"
+						onClick={() => markAllAsRead()}
+					/>
+				</Tooltip>
+			</div>
 			<ul className="h-full w-full flex-1">
 				{notifications?.length === 0 && (
 					<li className="p-2 text-center">No notifications</li>
@@ -212,14 +225,6 @@ export default function NotificationBell() {
 						</li>
 					))}
 			</ul>
-			<Button className="w-full">
-				<span
-					className="cursor-pointer text-red-500"
-					onClick={() => markAllAsRead()}
-				>
-					Mark all as read
-				</span>
-			</Button>
 		</div>
 	);
 
@@ -236,10 +241,10 @@ export default function NotificationBell() {
 				width: 375,
 				height: 575,
 			}}
-			placement={"left"}
+			placement={"bottom"}
 			title=""
 			trigger="click"
-			open={clicked}
+			open={openDropdown === "bell"}
 			onOpenChange={handleClickChange}
 		>
 			<motion.div animate={controls} className="h-6 w-6">
@@ -247,7 +252,7 @@ export default function NotificationBell() {
 					count={unreadNotifications?.length ?? 0}
 					className="cursor-pointer duration-150 hover:scale-110"
 				>
-					<Bell size={24} fill={clicked ? "black" : "white"} />
+					<Bell size={24} fill={openDropdown === "bell" ? "black" : "white"} />
 				</Badge>
 			</motion.div>
 		</Popover>
