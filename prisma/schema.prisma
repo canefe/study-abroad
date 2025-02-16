@@ -181,7 +181,7 @@ model Message {
 
 model Course {
     id                        Int            @id @default(autoincrement())
-    name                      String
+    name                      String         @unique
     universityId              Int
     university                University     @relation(fields: [universityId], references: [id])
     flagged                   Boolean        @default(false) // Flagged courses are courses that need to be reviewed by an admin
