@@ -3,7 +3,6 @@ import { api } from "@/trpc/react";
 import {
 	AutoComplete,
 	Button,
-	ConfigProvider,
 	Form,
 	Input,
 	Modal,
@@ -493,40 +492,10 @@ export default function ChoicesTable({
 				{/* Table for Home Courses */}
 				<div ref={tableRef} className="flex h-fit flex-1 flex-col gap-2">
 					<h1>Mandatory Courses</h1>
-					<ConfigProvider
-						renderEmpty={() => (
-							<p className="font-medium text-red-500">
-								No home courses are available.
-								<p>Please delete this application and create a new one.</p>
-								<Button
-									onClick={() => {
-										removeApplication(applicationId);
-										document.location.reload();
-									}}
-									type="default"
-									danger
-								>
-									Delete Application
-								</Button>
-							</p>
-						)}
-					>
-						<Table
-							size={"small"}
-							className="hidden md:block"
-							columns={columns}
-							dataSource={filteredDataSource.sort((a, b) =>
-								a.id > b.id ? 1 : -1,
-							)}
-							loading={isLoading}
-							bordered
-							pagination={false}
-						/>
-					</ConfigProvider>
-					<h1>Other Courses</h1>
+
 					<Table
 						size={"small"}
-						className="md:block"
+						className="hidden md:block"
 						columns={columns}
 						dataSource={filteredDataSource.sort((a, b) =>
 							a.id > b.id ? 1 : -1,
@@ -535,6 +504,7 @@ export default function ChoicesTable({
 						bordered
 						pagination={false}
 					/>
+
 					{/* Mobile version of the table */}
 					<div className="md:hidden">
 						<MobileChoicesTable
