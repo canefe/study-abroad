@@ -26,3 +26,12 @@ export const useSetYearOfCourseMutation = () => {
 		},
 	});
 };
+
+export const useEditCourseMutation = () => {
+	const utils = api.useUtils();
+	return api.courses.editCourse.useMutation({
+		onSuccess: () => {
+			utils.courses.invalidate();
+		},
+	});
+};

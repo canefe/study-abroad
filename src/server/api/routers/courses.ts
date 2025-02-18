@@ -70,11 +70,13 @@ export const coursesRouter = createTRPCRouter({
 	}),
 
 	getCourses: protectedProcedure
-		.input(z.object({ universityId: z.number() }))
+		.input(z.object({ universityId: z.number().optional() }))
 		.query(async ({ input, ctx }) => {
 			const course = await ctx.db.course.findMany({
 				where: {
-					universityId: input.universityId,
+					...(input.universityId !== undefined && {
+						universityId: input.universityId,
+					}),
 				},
 				include: {
 					university: true,
@@ -212,7 +214,9 @@ export const coursesRouter = createTRPCRouter({
 		.input(
 			z.object({
 				id: z.number(),
-				year: z.enum([...Object.values(Year)] as [string, ...string[]]),
+				year: z
+					.enum([...Object.values(Year)] as [string, ...string[]])
+					.optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -230,7 +234,9 @@ export const coursesRouter = createTRPCRouter({
 			}
 
 			let updatedYears;
-			if (course.year.includes(input.year as Year)) {
+			if (input.year === undefined) {
+				updatedYears = [];
+			} else if (course.year.includes(input.year as Year)) {
 				updatedYears = course.year.filter((y) => y !== input.year);
 			} else {
 				updatedYears = [...course.year, input.year as Year];
@@ -246,5 +252,30 @@ export const coursesRouter = createTRPCRouter({
 			});
 
 			return updatedCourse;
+		}),
+	// Edit course name and year and university
+	editCourse: adminProcedure
+		.input(
+			z.object({
+				id: z.number(),
+				name: z.string(),
+				year: z
+					.enum([...Object.values(Year)] as [string, ...string[]])
+					.optional(),
+				universityId: z.number(),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			const course = await ctx.db.course.update({
+				where: {
+					id: input.id,
+				},
+				data: {
+					name: input.name,
+					year: input.year ? [input.year as Year] : [],
+					universityId: input.universityId,
+				},
+			});
+			return course;
 		}),
 });

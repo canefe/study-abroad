@@ -1,12 +1,20 @@
 "use client";
+import VerifiedBadge from "@/app/_components/choices-table/verified-badge";
 import { useDeleteCourse } from "@/hooks/useCourses";
 import { useVerifyCourse } from "@/hooks/useCourses";
+import { yearToString } from "@/lib/utils";
 import { api } from "@/trpc/react";
-import { Button, Table } from "antd";
+import { Year } from "@prisma/client";
+import { Button, Table, Tag, Tooltip } from "antd";
+import { Pen, Trash } from "lucide-react";
+import { title } from "process";
 
-export default function UnverifiedCoursesList() {
-	const getCoursesApi = api.courses.getUnverifiedList;
-	const { data, error } = getCoursesApi.useQuery();
+type ListProps = {
+	filter?: [key: string, value: string];
+};
+export default function CoursesList({ filter }: ListProps) {
+	const getCoursesApi = api.courses.getCourses;
+	const { data, error } = getCoursesApi.useQuery({});
 	const { verifyCourse, isLoading } = useVerifyCourse();
 	const { deleteCourse } = useDeleteCourse();
 
@@ -43,30 +51,99 @@ export default function UnverifiedCoursesList() {
 			key: "university",
 		},
 		{
-			title: "Created by",
-			dataIndex: ["createdBy"],
-			key: "createdBy",
+			title: "Details",
+			dataIndex: "year",
+			key: "year",
+			width: 500,
+			render: (_, record) => (
+				<>
+					<li className="whitespace-nowrap">
+						<div className='relative inline-block w-[100px] pr-5 after:absolute after:right-5 after:content-[""]'>
+							{" "}
+							<span className="font-semibold">Flagged:</span>{" "}
+						</div>
+						<div
+							className="inline-block"
+							style={{
+								marginBottom: "1rem",
+								color: record.flagged ? "red" : "green",
+							}}
+						>
+							{record.flagged ? "Yes" : "No"}
+						</div>
+					</li>
+					<li className="whitespace-nowrap">
+						<div className='relative inline-block w-[100px] pr-5 after:absolute after:right-5 after:content-[""]'>
+							{" "}
+							<span className="font-semibold">Verified:</span>{" "}
+						</div>
+						<div
+							className="inline-block"
+							style={{
+								marginBottom: "1rem",
+								color: record.verified ? "green" : "orange",
+							}}
+						>
+							{record.verified ? "Yes" : "No"}
+						</div>
+					</li>
+
+					{record?.createdBy && (
+						<li className="whitespace-nowrap">
+							<div className='relative inline-block w-[100px] pr-5 after:absolute after:right-5 after:content-[""]'>
+								{" "}
+								<span className="font-semibold">Created By:</span>{" "}
+							</div>
+							<div className="inline-block" style={{ marginBottom: "1rem" }}>
+								{record.createdBy}
+							</div>
+						</li>
+					)}
+					<li className="whitespace-nowrap">
+						<div className='relative inline-block w-[100px] pr-5 after:absolute after:right-5 after:content-[""]'>
+							{" "}
+							<span className="font-semibold">Years:</span>{" "}
+						</div>
+						<div className="inline-block" style={{ marginBottom: "1rem" }}>
+							<div className="grid w-fit grid-cols-1 gap-1">
+								{record?.year.map((year, index) => (
+									<Tag key={index}>{yearToString(year as Year)}</Tag>
+								))}
+							</div>
+						</div>
+					</li>
+				</>
+			),
 		},
 		{
 			title: "Action",
 			dataIndex: "",
 			key: "",
 			render: (_, record) => (
-				<div className="grid grid-cols-2 gap-2">
-					<Button
-						className="text-red-500"
-						onClick={() => handleDelete(record.id)}
-					>
-						Delete
-					</Button>
-					<Button
-						className="text-green-500"
-						onClick={() => {
-							handleVerify(record.id);
-						}}
-					>
-						Verify
-					</Button>
+				<div className="flex gap-2">
+					<Tooltip title="Delete">
+						<Button
+							className="text-red-500"
+							onClick={() => handleDelete(record.id)}
+						>
+							<Trash size={16} />
+						</Button>
+					</Tooltip>
+					<Tooltip title="Verify">
+						<Button
+							className="text-green-500"
+							onClick={() => {
+								handleVerify(record.id);
+							}}
+						>
+							<VerifiedBadge hideTooltip />
+						</Button>
+					</Tooltip>
+					<Tooltip title="Edit">
+						<Button className="text-orange-500">
+							<Pen size={16} />
+						</Button>
+					</Tooltip>
 				</div>
 			),
 		},

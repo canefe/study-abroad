@@ -1,8 +1,16 @@
 import { Tooltip } from "antd";
 import { Verified } from "lucide-react";
 
-export default function VerifiedBadge() {
-	return (
+type Props = {
+	hideTooltip?: boolean;
+};
+
+export default function VerifiedBadge(props: Props) {
+	return props.hideTooltip ? (
+		<span className="inline-block whitespace-nowrap text-xs text-green-500">
+			<Verified className="fill-green-300 text-green-500" size={16} />
+		</span>
+	) : (
 		<Tooltip
 			title={
 				<div>

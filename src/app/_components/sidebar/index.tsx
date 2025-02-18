@@ -34,7 +34,7 @@ export default async function AppSidebar() {
 
 	return (
 		<Sidebar>
-			<SidebarHeader className="flex items-center p-6">
+			<SidebarHeader className="flex items-center bg-slate-100 p-6 text-black">
 				<Image src={Logo} alt="Logo" width={220} height={40} />
 				<h3 className="font-semibold">Study Abroad Portal</h3>
 			</SidebarHeader>

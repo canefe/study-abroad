@@ -6,11 +6,22 @@ import { useSettings } from "@/hooks/useSettings";
 import { yearToString } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { Year } from "@prisma/client";
-import { Button, List, Popconfirm, Select } from "antd";
-import { X } from "lucide-react";
-import { useState } from "react";
+import {
+	Button,
+	ConfigProvider,
+	List,
+	Popconfirm,
+	Select,
+	Tooltip,
+} from "antd";
+import { Folder, Plus, PlusSquare, X } from "lucide-react";
+import { useRef, useState } from "react";
 
 export default function HomeUniversitySettings() {
+	const [selectedYear, setSelectedYear] = useState<Year>();
+
+	const selectRef = useRef<typeof Select>(null);
+
 	const { getSetting, setSetting, setSettingMutation } = useSettings();
 
 	const [universities] = api.universities.getList.useSuspenseQuery();
@@ -28,7 +39,6 @@ export default function HomeUniversitySettings() {
 	);
 
 	// categorize courses by year
-
 	function addCourse(year: Year) {
 		const name = prompt("Enter course name");
 		if (name) {
@@ -36,10 +46,19 @@ export default function HomeUniversitySettings() {
 		}
 	}
 
+	function changeSelectedYear(year: Year) {
+		if (selectedYear == year) {
+			setSelectedYear(undefined);
+		} else {
+			selectRef.current?.Option;
+			setSelectedYear(year);
+		}
+	}
+
 	return (
 		<div className="flex flex-col gap-2">
 			<div className="flex flex-col gap-2">
-				<b>Home University</b>
+				<p className="mt-4 w-full text-xl font-medium">Home University</p>
 				<Select
 					value={selectedUni?.name}
 					options={universities.map((uni) => ({
@@ -51,64 +70,90 @@ export default function HomeUniversitySettings() {
 					onChange={(value) => {
 						setSetting("home_university", value.toString());
 					}}
+					showSearch
+					filterOption={(input, option) =>
+						option
+							? option.label.toLowerCase().includes(input.toLowerCase())
+							: false
+					}
 				/>
 			</div>
 			<div className="flex flex-col items-center gap-2">
-				<div className="grid w-full grid-cols-1 gap-2 xl:grid-cols-2">
+				<p className="mt-4 w-full text-xl font-medium">Home Courses</p>
+				<div className="grid w-full grid-cols-1 gap-2 xl:grid-cols-3">
 					{Object.values(Year).map((year) => (
 						<div key={year} className="col-span-1">
-							<div className="flex items-center gap-2">
-								<b>{yearToString(year)}</b>
-								<Button
-									type="default"
-									disabled={!selectedUni}
-									size="small"
-									onClick={() => addCourse(year)}
-								>
-									Add Course
-								</Button>
+							<div className="relative z-10 flex items-center gap-2">
+								<span className="font-medium">{yearToString(year)}</span>
+								<Tooltip title="Create new course">
+									<Button
+										type="default"
+										disabled={!selectedUni}
+										size="small"
+										onClick={() => addCourse(year)}
+									>
+										<Plus />
+									</Button>
+								</Tooltip>
+								<Tooltip title="Add Existing Course">
+									<Button
+										type={selectedYear == year ? "primary" : "default"}
+										disabled={!selectedUni}
+										size="small"
+										onClick={() => changeSelectedYear(year)}
+									>
+										<Folder />
+									</Button>
+								</Tooltip>
+								{selectedYear == year && (
+									<Select
+										showSearch
+										className="absolute left-0 right-0 top-5 mx-auto mt-1 w-fit"
+										placeholder="Select an existing course to add"
+										options={courses?.map((course) => ({
+											label: course.name,
+											value: course.id,
+										}))}
+										open={selectedYear != undefined}
+										showAction={["focus"]}
+										onSelect={(value) => {
+											setYearOfCourse(value as number, year);
+											setSelectedYear(undefined);
+										}}
+									/>
+								)}
 							</div>
-							<List
-								loading={isLoading}
-								dataSource={courses?.filter((course) =>
-									course.year.includes(year),
-								)}
-								renderItem={(course) => (
-									<List.Item className="bg-gray-50">
-										<span className="ml-4">{course.name}</span>
-										<Popconfirm
-											title={
-												<>
-													Are you sure?
-													<p className="font-medium">
-														This could delete applications that use this course.
-													</p>
-												</>
-											}
-											okText="Yes"
-											cancelText="No"
-											onConfirm={() => deleteCourse(course.id)}
-										>
-											<Button type="text" size="small" color="danger">
-												<X color="red" />
-											</Button>
-										</Popconfirm>
-									</List.Item>
-								)}
-							/>
-							<Select
-								showSearch
-								className="w-full"
-								placeholder="Select a course"
-								options={courses?.map((course) => ({
-									label: course.name,
-									value: course.id,
-								}))}
-								showAction={["focus"]}
-								onSelect={(value) => {
-									setYearOfCourse(value as number, year);
-								}}
-							/>
+							<ConfigProvider renderEmpty={() => <div>No courses</div>}>
+								<List
+									loading={isLoading}
+									dataSource={courses?.filter((course) =>
+										course.year.includes(year),
+									)}
+									renderItem={(course) => (
+										<List.Item className="my-1 rounded-lg bg-gray-50">
+											<span className="ml-4">{course.name}</span>
+											<Popconfirm
+												title={
+													<>
+														Are you sure?
+														<p className="font-medium">
+															This could delete applications that use this
+															course.
+														</p>
+													</>
+												}
+												okText="Yes"
+												cancelText="No"
+												onConfirm={() => setYearOfCourse(course.id, undefined)}
+											>
+												<Button type="text" size="small" color="danger">
+													<X color="red" />
+												</Button>
+											</Popconfirm>
+										</List.Item>
+									)}
+								/>
+							</ConfigProvider>
 						</div>
 					))}
 				</div>

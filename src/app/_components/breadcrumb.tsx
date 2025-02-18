@@ -25,6 +25,7 @@ export default function Breadcrumbs() {
 					<Link href={homePath}>Home</Link>
 				</BreadcrumbItem>
 				<BreadcrumbSeparator />
+				{breadcrumbs}
 			</BreadcrumbList>
 		</Breadcrumb>
 	);

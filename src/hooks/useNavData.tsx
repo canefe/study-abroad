@@ -1,6 +1,7 @@
 import { FlaggedCoursesCount } from "@/app/_components/sidebar/courses-count";
 import { Tag } from "antd";
 import {
+	Book,
 	Flag,
 	Home,
 	Paperclip,
@@ -50,37 +51,16 @@ export default function useNavData(session: any) {
             Courses
         */
 		{
-			title: "Verified Courses",
-			url: "/admin/courses/verified",
-			icon: Verified,
+			title: "Courses",
+			url: "/admin/courses/",
+			icon: Book,
 			role: "admin",
 			category: "Courses",
-		},
-		{
-			title: "Flagged Courses",
-			url: "/admin/courses/flagged",
-			icon: Flag,
-			role: "admin",
 			suffix: (
 				<Tag color="red" className="rounded-full">
 					<FlaggedCoursesCount />
 				</Tag>
 			),
-			category: "Courses",
-		},
-		{
-			title: "Unverified Courses",
-			url: "/admin/courses/unverified",
-			icon: ShieldQuestion,
-			role: "admin",
-			category: "Courses",
-		},
-		{
-			title: "Create Course",
-			url: "/admin/courses/create",
-			icon: PlusCircle,
-			role: "admin",
-			category: "Courses",
 		},
 		{
 			title: "Settings",

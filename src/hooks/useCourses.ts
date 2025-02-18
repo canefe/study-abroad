@@ -1,6 +1,7 @@
 import {
 	useAddCourseWithYearMutation,
 	useDeleteCourseMutation,
+	useEditCourseMutation,
 	useSetYearOfCourseMutation,
 } from "@/app/api/mutations/courses";
 import { api } from "@/trpc/react";
@@ -11,15 +12,17 @@ export const useCourses = () => {
 	const addCourseWithYear = useAddCourseWithYearMutation();
 	const deleteCourse = useDeleteCourseMutation();
 	const setYearOfCourse = useSetYearOfCourseMutation();
+	const editCourse = useEditCourseMutation();
 
 	return {
 		addCourseWithYear: async (
 			name: string,
 			universityId: number,
 			year: Year,
+			link?: string,
 		) => {
 			await toast.promise(
-				addCourseWithYear.mutateAsync({ name, universityId, year }),
+				addCourseWithYear.mutateAsync({ name, universityId, year, link }),
 				{
 					loading: "Adding course...",
 					success: "Course added successfully",
@@ -34,12 +37,27 @@ export const useCourses = () => {
 				error: "Failed to delete course",
 			});
 		},
-		setYearOfCourse: async (courseId: number, year: Year) => {
+		setYearOfCourse: async (courseId: number, year: Year | undefined) => {
 			await toast.promise(setYearOfCourse.mutateAsync({ id: courseId, year }), {
 				loading: "Setting year...",
 				success: "Year set successfully",
 				error: "Failed to set year",
 			});
+		},
+		editCourse: async (
+			courseId: number,
+			name: string,
+			year: Year | undefined,
+			universityId: number,
+		) => {
+			await toast.promise(
+				editCourse.mutateAsync({ id: courseId, name, year, universityId }),
+				{
+					loading: "Editing course...",
+					success: "Course edited successfully",
+					error: "Failed to edit course",
+				},
+			);
 		},
 	};
 };
