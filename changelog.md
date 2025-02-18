@@ -5,3 +5,9 @@
 - Used university csv file to populate the database, added it to the seed cjs
 - Filtered out already existing unviersity choices and home uni (uofg) from the list of possible unis
 - Fixed dragging behaviour, now you can swap existing choices and remove existing ones by dragging a new one from the list
+
+# TODO
+1. Application filters
+2. Export Applications
+3. Edit Course
+4. Theme colours

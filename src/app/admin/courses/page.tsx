@@ -9,11 +9,15 @@ import CreateCourseModal from "./_sections/create-course-modal";
 import CoursesList from "./unverified/_sections/UnverifiedCoursesList";
 
 export default function Courses() {
-	const [selected, setSelected] = useState("flagged");
+	const [selected, setSelected] = useState("all");
 	const [createCourseModalVisible, setCreateCourseModalVisible] =
 		useState(false);
 
 	const options = [
+		{
+			label: "All",
+			value: "all",
+		},
 		{
 			label: "Flagged",
 			value: "flagged",
@@ -39,6 +43,7 @@ export default function Courses() {
 					value={selected}
 					className="flex-1"
 				/>
+
 				<Button
 					size={"large"}
 					icon={<Plus />}
@@ -48,7 +53,19 @@ export default function Courses() {
 					Create Course
 				</Button>
 			</div>
-			<CoursesList />
+			<CoursesList
+				filter={
+					selected === "all"
+						? undefined
+						: selected === "flagged"
+							? ["flagged", "true"]
+							: selected === "verified"
+								? ["verified", "true"]
+								: selected === "unverified"
+									? ["verified", "false"]
+									: undefined
+				}
+			/>
 			<CreateCourseModal
 				open={createCourseModalVisible}
 				setOpen={setCreateCourseModalVisible}

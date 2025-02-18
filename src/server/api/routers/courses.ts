@@ -70,12 +70,24 @@ export const coursesRouter = createTRPCRouter({
 	}),
 
 	getCourses: protectedProcedure
-		.input(z.object({ universityId: z.number().optional() }))
+		.input(
+			z.object({
+				universityId: z.number().optional(),
+				flagged: z.boolean().optional(),
+				verified: z.boolean().optional(),
+			}),
+		)
 		.query(async ({ input, ctx }) => {
 			const course = await ctx.db.course.findMany({
 				where: {
 					...(input.universityId !== undefined && {
 						universityId: input.universityId,
+					}),
+					...(input.flagged !== undefined && {
+						flagged: input.flagged,
+					}),
+					...(input.verified !== undefined && {
+						verified: input.verified,
 					}),
 				},
 				include: {

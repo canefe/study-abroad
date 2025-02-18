@@ -14,7 +14,10 @@ type ListProps = {
 };
 export default function CoursesList({ filter }: ListProps) {
 	const getCoursesApi = api.courses.getCourses;
-	const { data, error } = getCoursesApi.useQuery({});
+	const { data, error } = getCoursesApi.useQuery({
+		flagged: filter?.[0] === "flagged" ? filter[1] === "true" : undefined,
+		verified: filter?.[0] === "verified" ? filter[1] === "true" : undefined,
+	});
 	const { verifyCourse, isLoading } = useVerifyCourse();
 	const { deleteCourse } = useDeleteCourse();
 
@@ -33,15 +36,18 @@ export default function CoursesList({ filter }: ListProps) {
 			key: "name",
 			render: (name: string, record: any) => (
 				<div className="flex flex-col gap-1">
-					<span>{name}</span>
-					<a
-						href={record.link}
-						target="_blank"
-						rel="noreferrer"
-						className="text-blue-500"
-					>
-						{record.link}
-					</a>
+					{record?.link ? (
+						<a
+							href={record.link}
+							target="_blank"
+							rel="noreferrer"
+							className="text-blue-500"
+						>
+							{name}
+						</a>
+					) : (
+						<span>{name}</span>
+					)}
 				</div>
 			),
 		},
@@ -57,21 +63,22 @@ export default function CoursesList({ filter }: ListProps) {
 			width: 500,
 			render: (_, record) => (
 				<>
-					<li className="whitespace-nowrap">
-						<div className='relative inline-block w-[100px] pr-5 after:absolute after:right-5 after:content-[""]'>
-							{" "}
-							<span className="font-semibold">Flagged:</span>{" "}
-						</div>
-						<div
-							className="inline-block"
-							style={{
-								marginBottom: "1rem",
-								color: record.flagged ? "red" : "green",
-							}}
-						>
-							{record.flagged ? "Yes" : "No"}
-						</div>
-					</li>
+					{record.flagged && (
+						<li className="whitespace-nowrap">
+							<div className='relative inline-block w-[100px] pr-5 after:absolute after:right-5 after:content-[""]'>
+								{" "}
+								<span className="font-semibold">Flagged:</span>{" "}
+							</div>
+							<div
+								className="inline-block"
+								style={{
+									color: record.flagged ? "red" : "green",
+								}}
+							>
+								{record.flagged ? "Yes" : "No"}
+							</div>
+						</li>
+					)}
 					<li className="whitespace-nowrap">
 						<div className='relative inline-block w-[100px] pr-5 after:absolute after:right-5 after:content-[""]'>
 							{" "}
@@ -80,7 +87,6 @@ export default function CoursesList({ filter }: ListProps) {
 						<div
 							className="inline-block"
 							style={{
-								marginBottom: "1rem",
 								color: record.verified ? "green" : "orange",
 							}}
 						>
@@ -94,9 +100,7 @@ export default function CoursesList({ filter }: ListProps) {
 								{" "}
 								<span className="font-semibold">Created By:</span>{" "}
 							</div>
-							<div className="inline-block" style={{ marginBottom: "1rem" }}>
-								{record.createdBy}
-							</div>
+							<div className="inline-block">{record.createdBy}</div>
 						</li>
 					)}
 					<li className="whitespace-nowrap">
