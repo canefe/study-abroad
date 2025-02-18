@@ -20,10 +20,10 @@ import {
 	useDroppable,
 } from "@dnd-kit/core";
 import { useEffect, useRef, useState } from "react";
-import { getCourseNameById, useCombinedRefs } from "@/lib/utils";
+import { getCourseNameById, useCombinedRefs, yearToString } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { usePathname } from "next/navigation";
-import { ExternalLink, FlagIcon, Link2, PlusIcon } from "lucide-react";
+import { ExternalLink, FlagIcon, PlusIcon } from "lucide-react";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import CommentSection from "@/app/_components/comment-section";
 import MobileChoicesTable from "../mobile-choices-table";
@@ -416,8 +416,8 @@ export default function ChoicesTable({
 		<DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
 			<div className="flex w-full flex-col items-center justify-between gap-2 md:flex-row">
 				<h2 className="text-xl font-medium">
-					{application?.abroadUniversity.name} - {application?.year} -{" "}
-					{application?.semester}
+					{application?.abroadUniversity.name} -{" "}
+					{yearToString(application?.year)}
 				</h2>
 				{application?.user && (
 					<h2>

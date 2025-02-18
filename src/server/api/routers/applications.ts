@@ -6,7 +6,7 @@ import {
 	protectedProcedure,
 } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { Year } from "@prisma/client";
+import { Status, Year } from "@prisma/client";
 
 export const applicationsRouter = createTRPCRouter({
 	getList: protectedProcedure.query(async ({ ctx }) => {
@@ -101,8 +101,8 @@ export const applicationsRouter = createTRPCRouter({
 				data: {
 					userId: session.user.id,
 					abroadUniversityId: input.abroadUniversityId,
-					status: "DRAFT",
-					year: input.year,
+					status: Status.DRAFT,
+					year: input.year as Year,
 				},
 			});
 			// create course choices
@@ -113,7 +113,7 @@ export const applicationsRouter = createTRPCRouter({
 						userId: session.user.id,
 						applicationId: application.id,
 						semester: "FULL_YEAR",
-						year: input.year,
+						year: input.year as Year,
 					},
 				});
 			});
@@ -250,7 +250,7 @@ export const applicationsRouter = createTRPCRouter({
 					id: input.applicationId,
 				},
 				data: {
-					status: "SUBMITTED",
+					status: Status.SUBMITTED,
 				},
 			});
 			return "Success";
@@ -277,7 +277,7 @@ export const applicationsRouter = createTRPCRouter({
 					id: input.applicationId,
 				},
 				data: {
-					status: "DRAFT",
+					status: Status.DRAFT,
 				},
 			});
 			return "Success";

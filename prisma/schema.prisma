@@ -107,12 +107,6 @@ model School {
     applications Application[]
 }
 
-enum Semester {
-    SEMESTER_1
-    SEMESTER_2
-    FULL_YEAR
-}
-
 enum Year {
     // SECOND YEAR SINGLE COURSES
     SECOND_YEAR_SINGLE_FULL_YEAR
@@ -129,13 +123,12 @@ enum Year {
 }
 
 model CourseChoice {
-    id                   Int      @id @default(autoincrement())
+    id                   Int   @id @default(autoincrement())
     applicationId        Int
     homeCourseId         Int
     primaryCourseId      Int?
     alternativeCourse1Id Int?
     alternativeCourse2Id Int?
-    semester             Semester
     year                 Year?
 
     application        Application @relation(fields: [applicationId], references: [id])
@@ -149,15 +142,21 @@ model CourseChoice {
     universityId       Int?
 }
 
+enum Status {
+    DRAFT
+    SUBMITTED // submitted for review
+    APPROVED
+    REVISE // needs to be revised by the user
+}
+
 model Application {
     id                 Int            @id @default(autoincrement())
     userId             String
     abroadUniversityId Int
-    status             String
+    status             Status
     messages           Message[]
     courseChoices      CourseChoice[]
     year               Year?
-    semester           Semester?
     schoolId           Int?
     school             School?        @relation(fields: [schoolId], references: [id])
 
@@ -189,7 +188,6 @@ model Course {
     createdBy                 String? // The user who created the course
     verified                  Boolean        @default(false) // Verified courses are courses that have been reviewed by an admin
     year                      Year[]
-    semester                  Semester?
     link                      String?
     schoolId                  Int?
     school                    School?        @relation(fields: [schoolId], references: [id])

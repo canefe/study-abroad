@@ -6,7 +6,6 @@ import { yearToString } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { Year } from "@prisma/client";
 import {
-	Alert,
 	Button,
 	Popconfirm,
 	Select,
@@ -60,7 +59,7 @@ export default function Dashboard() {
 			abroadUniversity: {
 				name: "University of Ottawa",
 			},
-			status: "PENDING",
+			status: "SUBMITTED",
 			year: "SECOND_YEAR_SINGLE_FULL_YEAR",
 		},
 		{
@@ -68,7 +67,7 @@ export default function Dashboard() {
 			abroadUniversity: {
 				name: "University of Helsinki",
 			},
-			status: "ACCEPTED",
+			status: "REVISE",
 			year: "SECOND_YEAR_SINGLE_FULL_YEAR",
 		},
 	];
@@ -214,10 +213,10 @@ export default function Dashboard() {
 												ref={ref3}
 												color={
 													record.status === "DRAFT"
-														? "blue"
-														: record.status === "PENDING"
-															? "orange"
-															: record.status === "ACCEPTED"
+														? "yellow"
+														: record.status === "SUBMITTED"
+															? "blue"
+															: record.status === "APPROVED"
 																? "green"
 																: "red"
 												}
