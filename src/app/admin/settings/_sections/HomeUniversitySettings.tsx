@@ -95,7 +95,7 @@ export default function HomeUniversitySettings() {
 										<Plus />
 									</Button>
 								</Tooltip>
-								<Tooltip title="Add Existing Course">
+								<Tooltip title="Add an existing course">
 									<Button
 										type={selectedYear == year ? "primary" : "default"}
 										disabled={!selectedUni}
