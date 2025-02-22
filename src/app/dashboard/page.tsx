@@ -264,7 +264,7 @@ export default function Dashboard() {
 													cancelText="No"
 												>
 													<Button
-														loading={removeApplicationMutation.isLoading}
+														loading={removeApplicationMutation.isPending}
 														ref={ref4}
 														type="primary"
 														danger
@@ -318,7 +318,7 @@ export default function Dashboard() {
 									}}
 								/>
 							</div>
-							<Button onClick={createChoices}>Create new Choices</Button>
+							<Button onClick={createChoices}>Create Application</Button>
 						</div>
 					) : (
 						<p>You have made the maximum number of choices.</p>
