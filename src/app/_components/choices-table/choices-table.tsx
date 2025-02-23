@@ -492,7 +492,6 @@ export default function ChoicesTable({
 				{/* Table for Home Courses */}
 				<div ref={tableRef} className="flex h-fit flex-1 flex-col gap-2">
 					<h1>Mandatory Courses</h1>
-
 					<Table
 						size={"small"}
 						className="hidden md:block"
@@ -504,7 +503,6 @@ export default function ChoicesTable({
 						bordered
 						pagination={false}
 					/>
-
 					{/* Mobile version of the table */}
 					<div className="md:hidden">
 						<MobileChoicesTable
@@ -520,7 +518,7 @@ export default function ChoicesTable({
 					</div>
 				</div>
 				{/* Sidebar for Available Courses */}
-				<div className="w-full min-w-52 max-w-xl">
+				<div className="min-w-52 max-w-xl">
 					<div
 						className="relative !z-0 hidden transform overflow-auto rounded bg-gray-50 p-3 transition-all duration-500 ease-in-out md:block"
 						ref={sidebarRef}
@@ -770,8 +768,8 @@ const ChoiceSlot = ({
 			{choice && (
 				<Tooltip title="Remove choice">
 					<Cross1Icon
-						color="black"
-						className="absolute right-0 top-0 cursor-pointer hover:scale-110"
+						color="red"
+						className="absolute bottom-0 right-1 top-0 my-auto cursor-pointer hover:scale-110"
 						onClick={onRemove}
 					/>
 				</Tooltip>

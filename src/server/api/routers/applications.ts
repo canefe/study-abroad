@@ -22,22 +22,64 @@ export const applicationsRouter = createTRPCRouter({
 		});
 		return applications;
 	}),
-	getAll: protectedProcedure.query(async ({ ctx }) => {
-		const session = ctx.session;
-		// check if user is admin
-		if (session.user.role === "ADMIN") {
+	getAll: adminProcedure
+		.input(
+			z.object({
+				q: z.string().optional(),
+				page: z.number().default(1),
+				pageSize: z.number().default(10),
+				filter: z
+					.enum(["all", "SUBMITTED", "DRAFT", "REVISE", "APPROVED"])
+					.default("all"),
+			}),
+		)
+		.query(async ({ input, ctx }) => {
+			const { q, page, pageSize, filter } = input;
+			const skip = (page - 1) * pageSize;
+
+			// Construct the where clause
+			const whereClause: any = {
+				OR: [
+					{ user: { name: { contains: q, mode: "insensitive" } } },
+					{ user: { guid: { contains: q, mode: "insensitive" } } },
+				],
+			};
+
+			// Conditionally add the status filter
+			if (filter !== "all") {
+				whereClause.status = filter as Status;
+			}
+
 			const applications = await ctx.db.application.findMany({
+				where: whereClause,
 				include: {
-					courseChoices: true,
+					courseChoices: {
+						include: {
+							homeCourse: true,
+							primaryCourse: true,
+							alternativeCourse1: true,
+							alternativeCourse2: true,
+						},
+					},
 					abroadUniversity: true,
 					user: true,
 				},
+				skip,
+				take: pageSize,
 			});
-			return applications;
-		}
-		// return 403 if user is not admin
-		return new Response("Forbidden", { status: 403 });
-	}),
+
+			const totalCount = await ctx.db.application.count({
+				where: whereClause,
+			});
+
+			return {
+				applications,
+				totalCount,
+				totalPages: Math.ceil(totalCount / pageSize),
+				currentPage: page,
+			};
+		}),
+
 	// takes in an abroad university id, creates an application with home university's courses count coursechoices
 	create: protectedProcedure
 		.input(
@@ -112,12 +154,79 @@ export const applicationsRouter = createTRPCRouter({
 						homeCourseId: course.id,
 						userId: session.user.id,
 						applicationId: application.id,
-						semester: "FULL_YEAR",
 						year: input.year as Year,
 					},
 				});
 			});
 			return "Success";
+		}),
+
+	// createAdmin takes in user, abroadUni
+	createAdmin: adminProcedure
+		.input(
+			z.object({
+				userId: z.string(),
+				abroadUniversityId: z.number(),
+				year: z.enum([...Object.values(Year)] as [string, ...string[]]),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			const user = await ctx.db.user.findFirst({
+				where: {
+					id: input.userId,
+				},
+			});
+			console.log(input.userId);
+			if (!user) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "User not found",
+				});
+			}
+
+			const homeUniversitySetting = await ctx.db.setting.findFirst({
+				where: {
+					key: "home_university",
+				},
+			});
+
+			if (!homeUniversitySetting) {
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Home university not set",
+				});
+			}
+
+			const homeUniversityCourses = await ctx.db.course.findMany({
+				where: {
+					universityId: parseInt(homeUniversitySetting?.value),
+					year: {
+						has: input.year as Year,
+					},
+				},
+			});
+
+			// create an application
+			const application = await ctx.db.application.create({
+				data: {
+					userId: input.userId,
+					abroadUniversityId: input.abroadUniversityId,
+					status: Status.DRAFT,
+					year: input.year as Year,
+				},
+			});
+			// create course choices
+			homeUniversityCourses.forEach(async (course) => {
+				await ctx.db.courseChoice.create({
+					data: {
+						homeCourseId: course.id,
+						userId: input.userId,
+						applicationId: application.id,
+						year: input.year as Year,
+					},
+				});
+			});
+			return { applicationId: application.id };
 		}),
 	// remove an application. Also removes all course choices related to the application
 	remove: protectedProcedure

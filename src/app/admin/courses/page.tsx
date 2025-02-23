@@ -1,9 +1,6 @@
 "use client";
-import VerifiedCoursesList from "./verified/_sections/VerifiedCoursesList";
 import { Button, Segmented } from "antd";
 import { useState } from "react";
-import FlaggedCoursesList from "./flagged/_sections/FlaggedCoursesList";
-import UnverifiedCoursesList from "./unverified/_sections/UnverifiedCoursesList";
 import { Plus } from "lucide-react";
 import CreateCourseModal from "./_sections/create-course-modal";
 import CoursesList from "./unverified/_sections/UnverifiedCoursesList";

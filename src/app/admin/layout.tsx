@@ -23,7 +23,7 @@ export default async function DashboardLayout({
 
 	if (session?.user) {
 		void api.notifications.getList.prefetch();
-		void api.applications.getAll.prefetch();
+		//void api.applications.getAll.prefetch({});
 		void api.students.me.prefetch();
 		void api.students.getCount.prefetch();
 		void api.universities.getList.prefetch();

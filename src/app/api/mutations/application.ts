@@ -1,4 +1,5 @@
 import { api } from "@/trpc/react";
+import { useRouter } from "next/navigation";
 
 export const useCreateApplicationMutation = () => {
 	const utils = api.useUtils();
@@ -48,6 +49,18 @@ export const useSaveChoicesAdminMutation = () => {
 	return api.choices.saveChoicesAdmin.useMutation({
 		onSuccess: () => {
 			utils.choices.getList.invalidate();
+		},
+	});
+};
+
+// admin
+export const useAdminCreateApplicationMutation = () => {
+	const utils = api.useUtils();
+	const router = useRouter();
+	return api.applications.createAdmin.useMutation({
+		onSuccess: (data) => {
+			utils.applications.getList.invalidate();
+			router.push(`/admin/applications/${data.applicationId}`);
 		},
 	});
 };

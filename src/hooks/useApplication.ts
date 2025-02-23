@@ -7,6 +7,7 @@ import {
 	useSubmitApplicationMutation,
 	useWithdrawApplicationMutation,
 	useSaveChoicesAdminMutation,
+	useAdminCreateApplicationMutation,
 } from "@/app/api/mutations/application";
 import {
 	useGetAbroadCoursesQuery,
@@ -15,6 +16,7 @@ import {
 } from "@/app/api/queries/application";
 import { api } from "@/trpc/react";
 import { Year } from "@prisma/client";
+import toast from "react-hot-toast";
 
 type useApplicationProps = {
 	applicationId?: number;
@@ -50,6 +52,8 @@ export const useApplication = ({
 	const saveChoicesMutation = admin
 		? useSaveChoicesAdminMutation()
 		: useSaveChoicesMutation();
+
+	const adminCreateApplicationMutation = useAdminCreateApplicationMutation();
 
 	const createApplication = (abroadUniversityId: number, year: Year) => {
 		createApplicationMutation.mutate({ abroadUniversityId, year });
@@ -93,6 +97,26 @@ export const useApplication = ({
 		);
 	};
 
+	// admin
+	const createApplicationAdmin = async (
+		userId: string,
+		abroadUniversityId: number,
+		year: Year,
+	) => {
+		await toast.promise(
+			adminCreateApplicationMutation.mutateAsync({
+				userId,
+				abroadUniversityId,
+				year,
+			}),
+			{
+				loading: "Creating application...",
+				success: "Application created successfully",
+				error: "Failed to create application",
+			},
+		);
+	};
+
 	return {
 		createApplication,
 		removeApplication,
@@ -108,5 +132,6 @@ export const useApplication = ({
 		flagCourse,
 		saveChoices: saveChoicesMutation.mutate,
 		saveChoicesMutation,
+		createApplicationAdmin,
 	};
 };

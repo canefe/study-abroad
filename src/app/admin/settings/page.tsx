@@ -2,7 +2,7 @@
 import { Segmented } from "antd";
 import { Home } from "lucide-react";
 import { useState } from "react";
-import HomeUniversitySettings from "./_sections/HomeUniversitySettings";
+import HomeUniversitySettings from "./_sections/home-university-settings";
 
 export default function Settings() {
 	const [selected, setSelected] = useState("homeUni");

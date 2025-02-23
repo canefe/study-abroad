@@ -24,6 +24,9 @@ import toast from "react-hot-toast";
 export default function Dashboard() {
 	const [applications] = api.applications.getList.useSuspenseQuery();
 	const [universities] = api.universities.getList.useSuspenseQuery();
+	const [notifications] = api.notifications.getList.useSuspenseQuery(void 0, {
+		refetchInterval: 5000,
+	});
 	const [selectedUni, setSelectedUni] = useState("");
 	const [selectedYear, setSelectedYear] = useState<Year>(
 		"SECOND_YEAR_SINGLE_FULL_YEAR",
@@ -168,7 +171,9 @@ export default function Dashboard() {
 						{(
 							open ? dummyApplications.length === 0 : applications.length === 0
 						) ? (
-							<p>You have not made any choices yet.</p>
+							<p className="text-gray-500">
+								You have not made any choices yet.
+							</p>
 						) : (
 							<Table
 								dataSource={open ? dummyApplications : applications}
@@ -325,13 +330,16 @@ export default function Dashboard() {
 					)}
 				</div>
 				<div className="mt-10 flex w-full flex-col gap-2">
-					<h2 className="text-xl font-semibold">Latest Announcements</h2>
-					{[1, 2, 3].map((feedback) => (
+					<h2 className="text-xl font-semibold">Latest Notifications</h2>
+					{notifications.length === 0 && (
+						<p className="text-gray-500">No notifications</p>
+					)}
+					{notifications.map((feedback) => (
 						<div
-							key={feedback}
+							key={feedback.id}
 							className="flex flex-col gap-2 rounded-md bg-slate-100 p-3"
 						>
-							<p className="font-semibold">Feedback {feedback}</p>
+							<p className="font-semibold">Feedback {feedback.id}</p>
 							<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
 						</div>
 					))}
