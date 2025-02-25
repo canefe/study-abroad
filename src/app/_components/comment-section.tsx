@@ -1,12 +1,8 @@
-import { Application } from "@prisma/client";
-import { Button, Avatar, Tag, Tooltip } from "antd";
+import { Button } from "antd";
 import dayjs from "dayjs";
-import { application } from "express";
-import crypto from "crypto";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Comment from "./comment";
 import CommentForm from "./comment-form";
-import { api } from "@/trpc/react";
 import toast from "react-hot-toast";
 import { useComments } from "@/hooks/useComments";
 
@@ -25,9 +21,9 @@ export default function CommentSection({
 	admin,
 	user,
 }: CommentSectionProps) {
-	const [replyTo, setReplyTo] = useState<number | null>(null);
+	const [replyTo, setReplyTo] = useState<number | undefined>(undefined);
 	const [showReply, setShowReply] = useState<boolean>(false);
-	const [replyUnder, setReplyUnder] = useState<number | null>(null);
+	const [replyUnder, setReplyUnder] = useState<number | undefined>(undefined);
 
 	const { sendComment, sendFeedback, deleteComment } = useComments({
 		applicationId,
@@ -37,7 +33,7 @@ export default function CommentSection({
 
 	const handleReply = (id: number, replyUnder: number) => {
 		if (replyTo === id) {
-			setReplyTo(null);
+			setReplyTo(undefined);
 		}
 		console.log("replyUnder", replyUnder);
 		setReplyUnder(replyUnder);
@@ -45,8 +41,8 @@ export default function CommentSection({
 	};
 
 	const handleCancel = () => {
-		setReplyTo(null);
-		setReplyUnder(null);
+		setReplyTo(undefined);
+		setReplyUnder(undefined);
 	};
 
 	const onSendMessage = async (message: string) => {
@@ -78,8 +74,8 @@ export default function CommentSection({
 	};
 
 	const handleFormSubmit = (data: any) => {
-		setReplyTo(null);
-		setReplyUnder(null);
+		setReplyTo(undefined);
+		setReplyUnder(undefined);
 		setShowReply(false);
 		if (admin) {
 			toast.promise(onSendFeedback(data.message), {
@@ -105,7 +101,7 @@ export default function CommentSection({
 			{showReply && (
 				<CommentForm
 					onSend={() => {}}
-					replyTo={null}
+					replyTo={undefined}
 					onSubmit={handleFormSubmit}
 					onCancel={() => setShowReply(false)}
 				/>
@@ -124,10 +120,9 @@ export default function CommentSection({
 							userId={user?.id}
 							onCancel={handleCancel}
 							onDelete={(id: number) => {
-								deleteComment.mutate({ messageId: id });
+								deleteComment({ messageId: id });
 							}}
 							replyTo={replyTo}
-							replyUnder={replyUnder}
 							onSubmit={handleFormSubmit}
 							padding={1}
 						/>

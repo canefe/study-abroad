@@ -11,9 +11,7 @@ export default async function Dashboard() {
 		<div className="container flex flex-col gap-4">
 			<div className="rounded bg-gray-200 p-2">
 				<h1 className="text-xl">Welcome, {session?.user.name}</h1>
-				<h2 className="text-lg">
-					{session?.user?.school || "School of Computer Science"}
-				</h2>
+				<h2 className="text-lg">{"School of Computer Science"}</h2>
 			</div>
 			<div className="grid grid-cols-4 gap-4">
 				<StudentStatsCard />

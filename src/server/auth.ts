@@ -6,11 +6,11 @@ import {
 } from "next-auth";
 import { type Adapter } from "next-auth/adapters";
 import DiscordProvider from "next-auth/providers/discord";
-import CredentialsProvider from "next-auth/providers/credentials";
 
 import { env } from "@/env";
 import { db } from "@/server/db";
 import Credentials from "next-auth/providers/credentials";
+import { User } from "@prisma/client";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -81,7 +81,7 @@ export const authOptions: NextAuthOptions = {
 			},
 			authorize: async (credentials, req) => {
 				console.log("Authorizing user");
-				let user = null;
+				let user: User | null = null;
 				// Get user from your database
 				user = await db.user.findFirst({
 					where: {

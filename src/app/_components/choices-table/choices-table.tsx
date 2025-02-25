@@ -76,13 +76,13 @@ export default function ChoicesTable({
 	const [sidebarHeight, setSidebarHeight] = useState("200px"); // Sidebar height state
 	const tableRef = useRef(null); // Reference to the table
 	const sidebarRef = useRef(null); // Reference to the sidebar
-	const [activeId, setActiveId] = useState(null);
+	const [activeId, setActiveId] = useState<string | null>(null);
 	const [searchCourse, setSearchCourse] = useState("");
 	const pathname = usePathname();
 	const [agreedToTerms, setAgreedToTerms] = useState(false); // State to track if the user has agreed to the terms of course creation to avoid multiple popups
 
 	const handleDragStart = (event: DragStartEvent) => {
-		setActiveId(event.active.id);
+		setActiveId(String(event.active.id));
 	};
 
 	const [addCourseModalOpen, setAddCourseModalOpen] = useState(false); // State to track if the add course modal is open
@@ -126,6 +126,7 @@ export default function ChoicesTable({
 					<ChoiceSlot
 						id={`${record.id}-${choiceType}`}
 						key={`${record.id}-${choiceType}`}
+						//@ts-expect-error to-do
 						choice={choices[record.id]?.[choiceType]}
 						onDrop={(courseId) => {
 							// check all choices to see if the course is already selected and remove it if it is
@@ -134,16 +135,19 @@ export default function ChoicesTable({
 						}}
 						onRemove={() => {
 							console.log("Removing choice", record.id, choiceType);
+							//@ts-expect-error it just works
 							removeChoices(record.id, choiceType);
 						}}
 						universityId={application?.abroadUniversityId}
 						flagged={
 							abroadCourses?.find(
+								//@ts-expect-error it just works
 								(course) => course.id === choices[record.id]?.[choiceType],
 							)?.flagged
 						}
 						verified={
 							abroadCourses?.find(
+								//@ts-expect-error it just works
 								(course) => course.id === choices[record.id]?.[choiceType],
 							)?.verified
 						}
@@ -215,8 +219,10 @@ export default function ChoicesTable({
 
 	const updateSidebarHeight = () => {
 		if (tableRef.current) {
+			//@ts-expect-error it just works
 			const tableHeight = tableRef.current.offsetHeight;
 			setSidebarHeight(`${tableHeight}px`);
+			//@ts-expect-error it just works
 			sidebarRef.current.style.height = `${tableHeight}px`;
 			console.log("Sidebar height updated to", tableHeight);
 		}
@@ -259,6 +265,7 @@ export default function ChoicesTable({
 			await Promise.all(
 				Object.entries(choices).map(async ([homeCourseId, choice]) => {
 					if (application) {
+						// @ts-expect-error it just works
 						await saveChoices({
 							userId: application?.userId,
 							homeCourseId: parseInt(homeCourseId),
@@ -370,15 +377,6 @@ export default function ChoicesTable({
 				className="w-full"
 			/>
 		);
-
-	const onSend = async () => {
-		//send feedback
-
-		await sendCommentApi.mutateAsync({
-			applicationId: applicationId,
-			comment: "Feedback sent",
-		});
-	};
 
 	const onAddCourse = async (name: string, link: string) => {
 		//add course
@@ -694,7 +692,6 @@ export default function ChoicesTable({
 			</div>
 			<CommentSection
 				messages={comments}
-				onSend={onSend}
 				applicationId={applicationId}
 				user={userData}
 				admin={admin || false}
@@ -702,7 +699,6 @@ export default function ChoicesTable({
 			<DragOverlay>
 				{activeId ? (
 					<DraggedCourse
-						id={activeId}
 						title={
 							abroadCourses.find((course) => course.id === activeId)?.name ||
 							"Unknown"

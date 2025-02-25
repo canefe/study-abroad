@@ -2,18 +2,18 @@
 
 import { createContext, useState, useContext } from "react";
 
-type DropdownName = "bell" | "avatar" | null;
+type DropdownName = "bell" | "avatar" | undefined;
 
 const DropdownContext = createContext<{
 	openDropdown: DropdownName;
 	toggleDropdown: (dropdownName: DropdownName) => void;
 }>({
-	openDropdown: null,
+	openDropdown: undefined,
 	toggleDropdown: () => {},
 });
 
 export const DropdownProvider = ({ children }) => {
-	const [openDropdown, setOpenDropdown] = useState(undefined); // 'bell' or 'avatar' or null
+	const [openDropdown, setOpenDropdown] = useState<DropdownName>(undefined); // 'bell' or 'avatar' or null
 
 	const toggleDropdown = (dropdownName) => {
 		setOpenDropdown((prev) => (prev === dropdownName ? null : dropdownName));

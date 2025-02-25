@@ -115,7 +115,7 @@ export default function ApplicationList() {
 				<Segmented
 					size={"large"}
 					options={options}
-					onChange={(value) => setSelected(value)}
+					onChange={(value) => setSelected(value as Status)}
 					value={selected}
 					className="flex-1"
 				/>

@@ -2,7 +2,6 @@
 import { AutoComplete, Button, Table } from "antd";
 import { api } from "@/trpc/react";
 import Link from "next/link";
-import ShortId from "@/app/_components/short-id";
 import { useState } from "react";
 import { debounce } from "lodash";
 import { Filter } from "lucide-react";

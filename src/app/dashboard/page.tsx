@@ -53,25 +53,34 @@ export default function Dashboard() {
 			id: 1,
 			abroadUniversity: {
 				name: "University of Melbourne",
+				id: 1,
+				location: "Melbourne, Australia",
 			},
 			status: "DRAFT",
 			year: "SECOND_YEAR_SINGLE_FULL_YEAR",
+			courseChoices: [],
 		},
 		{
 			id: 2,
 			abroadUniversity: {
 				name: "University of Ottawa",
+				id: 2,
+				location: "Ottawa, Canada",
 			},
 			status: "SUBMITTED",
 			year: "SECOND_YEAR_SINGLE_FULL_YEAR",
+			courseChoices: [],
 		},
 		{
 			id: 3,
 			abroadUniversity: {
 				name: "University of Helsinki",
+				id: 3,
+				location: "Helsinki, Finland",
 			},
 			status: "REVISE",
 			year: "SECOND_YEAR_SINGLE_FULL_YEAR",
+			courseChoices: [],
 		},
 	];
 
@@ -176,6 +185,7 @@ export default function Dashboard() {
 							</p>
 						) : (
 							<Table
+								//@ts-expect-error can't create dummyApplications
 								dataSource={open ? dummyApplications : applications}
 								size={"small"}
 								pagination={false}

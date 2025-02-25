@@ -1,12 +1,11 @@
 import { api } from "@/trpc/react";
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
-import { type Status } from "@/path/to/your/component";
 
 export function useExportApplications() {
 	const utils = api.useUtils();
 
-	const exportApplications = async (status: Status, search: string) => {
+	const exportApplications = async (status: any, search: string) => {
 		// Fetch applications with course choices
 		const data = await utils.applications.getAll.fetch({
 			filter: status,
@@ -22,7 +21,7 @@ export function useExportApplications() {
 
 		// Generate structured data for export
 		const worksheetData = data.applications.map((app) => {
-			const row: Record<string, string> = {
+			const row: Record<string, string | null> = {
 				ApplicationID: app.id.toString(),
 				Student: app.user.name,
 				GUID: app.user.guid,
@@ -32,7 +31,7 @@ export function useExportApplications() {
 
 			// Loop through courses and assign them dynamically
 			app.courseChoices.forEach((course, index) => {
-				row[`HomeCourse_${index + 1}`] = course.homeCourse || "No course";
+				row[`HomeCourse_${index + 1}`] = course.homeCourse?.name || "No course";
 				row[`FirstChoice_${index + 1}`] =
 					course.primaryCourse?.name || "No choice";
 				row[`SecondChoice_${index + 1}`] =

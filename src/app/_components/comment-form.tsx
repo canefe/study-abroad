@@ -1,6 +1,5 @@
 import { Controller, useForm } from "react-hook-form";
-import Comment from "./comment";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { Button } from "antd";
 
 import { Input } from "antd";
@@ -32,7 +31,8 @@ export default function CommentForm({
 
 	const handleFormSubmit = (data: FormData) => {
 		// reset textarea
-		document.getElementById("comment-input")!.value = "";
+		(document.getElementById("comment-input") as HTMLTextAreaElement).value =
+			"";
 		onSubmit(data);
 	};
 

@@ -1,7 +1,7 @@
 "use client";
 import { Bell, BellOff, Eye, EyeClosed, MailOpen, Trash } from "lucide-react";
 
-import { Avatar, Badge, Button, Dropdown, Popover, Spin, Tooltip } from "antd";
+import { Avatar, Badge, Popover, Spin, Tooltip } from "antd";
 import { api } from "@/trpc/react";
 import { useState, useEffect } from "react";
 import dayjs from "dayjs";
@@ -86,7 +86,7 @@ export default function NotificationBell() {
 		if (open) {
 			toggleDropdown("bell");
 		} else {
-			toggleDropdown(null);
+			toggleDropdown(undefined);
 		}
 	};
 
@@ -107,7 +107,10 @@ export default function NotificationBell() {
 					<li className="p-2 text-center">No notifications</li>
 				)}
 				{copyNotifications
-					?.sort((a, b) => b.createdAt - a.createdAt)
+					?.sort(
+						(a, b) =>
+							new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+					)
 					.map((n) => (
 						<li
 							className="border-b border-t bg-slate-50 p-2 hover:bg-slate-200"

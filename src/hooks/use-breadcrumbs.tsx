@@ -10,7 +10,10 @@ export function useBreadcrumbs() {
 	const pathname = usePathname();
 
 	function generateBreadcrumb(pathName: string) {
-		const formatBreadcrumb = (breadcrumb: string) => {
+		const formatBreadcrumb = (breadcrumb: string | undefined) => {
+			if (!breadcrumb) {
+				return null;
+			}
 			return capitalizeFirstLetter(breadcrumb.replace(/-/g, " "));
 		};
 

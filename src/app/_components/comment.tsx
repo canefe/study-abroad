@@ -36,7 +36,6 @@ const Comment = ({
 	message,
 	parent = null, // time stamp of parent comment
 	onReply,
-	replyUnder,
 	replyTo,
 	replying = false, // if the user is replying to a comment
 	onDelete,
@@ -50,7 +49,6 @@ const Comment = ({
 	message: Message;
 	parent?: string | null;
 	onReply?: any;
-	replyUnder?: number;
 	replyTo?: number;
 	replying?: boolean;
 	onDelete?: any;
@@ -284,7 +282,6 @@ const Comment = ({
 									message={reply}
 									parent={message.createdAt}
 									onReply={onReply}
-									replyUnder={lastComment ? reply.id : -1}
 									replyTo={replyTo}
 									onSubmit={onSubmit}
 									userId={userId}

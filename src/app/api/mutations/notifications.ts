@@ -34,7 +34,6 @@ export const useMarkAsReadMutation = () => {
 	return api.notifications.markAsRead.useMutation({
 		onSuccess: async () => {
 			await utils.notifications.invalidate();
-			toast("Marked notification as read");
 		},
 		onError: (error) => {
 			console.error(error);
@@ -75,7 +74,6 @@ export const useMarkAsUnreadMutation = () => {
 	return api.notifications.markAsUnread.useMutation({
 		onSuccess: async () => {
 			await utils.notifications.invalidate();
-			toast("Marked notification as unread");
 		},
 		onError: (error) => {
 			console.error(error);

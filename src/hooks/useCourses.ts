@@ -92,21 +92,6 @@ export const useUnverifyCourse = () => {
 	return { unverifyCourse, isLoading: utils.courses.unverifyCourse.isMutating };
 };
 
-export const useFlagCourse = () => {
-	const flagCourseApi = api.courses.flagCourse.useMutation();
-	const utils = api.useUtils();
-	const flagCourse = async (courseId: number) => {
-		await toast.promise(flagCourseApi.mutateAsync({ id: courseId }), {
-			loading: "Flagging course...",
-			success: "Course flagged successfully",
-			error: "Failed to flag course",
-		});
-		utils.courses.invalidate();
-	};
-
-	return { flagCourse, isLoading: utils.courses.flagCourse.isMutating };
-};
-
 export const useUnflagCourse = () => {
 	const unflagCourseApi = api.courses.unflagCourse.useMutation();
 	const utils = api.useUtils();

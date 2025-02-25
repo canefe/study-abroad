@@ -1,19 +1,10 @@
 "use client";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import { generateRandomColor } from "@/lib/randomUtils";
-import { api } from "@/trpc/react";
-import { Avatar, Badge, Button, Popover } from "antd";
+import { Avatar, Button, Popover } from "antd";
 import { useRouter } from "next/navigation";
 import { useDropdown } from "./dropdown-context";
 import { motion, useAnimation } from "framer-motion";
-import { Bell } from "lucide-react";
 
 export default function UserAvatar({ user }: { user: any }) {
 	// next-navigation redirect
@@ -27,7 +18,7 @@ export default function UserAvatar({ user }: { user: any }) {
 		if (open) {
 			return toggleDropdown("avatar");
 		}
-		toggleDropdown(null);
+		toggleDropdown(undefined);
 	};
 	const controls = useAnimation();
 	return (

@@ -47,7 +47,6 @@ export default function StudentList() {
 				size="small"
 				dataSource={universities}
 				columns={columns}
-				row
 				loading={!universities}
 			/>
 		</div>

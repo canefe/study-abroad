@@ -5,7 +5,7 @@ import StatsCard from ".";
 export default function VerifiedApplicationsCard() {
 	const [applications] = api.applications.getList.useSuspenseQuery();
 	const filteredApplications = applications?.filter(
-		(application) => application.status === "VERIFIED",
+		(application) => application.status === "APPROVED",
 	);
 	return (
 		<StatsCard
