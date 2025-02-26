@@ -7,6 +7,7 @@ import { api } from "@/trpc/react";
 import { Year } from "@prisma/client";
 import {
 	Button,
+	Checkbox,
 	Popconfirm,
 	Select,
 	Skeleton,
@@ -31,6 +32,9 @@ export default function Dashboard() {
 	const [selectedYear, setSelectedYear] = useState<Year>(
 		"SECOND_YEAR_SINGLE_FULL_YEAR",
 	);
+	const [alternateRoute, setAlternateRoute] = useState(false);
+	const [selectedAdditionalCourse, setSelectedAdditionalCourse] = useState("");
+	const [acknowledged, setAcknowledged] = useState(false);
 
 	// Tour
 	const ref1 = useRef(null);
@@ -100,6 +104,12 @@ export default function Dashboard() {
 		});
 	});
 
+	function onYearChange(value: Year) {
+		setSelectedYear(value);
+		setAlternateRoute(false);
+		setSelectedAdditionalCourse("");
+	}
+
 	function createChoices() {
 		// selected uni
 		if (selectedUni == "" || selectedUni == "Select a university") {
@@ -120,8 +130,28 @@ export default function Dashboard() {
 			return;
 		}
 
+		if (
+			(selectedYear === "SECOND_YEAR_JOINT_FULL_YEAR" ||
+				selectedYear === "SECOND_YEAR_JOINT_FIRST_SEMESTER") &&
+			selectedAdditionalCourse === ""
+		) {
+			toast.error("Please select an additional course");
+			return;
+		}
+
+		console.log(
+			selectedUniversity,
+			selectedYear,
+			alternateRoute,
+			selectedAdditionalCourse,
+		);
 		// create new application
-		createApplication(selectedUniversity.id, selectedYear);
+		createApplication(
+			selectedUniversity.id,
+			selectedYear,
+			alternateRoute,
+			selectedAdditionalCourse,
+		);
 	}
 
 	const steps: TourProps["steps"] = [
@@ -329,10 +359,55 @@ export default function Dashboard() {
 										value: year,
 									}))}
 									onChange={(value) => {
-										setSelectedYear(value as Year);
+										onYearChange(value as Year);
 									}}
 								/>
 							</div>
+							{/* iF second_year_joint_full_Year or joint_first_semester, show a select with 3 options: AF2,WAD2,CS1F (semester 1 doesnt have wad2) */}
+							{selectedYear === "SECOND_YEAR_JOINT_FULL_YEAR" ||
+							selectedYear === "SECOND_YEAR_JOINT_FIRST_SEMESTER" ? (
+								<Select
+									defaultValue="Select an additional course"
+									className="w-full"
+									onChange={(value) => {
+										setSelectedAdditionalCourse(value);
+									}}
+								>
+									<Select.Option value="AF2">AF2</Select.Option>
+									{/* semester 1 doesnt have WAD2 */}
+									{selectedYear !== "SECOND_YEAR_JOINT_FIRST_SEMESTER" ? (
+										<Select.Option value="WAD2">WAD2</Select.Option>
+									) : null}
+									<Select.Option value="CS1F">
+										CS1F (if not already taken)
+									</Select.Option>
+								</Select>
+							) : null}
+							{/* If the year is YEAR 2 FULL YEAR OR YEAR 2 SEMESTER 1 SHOW ALTERNATE ROUTE */}
+							{selectedYear === "SECOND_YEAR_SINGLE_FULL_YEAR" ||
+							selectedYear === "SECOND_YEAR_SINGLE_FIRST_SEMESTER" ? (
+								<Popconfirm
+									open={!(selectedUni == "") && !acknowledged}
+									title="Make sure to check this if you are on the alternate route"
+									okText="I am on the alternate route"
+									cancelText="I am not on the alternate route"
+									onConfirm={() => {
+										setAlternateRoute(true);
+										setAcknowledged(true);
+									}}
+									onCancel={() => {
+										setAlternateRoute(false);
+										setAcknowledged(true);
+									}}
+								>
+									<Checkbox
+										checked={alternateRoute}
+										onChange={(e) => setAlternateRoute(e.target.checked)}
+									>
+										Alternate Route
+									</Checkbox>
+								</Popconfirm>
+							) : null}
 							<Button onClick={createChoices}>Create Application</Button>
 						</div>
 					) : (
@@ -344,12 +419,12 @@ export default function Dashboard() {
 					{notifications.length === 0 && (
 						<p className="text-gray-500">No notifications</p>
 					)}
-					{notifications.map((feedback) => (
+					{notifications.map((notification) => (
 						<div
-							key={feedback.id}
+							key={notification.id}
 							className="flex flex-col gap-2 rounded-md bg-slate-100 p-3"
 						>
-							<p className="font-semibold">Feedback {feedback.id}</p>
+							<p className="font-semibold"></p>
 							<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
 						</div>
 					))}

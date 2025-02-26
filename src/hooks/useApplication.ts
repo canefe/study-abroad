@@ -55,8 +55,18 @@ export const useApplication = ({
 
 	const adminCreateApplicationMutation = useAdminCreateApplicationMutation();
 
-	const createApplication = (abroadUniversityId: number, year: Year) => {
-		createApplicationMutation.mutate({ abroadUniversityId, year });
+	const createApplication = (
+		abroadUniversityId: number,
+		year: Year,
+		alternateRoute: boolean,
+		additionalCourse: string,
+	) => {
+		createApplicationMutation.mutate({
+			abroadUniversityId,
+			year,
+			alternateRoute,
+			additionalCourse,
+		});
 	};
 
 	const removeApplication = (applicationId: number) => {

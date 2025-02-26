@@ -180,6 +180,10 @@ async function main() {
 					Year.SECOND_YEAR_JOINT_SECOND_SEMESTER,
 				],
 			},
+			{
+				universityId: glasgowUniversity.id,
+				name: "CS1F",
+			},
 			/*
 			3rd year single honours full year
 Match all of ALG1, SP, HCSDE, DF, PSD, TP

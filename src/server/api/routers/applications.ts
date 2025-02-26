@@ -86,6 +86,8 @@ export const applicationsRouter = createTRPCRouter({
 			z.object({
 				abroadUniversityId: z.number(),
 				year: z.enum([...Object.values(Year)] as [string, ...string[]]),
+				alternateRoute: z.boolean().optional(),
+				additionalCourse: z.string().optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -158,7 +160,53 @@ export const applicationsRouter = createTRPCRouter({
 					},
 				});
 			});
-			return "Success";
+
+			// if alternate route is selected, add additional course (CS1F)
+			// find CS1F home course first
+			if (input.alternateRoute) {
+				const cs1fCourse = await ctx.db.course.findFirst({
+					where: {
+						name: "CS1F",
+					},
+				});
+				if (!cs1fCourse) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "CS1F course not found",
+					});
+				}
+				await ctx.db.courseChoice.create({
+					data: {
+						homeCourseId: cs1fCourse.id,
+						userId: session.user.id,
+						applicationId: application.id,
+						year: input.year as Year,
+					},
+				});
+			}
+			// if additional course is selected, add additional course ( find the course first )
+			if (input.additionalCourse) {
+				const additionalCourse = await ctx.db.course.findFirst({
+					where: {
+						name: input.additionalCourse,
+					},
+				});
+				if (!additionalCourse) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Additional course not found",
+					});
+				}
+				await ctx.db.courseChoice.create({
+					data: {
+						homeCourseId: additionalCourse.id,
+						userId: session.user.id,
+						applicationId: application.id,
+						year: input.year as Year,
+					},
+				});
+			}
+			return { applicationId: application.id };
 		}),
 
 	// createAdmin takes in user, abroadUni

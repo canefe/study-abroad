@@ -124,23 +124,22 @@ enum Year {
 }
 
 model CourseChoice {
-    id                   Int   @id @default(autoincrement())
+    id                   Int         @id @default(autoincrement())
     applicationId        Int
     homeCourseId         Int
     primaryCourseId      Int?
     alternativeCourse1Id Int?
     alternativeCourse2Id Int?
     year                 Year?
-
-    application        Application @relation(fields: [applicationId], references: [id])
-    homeCourse         Course      @relation("HomeCourse", fields: [homeCourseId], references: [id])
-    primaryCourse      Course?     @relation("PrimaryCourse", fields: [primaryCourseId], references: [id])
-    alternativeCourse1 Course?     @relation("AlternativeCourse1", fields: [alternativeCourse1Id], references: [id])
-    alternativeCourse2 Course?     @relation("AlternativeCourse2", fields: [alternativeCourse2Id], references: [id])
-    user               User?       @relation(fields: [userId], references: [id])
-    userId             String?
-    university         University? @relation(fields: [universityId], references: [id])
-    universityId       Int?
+    application          Application @relation(fields: [applicationId], references: [id])
+    homeCourse           Course      @relation("HomeCourse", fields: [homeCourseId], references: [id])
+    primaryCourse        Course?     @relation("PrimaryCourse", fields: [primaryCourseId], references: [id])
+    alternativeCourse1   Course?     @relation("AlternativeCourse1", fields: [alternativeCourse1Id], references: [id])
+    alternativeCourse2   Course?     @relation("AlternativeCourse2", fields: [alternativeCourse2Id], references: [id])
+    user                 User?       @relation(fields: [userId], references: [id])
+    userId               String?
+    university           University? @relation(fields: [universityId], references: [id])
+    universityId         Int?
 }
 
 enum Status {
@@ -160,23 +159,25 @@ model Application {
     year               Year?
     schoolId           Int?
     school             School?        @relation(fields: [schoolId], references: [id])
-
-    user             User       @relation(fields: [userId], references: [id])
-    abroadUniversity University @relation(fields: [abroadUniversityId], references: [id])
+    // If the student is on an alternate route
+    alternateRoute     Boolean        @default(false)
+    // Store a text note for optional courses
+    note               String?
+    user               User           @relation(fields: [userId], references: [id])
+    abroadUniversity   University     @relation(fields: [abroadUniversityId], references: [id])
 }
 
 model Message {
-    id            Int       @id @default(autoincrement())
+    id            Int         @id @default(autoincrement())
     applicationId Int
     senderId      String
     content       String
-    createdAt     DateTime  @default(now())
+    createdAt     DateTime    @default(now())
     parentId      Int?
-    replies       Message[] @relation("MessageReplies")
-
-    application Application @relation(fields: [applicationId], references: [id])
-    sender      User        @relation(fields: [senderId], references: [id])
-    parent      Message?    @relation("MessageReplies", fields: [parentId], references: [id])
+    replies       Message[]   @relation("MessageReplies")
+    application   Application @relation(fields: [applicationId], references: [id])
+    sender        User        @relation(fields: [senderId], references: [id])
+    parent        Message?    @relation("MessageReplies", fields: [parentId], references: [id])
 }
 
 model Course {
@@ -206,9 +207,8 @@ model Notification {
     read      Boolean  @default(false)
     createdAt DateTime @default(now())
     senderId  String?
-
-    sender User? @relation("SenderRelation", fields: [senderId], references: [id])
-    user   User  @relation("UserRelation", fields: [userId], references: [id])
+    sender    User?    @relation("SenderRelation", fields: [senderId], references: [id])
+    user      User     @relation("UserRelation", fields: [userId], references: [id])
 }
 
 // A model for Settings

@@ -489,7 +489,6 @@ export default function ChoicesTable({
 			<div className="mt-4 flex flex-col space-x-5 md:flex-row">
 				{/* Table for Home Courses */}
 				<div ref={tableRef} className="flex h-fit flex-1 flex-col gap-2">
-					<h1>Mandatory Courses</h1>
 					<Table
 						size={"small"}
 						className="hidden md:block"
