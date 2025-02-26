@@ -1,6 +1,7 @@
 "use client";
 import { useApplication } from "@/hooks/useApplication";
 import { useSettings } from "@/hooks/useSettings";
+import { parseNotificationMessage } from "@/lib/notificationUtils";
 import { shortenText } from "@/lib/textUtils";
 import { yearToString } from "@/lib/utils";
 import { api } from "@/trpc/react";
@@ -425,7 +426,7 @@ export default function Dashboard() {
 							className="flex flex-col gap-2 rounded-md bg-slate-100 p-3"
 						>
 							<p className="font-semibold"></p>
-							<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+							<p>{parseNotificationMessage(notification)}</p>
 						</div>
 					))}
 				</div>
