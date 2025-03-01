@@ -2,7 +2,9 @@ import { api } from "@/trpc/react";
 
 // get all settings
 export const useGetSettingsQuery = () => {
-	return api.settings.getList.useQuery();
+	return api.settings.getList.useQuery(undefined, {
+		refetchInterval: 5000,
+	});
 };
 
 // get specific setting

@@ -55,13 +55,13 @@ export const useApplication = ({
 
 	const adminCreateApplicationMutation = useAdminCreateApplicationMutation();
 
-	const createApplication = (
+	const createApplication = async (
 		abroadUniversityId: number,
 		year: Year,
 		alternateRoute: boolean,
 		additionalCourse: string,
 	) => {
-		createApplicationMutation.mutate({
+		return createApplicationMutation.mutateAsync({
 			abroadUniversityId,
 			year,
 			alternateRoute,

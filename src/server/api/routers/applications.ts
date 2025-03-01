@@ -140,6 +140,28 @@ export const applicationsRouter = createTRPCRouter({
 					message: "Application already exists",
 				});
 			}
+
+			// check if a deadline is set
+			const deadlineSetting = await ctx.db.setting.findFirst({
+				where: {
+					key: "deadline_date",
+				},
+			});
+
+			// if deadline is set, check if the current date is before the deadline
+			if (deadlineSetting) {
+				if (deadlineSetting.value) {
+					const deadline = new Date(deadlineSetting.value);
+					const currentDate = new Date();
+					if (currentDate > deadline) {
+						throw new TRPCError({
+							code: "FORBIDDEN",
+							message: "Deadline has passed",
+						});
+					}
+				}
+			}
+
 			// create an application
 			const application = await ctx.db.application.create({
 				data: {

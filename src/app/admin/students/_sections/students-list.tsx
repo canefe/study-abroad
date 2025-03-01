@@ -60,7 +60,7 @@ export default function StudentList() {
 					}))}
 					onSearch={handleSearch}
 					onSelect={handleSearch}
-					placeholder="Search for a student"
+					placeholder="Search for a student by their name or GUID"
 					className="w-full"
 				/>
 				<Button type="default" icon={<Filter size={16} />} className="w-fit">

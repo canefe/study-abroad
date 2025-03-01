@@ -1,8 +1,9 @@
 "use client";
 import { Segmented } from "antd";
-import { Home } from "lucide-react";
+import { Clock, Home } from "lucide-react";
 import { useState } from "react";
 import HomeUniversitySettings from "./_sections/home-university-settings";
+import DeadlineSettings from "./_sections/deadline-settings";
 
 export default function Settings() {
 	const [selected, setSelected] = useState("homeUni");
@@ -20,10 +21,20 @@ export default function Settings() {
 						),
 						value: "homeUni",
 					},
+					{
+						label: (
+							<div className="flex items-center gap-1">
+								<Clock size={16} />
+								<span>Deadline</span>
+							</div>
+						),
+						value: "deadline",
+					},
 				]}
 			/>
 
 			{selected === "homeUni" && <HomeUniversitySettings />}
+			{selected === "deadline" && <DeadlineSettings />}
 		</div>
 	);
 }

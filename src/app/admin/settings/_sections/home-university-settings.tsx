@@ -45,10 +45,12 @@ export default function HomeUniversitySettings() {
 	return (
 		<>
 			<div className="flex flex-col gap-2">
-				<p className="mt-4 w-full text-xl font-medium">Home University</p>
-				<p className="text-sm text-gray-500">
-					Set home university for the application process.
-				</p>
+				<div>
+					<p className="mt-4 w-full text-xl font-medium">Home University</p>
+					<p className="text-sm text-gray-500">
+						Set home university for the application process.
+					</p>
+				</div>
 				<Select
 					value={selectedUni?.name}
 					options={universities.map((uni) => ({
@@ -69,10 +71,12 @@ export default function HomeUniversitySettings() {
 				/>
 			</div>
 
-			<p className="mt-4 w-full text-xl font-medium">Home Courses</p>
-			<p className="text-sm text-gray-500">
-				In here you can manage the home courses for the selected year.
-			</p>
+			<div>
+				<p className="mt-4 w-full text-xl font-medium">Home Courses</p>
+				<p className="text-sm text-gray-500">
+					In here you can manage the home courses for the selected year.
+				</p>
+			</div>
 			<div className="flex h-full">
 				{/* year selector */}
 				<div className="w-1/4 min-w-[200px] border-r pr-2">

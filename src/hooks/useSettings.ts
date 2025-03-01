@@ -8,8 +8,8 @@ export const useSettings = () => {
 
 	const setSettingMutation = useSetSettingMutation();
 
-	const getSetting = (settingKey: string) => {
-		return settings?.find((setting) => setting.key === settingKey);
+	const getSetting = (settingKey: string, fallback?: any) => {
+		return settings?.find((setting) => setting.key === settingKey) || fallback;
 	};
 
 	const setSetting = async (settingKey: string, value: string) => {
