@@ -10,6 +10,8 @@ import {
 	Skeleton,
 	Table,
 	Tooltip,
+	Tour,
+	TourProps,
 } from "antd";
 import {
 	DndContext,
@@ -22,7 +24,12 @@ import { useEffect, useRef, useState } from "react";
 import { getCourseNameById, useCombinedRefs, yearToString } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { usePathname } from "next/navigation";
-import { ExternalLink, FlagIcon, PlusIcon } from "lucide-react";
+import {
+	ExternalLink,
+	FlagIcon,
+	MessageCircleQuestion,
+	PlusIcon,
+} from "lucide-react";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import CommentSection from "@/app/_components/comment-section";
 import MobileChoicesTable from "../mobile-choices-table";
@@ -32,6 +39,7 @@ import MissingBadge from "./missing-badge";
 import { useComments } from "@/hooks/useComments";
 import { useApplication } from "@/hooks/useApplication";
 import FlaggedBadge from "./flagged-badge";
+import { Status, Year } from "@prisma/client";
 
 interface Choice {
 	primary: number | null;
@@ -80,10 +88,15 @@ export default function ChoicesTable({
 	const [searchCourse, setSearchCourse] = useState("");
 	const pathname = usePathname();
 	const [agreedToTerms, setAgreedToTerms] = useState(false); // State to track if the user has agreed to the terms of course creation to avoid multiple popups
-
+	const [tourOpen, setTourOpen] = useState(false); // State to track if the tour is open
 	const handleDragStart = (event: DragStartEvent) => {
 		setActiveId(String(event.active.id));
 	};
+
+	const ref1 = useRef(null);
+	const ref2 = useRef(null);
+	const ref3 = useRef(null);
+	const ref4 = useRef(null);
 
 	const [addCourseModalOpen, setAddCourseModalOpen] = useState(false); // State to track if the add course modal is open
 
@@ -115,6 +128,9 @@ export default function ChoicesTable({
 			title: "Home Course",
 			dataIndex: "homeCourse",
 			key: "homeCourse",
+			onHeaderCell: (column) => ({
+				ref: ref1,
+			}),
 			render: (text: string) => <p className="font-semibold">{text}</p>,
 		},
 		...["1st Choice", "2nd Choice", "3rd Choice"].map((title, idx) => ({
@@ -409,16 +425,54 @@ export default function ChoicesTable({
 		});
 	};
 
+	const tourSteps: TourProps["steps"] = [
+		{
+			title: "Your Home Courses",
+			description: "These are your home courses",
+			target: () => ref1.current,
+		},
+		{
+			title: "Available Abroad Courses",
+			description:
+				"These are the courses available in the abroad university. You may also add a new course",
+			target: () => ref2.current,
+		},
+		{
+			title: "Your Choices",
+			description: "Drag and drop to select your choices",
+			target: () => ref3.current,
+		},
+		{
+			title: "Submit",
+			description: "Submit your choices",
+			target: () => ref4.current,
+		},
+	];
+
 	return (
 		<DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
 			<div className="flex w-full flex-col items-center justify-between gap-2 md:flex-row">
 				<h2 className="text-xl font-medium">
 					{application?.abroadUniversity.name} -{" "}
-					{yearToString(application?.year)}
+					{yearToString(application?.year) || "Unknown year"}
+					<Tooltip title="Start Tour">
+						<div onClick={() => setTourOpen(true)}>
+							<MessageCircleQuestion
+								size={32}
+								className="cursor-pointer fill-blue-500 text-blue-200 hover:scale-110 hover:fill-blue-600 hover:text-blue-300"
+							/>
+						</div>
+					</Tooltip>
+					<Tour
+						open={tourOpen}
+						onClose={() => setTourOpen(false)}
+						steps={tourSteps}
+					/>
 				</h2>
 				{application?.user && (
 					<h2>
-						{application?.user?.name} - {application?.user?.guid}
+						{application?.user?.name} -{" "}
+						{application?.user?.guid || "GUID not found"}
 					</h2>
 				)}
 				<h2
@@ -449,7 +503,7 @@ export default function ChoicesTable({
 							!saveChoicesMutation.isSuccess && saveChoicesMutation.isPending
 						}
 					>
-						{application?.status.toLowerCase() === "draft"
+						{application?.status === Status.DRAFT
 							? "Save Draft"
 							: "Update Application"}
 					</Button>
@@ -515,7 +569,7 @@ export default function ChoicesTable({
 					</div>
 				</div>
 				{/* Sidebar for Available Courses */}
-				<div className="min-w-52 max-w-xl">
+				<div ref={ref2} className="min-w-52 max-w-xl">
 					<div
 						className="relative !z-0 hidden transform overflow-auto rounded bg-gray-50 p-3 transition-all duration-500 ease-in-out md:block"
 						ref={sidebarRef}
@@ -689,6 +743,24 @@ export default function ChoicesTable({
 					</div>
 				</div>
 			</div>
+			{application?.year === Year.THIRD_YEAR_JOINT_FULL_YEAR ||
+			application?.year === Year.THIRD_YEAR_SINGLE_FULL_YEAR ? (
+				<div className="my-2 flex flex-col gap-1">
+					<h1 className="text-lg font-medium">Optional Courses</h1>
+					{application?.year === Year.THIRD_YEAR_JOINT_FULL_YEAR ? (
+						<p>
+							find optional CS courses to make the CS component up to half of
+							the host university&apos;s normal credit load
+						</p>
+					) : (
+						<p>
+							Find optional CS courses up to the host university&apos;s normal
+							credit load
+						</p>
+					)}
+					<Input type="text" className="h-10" />
+				</div>
+			) : null}
 			<CommentSection
 				messages={comments}
 				applicationId={applicationId}

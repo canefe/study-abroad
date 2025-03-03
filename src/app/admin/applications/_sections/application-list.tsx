@@ -144,7 +144,7 @@ export default function ApplicationList() {
 				}))}
 				onSearch={handleSearch}
 				onSelect={handleSearch}
-				placeholder="Search for a student"
+				placeholder="Search for a student by their name or GUID"
 				className="w-full"
 			/>
 			<Table

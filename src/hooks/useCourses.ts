@@ -47,11 +47,18 @@ export const useCourses = () => {
 		editCourse: async (
 			courseId: number,
 			name: string,
-			year: Year | undefined,
+			year: Year[],
 			universityId: number,
+			link?: string,
 		) => {
 			await toast.promise(
-				editCourse.mutateAsync({ id: courseId, name, year, universityId }),
+				editCourse.mutateAsync({
+					id: courseId,
+					name,
+					year,
+					universityId,
+					link,
+				}),
 				{
 					loading: "Editing course...",
 					success: "Course edited successfully",

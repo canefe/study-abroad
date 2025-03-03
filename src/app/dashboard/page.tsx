@@ -237,13 +237,13 @@ export default function Dashboard() {
 			<div className="flex w-full flex-col gap-2 md:flex-row">
 				<Tour open={open} onClose={() => setOpen(false)} steps={steps} />
 				<div className="flex w-full flex-col gap-2">
-					<h2 className="text-xl font-semibold">University Choices</h2>
+					<h2 className="text-xl font-semibold">Applications</h2>
 					<div ref={ref1}>
 						{(
 							open ? dummyApplications.length === 0 : applications.length === 0
 						) ? (
 							<p className="text-gray-500">
-								You have not made any choices yet.
+								You have not made any applications yet.
 							</p>
 						) : (
 							<Table
@@ -343,7 +343,7 @@ export default function Dashboard() {
 													<Button
 														loading={removeApplicationMutation.isPending}
 														ref={ref4}
-														type="primary"
+														type="text"
 														danger
 													>
 														Remove
@@ -359,7 +359,8 @@ export default function Dashboard() {
 					<div className="my-5 border-b-2 border-t-2 border-gray-200"></div>
 					{!deadline || dayjs().isAfter(dayjs(deadline)) ? (
 						<p className="text-red-500">
-							You have missed the deadline for applications.
+							Due to the deadline being passed, you can no longer create new
+							applications.
 						</p>
 					) : (
 						<>

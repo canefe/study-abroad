@@ -275,6 +275,7 @@ export const coursesRouter = createTRPCRouter({
 					.enum([...Object.values(Year)] as [string, ...string[]])
 					.optional(),
 				universityId: z.number(),
+				link: z.string().optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -286,6 +287,7 @@ export const coursesRouter = createTRPCRouter({
 					name: input.name,
 					year: input.year ? [input.year as Year] : [],
 					universityId: input.universityId,
+					link: input.link,
 				},
 			});
 			return course;
