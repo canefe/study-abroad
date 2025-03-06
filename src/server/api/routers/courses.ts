@@ -272,7 +272,7 @@ export const coursesRouter = createTRPCRouter({
 				id: z.number(),
 				name: z.string(),
 				year: z
-					.enum([...Object.values(Year)] as [string, ...string[]])
+					.array(z.enum([...Object.values(Year)] as [string, ...string[]]))
 					.optional(),
 				universityId: z.number(),
 				link: z.string().optional(),
@@ -285,7 +285,7 @@ export const coursesRouter = createTRPCRouter({
 				},
 				data: {
 					name: input.name,
-					year: input.year ? [input.year as Year] : [],
+					year: input.year?.map((y) => y as Year) || [],
 					universityId: input.universityId,
 					link: input.link,
 				},

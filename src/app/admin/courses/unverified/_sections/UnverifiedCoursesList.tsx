@@ -8,11 +8,15 @@ import { Year } from "@prisma/client";
 import { Button, Table, Tag, Tooltip } from "antd";
 import { Pen, Trash } from "lucide-react";
 import { title } from "process";
+import { useState } from "react";
+import EditCourseModal from "../../_sections/edit-course-modal";
 
 type ListProps = {
 	filter?: [key: string, value: string];
 };
 export default function CoursesList({ filter }: ListProps) {
+	const [editCourse, setEditCourse] = useState(false);
+	const [course, setCourse] = useState<any>();
 	const getCoursesApi = api.courses.getCourses;
 	const { data, error } = getCoursesApi.useQuery({
 		flagged: filter?.[0] === "flagged" ? filter[1] === "true" : undefined,
@@ -144,7 +148,13 @@ export default function CoursesList({ filter }: ListProps) {
 						</Button>
 					</Tooltip>
 					<Tooltip title="Edit">
-						<Button className="text-orange-500">
+						<Button
+							className="text-orange-500"
+							onClick={() => {
+								setEditCourse(true);
+								setCourse(record);
+							}}
+						>
 							<Pen size={16} />
 						</Button>
 					</Tooltip>
@@ -154,11 +164,6 @@ export default function CoursesList({ filter }: ListProps) {
 	];
 	return (
 		<div className="container">
-			<p className="text-gray-500">
-				Unverified courses are courses that have been created by students but
-				have not been verified by coordinators. Coordinators can review these
-				courses if it is up to date and accurate.
-			</p>
 			<Table
 				dataSource={data}
 				columns={columns}
@@ -167,6 +172,11 @@ export default function CoursesList({ filter }: ListProps) {
 				pagination={{
 					hideOnSinglePage: true,
 				}}
+			/>
+			<EditCourseModal
+				open={editCourse}
+				setOpen={setEditCourse}
+				course={course}
 			/>
 		</div>
 	);

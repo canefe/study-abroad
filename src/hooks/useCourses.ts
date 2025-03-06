@@ -45,7 +45,7 @@ export const useCourses = () => {
 			});
 		},
 		editCourse: async (
-			courseId: number,
+			id: number,
 			name: string,
 			year: Year[],
 			universityId: number,
@@ -53,7 +53,7 @@ export const useCourses = () => {
 		) => {
 			await toast.promise(
 				editCourse.mutateAsync({
-					id: courseId,
+					id,
 					name,
 					year,
 					universityId,
