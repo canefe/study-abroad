@@ -34,6 +34,21 @@ export default function ApplicationList() {
 	}, 500);
 	const utils = api.useUtils();
 
+	const statusColor = (status: string) => {
+		switch (status) {
+			case "SUBMITTED":
+				return "orange";
+			case "DRAFT":
+				return "blue";
+			case "REVISE":
+				return "red";
+			case "APPROVED":
+				return "green";
+			default:
+				return "red";
+		}
+	};
+
 	const columns = [
 		{
 			title: "#",
@@ -67,7 +82,7 @@ export default function ApplicationList() {
 			dataIndex: "status",
 			key: "status",
 			render: (status: string) => {
-				return <span style={{ color: "red" }}>{status}</span>;
+				return <span style={{ color: statusColor(status) }}>{status}</span>;
 			},
 		},
 		{

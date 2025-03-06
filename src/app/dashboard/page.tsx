@@ -215,6 +215,21 @@ export default function Dashboard() {
 		},
 	];
 
+	const statusDescription = (status: string) => {
+		switch (status) {
+			case "DRAFT":
+				return "Your application is saved as a draft and has not been submitted for review.";
+			case "SUBMITTED":
+				return "Your application has been submitted for review.";
+			case "APPROVED":
+				return "Your application has been approved";
+			case "REVISE":
+				return "Your application has been reviewed and needs to be revised.";
+			default:
+				return "Unknown status";
+		}
+	};
+
 	return (
 		<div className="flex flex-col gap-2">
 			<div className="flex gap-2">
@@ -286,20 +301,22 @@ export default function Dashboard() {
 										dataIndex: "status",
 										key: "status",
 										render: (text, record) => (
-											<Tag
-												ref={ref3}
-												color={
-													record.status === "DRAFT"
-														? "yellow"
-														: record.status === "SUBMITTED"
-															? "blue"
-															: record.status === "APPROVED"
-																? "green"
-																: "red"
-												}
-											>
-												{record.status}
-											</Tag>
+											<Tooltip title={statusDescription(record.status)}>
+												<Tag
+													ref={ref3}
+													color={
+														record.status === "DRAFT"
+															? "yellow"
+															: record.status === "SUBMITTED"
+																? "blue"
+																: record.status === "APPROVED"
+																	? "green"
+																	: "red"
+													}
+												>
+													{record.status}
+												</Tag>
+											</Tooltip>
 										),
 									},
 									{
@@ -366,6 +383,9 @@ export default function Dashboard() {
 						<>
 							{open || applications.length < 3 ? (
 								<div ref={ref5} className="flex flex-col items-start gap-3">
+									<h2 className="text-xl font-semibold">
+										Create a new application
+									</h2>
 									<p>
 										You can make up to 3 choices. You have made{" "}
 										{applications.length} choices.
