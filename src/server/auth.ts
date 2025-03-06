@@ -68,10 +68,6 @@ export const authOptions: NextAuthOptions = {
 	},
 	adapter: PrismaAdapter(db) as Adapter,
 	providers: [
-		DiscordProvider({
-			clientId: env.DISCORD_CLIENT_ID,
-			clientSecret: env.DISCORD_CLIENT_SECRET,
-		}),
 		Credentials({
 			// You can specify which fields should be submitted, by adding keys to the `credentials` object.
 			// e.g. domain, username, password, 2FA token, etc.
