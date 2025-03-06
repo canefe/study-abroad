@@ -1,12 +1,12 @@
 "use client";
 import VerifiedBadge from "@/app/_components/choices-table/verified-badge";
-import { useDeleteCourse } from "@/hooks/useCourses";
+import { useDeleteCourse, useUnverifyCourse } from "@/hooks/useCourses";
 import { useVerifyCourse } from "@/hooks/useCourses";
 import { yearToString } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { Year } from "@prisma/client";
 import { Button, Table, Tag, Tooltip } from "antd";
-import { Pen, Trash } from "lucide-react";
+import { FolderX, PauseIcon, Pen, StopCircle, Trash } from "lucide-react";
 import { title } from "process";
 import { useState } from "react";
 import EditCourseModal from "../../_sections/edit-course-modal";
@@ -24,6 +24,7 @@ export default function CoursesList({ filter }: ListProps) {
 	});
 	const { verifyCourse, isLoading } = useVerifyCourse();
 	const { deleteCourse } = useDeleteCourse();
+	const { unverifyCourse } = useUnverifyCourse();
 
 	const handleVerify = async (courseId: number) => {
 		await verifyCourse(courseId);
@@ -31,6 +32,10 @@ export default function CoursesList({ filter }: ListProps) {
 
 	const handleDelete = async (courseId: number) => {
 		await deleteCourse(courseId);
+	};
+
+	const handleUnverify = async (courseId: number) => {
+		await unverifyCourse(courseId);
 	};
 
 	const columns = [
@@ -137,16 +142,29 @@ export default function CoursesList({ filter }: ListProps) {
 							<Trash size={16} />
 						</Button>
 					</Tooltip>
-					<Tooltip title="Verify">
-						<Button
-							className="text-green-500"
-							onClick={() => {
-								handleVerify(record.id);
-							}}
-						>
-							<VerifiedBadge hideTooltip />
-						</Button>
-					</Tooltip>
+					{!record.verified ? (
+						<Tooltip title="Verify">
+							<Button
+								className="text-green-500"
+								onClick={() => {
+									handleVerify(record.id);
+								}}
+							>
+								<VerifiedBadge hideTooltip />
+							</Button>
+						</Tooltip>
+					) : (
+						<Tooltip title="Unverify">
+							<Button
+								className="text-orange-500"
+								onClick={() => {
+									handleUnverify(record.id);
+								}}
+							>
+								<FolderX size={16} />
+							</Button>
+						</Tooltip>
+					)}
 					<Tooltip title="Edit">
 						<Button
 							className="text-orange-500"
