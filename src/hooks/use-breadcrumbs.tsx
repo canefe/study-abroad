@@ -38,6 +38,16 @@ export function useBreadcrumbs() {
 			);
 		}
 
+		if (paths.includes("dashboard")) {
+			return (
+				<>
+					<BreadcrumbItem key={"dashboard"}>
+						<Link href={pathname}>Dashboard</Link>
+					</BreadcrumbItem>
+				</>
+			);
+		}
+
 		if (paths.includes("applications")) {
 			return (
 				<>

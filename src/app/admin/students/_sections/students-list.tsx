@@ -30,21 +30,19 @@ export default function StudentList() {
 			title: "GUID",
 			dataIndex: "guid",
 			key: "guid",
-			render: (guid: string) => (
-				<Link href={`/admin/students/${guid}`} className="text-blue-500">
-					{guid}
-				</Link>
-			),
 		},
 		{
 			title: "Applications",
 			dataIndex: "applications",
 			key: "applications",
-			render: (applications: any) => {
+			render: (applications: any, record: any) => {
 				return (
-					<div className="flex cursor-pointer items-center text-blue-500">
+					<Link
+						href={"/admin/applications?status=all&q=" + record.guid}
+						className="flex cursor-pointer items-center text-blue-500"
+					>
 						{applications.length}
-					</div>
+					</Link>
 				);
 			},
 		},

@@ -4,7 +4,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { yearToString } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { Year } from "@prisma/client";
-import { Button, Form, Modal, Select } from "antd";
+import { Button, Checkbox, Form, Modal, Popconfirm, Select } from "antd";
 import { useState } from "react";
 
 export default function CreateApplicationModal({
@@ -16,6 +16,12 @@ export default function CreateApplicationModal({
 }) {
 	const [search, setSearch] = useState("");
 	const [page, setPage] = useState(1);
+	const [selectedYear, setSelectedYear] = useState<string | undefined>(
+		undefined,
+	);
+
+	// form
+	const [form] = Form.useForm();
 
 	const { createApplicationAdmin } = useApplication({});
 	const { getSetting } = useSettings();
@@ -33,6 +39,8 @@ export default function CreateApplicationModal({
 		user: string,
 		abroadUniversityId: number,
 		year: Year,
+		alternateRoute?: boolean,
+		additionalCourse?: string,
 	) => {
 		//add course
 		if (!user) {
@@ -45,12 +53,20 @@ export default function CreateApplicationModal({
 			user,
 			abroadUniversityId,
 			year,
+			alternateRoute,
+			additionalCourse,
 		);
 		console.log(application);
 	};
 
 	const onFinish = (values: any) => {
-		onCreateApplication(values.user, values.university, values.year);
+		onCreateApplication(
+			values.user,
+			values.university,
+			values.year,
+			values.alternateRoute,
+			values.additionalCourse,
+		);
 	};
 
 	// turn Year enum into an array of strings
@@ -63,7 +79,16 @@ export default function CreateApplicationModal({
 			onCancel={() => setOpen(false)}
 			footer={null}
 		>
-			<Form layout="vertical" onFinish={onFinish}>
+			<Form
+				form={form}
+				layout="vertical"
+				onFinish={onFinish}
+				onValuesChange={(changedValues) => {
+					if (changedValues.year) {
+						setSelectedYear(changedValues.year);
+					}
+				}}
+			>
 				<div className="flex flex-col">
 					<Form.Item label="Student" name="user" className="w-full">
 						<Select
@@ -113,6 +138,35 @@ export default function CreateApplicationModal({
 							}))}
 					></Select>
 				</Form.Item>
+				{selectedYear === "SECOND_YEAR_JOINT_FULL_YEAR" ||
+				selectedYear === "SECOND_YEAR_JOINT_FIRST_SEMESTER" ? (
+					<Form.Item label="Additional Course" name="additionalCourse">
+						<Select
+							defaultValue="Select an additional course"
+							className="w-full"
+						>
+							<Select.Option value="AF2">AF2</Select.Option>
+							{/* semester 1 doesnt have WAD2 */}
+							{selectedYear !== "SECOND_YEAR_JOINT_FIRST_SEMESTER" ? (
+								<Select.Option value="WAD2">WAD2</Select.Option>
+							) : null}
+							<Select.Option value="CS1F">
+								CS1F (if not already taken)
+							</Select.Option>
+						</Select>
+					</Form.Item>
+				) : null}
+				{/* If the year is YEAR 2 FULL YEAR OR YEAR 2 SEMESTER 1 SHOW ALTERNATE ROUTE */}
+				{selectedYear === "SECOND_YEAR_SINGLE_FULL_YEAR" ||
+				selectedYear === "SECOND_YEAR_SINGLE_FIRST_SEMESTER" ? (
+					<Form.Item
+						label="Alternate Route"
+						name="alternateRoute"
+						valuePropName="checked"
+					>
+						<Checkbox>Alternate Route</Checkbox>
+					</Form.Item>
+				) : null}
 				<Form.Item className="flex justify-end">
 					<Button size={"large"} type="primary" htmlType="submit">
 						Create Application

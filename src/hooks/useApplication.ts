@@ -112,12 +112,16 @@ export const useApplication = ({
 		userId: string,
 		abroadUniversityId: number,
 		year: Year,
+		alternateRoute?: boolean,
+		additionalCourse?: string,
 	) => {
 		await toast.promise(
 			adminCreateApplicationMutation.mutateAsync({
 				userId,
 				abroadUniversityId,
 				year,
+				alternateRoute,
+				additionalCourse,
 			}),
 			{
 				loading: "Creating application...",

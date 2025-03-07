@@ -10,13 +10,25 @@ import CreateApplicationModal from "./create-application-modal";
 import { useExportApplications } from "@/hooks/useExportApplications";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const StatusEnum = z.enum(["all", "SUBMITTED", "DRAFT", "REVISE", "APPROVED"]);
+const StatusEnum = z.enum(["ALL", "SUBMITTED", "DRAFT", "REVISE", "APPROVED"]);
 type Status = z.infer<typeof StatusEnum>;
+type SearchParams = {
+	q: string;
+	status: Status | "";
+};
 
-export default function ApplicationList() {
-	const [search, setSearch] = useState("");
+export default function ApplicationList({
+	searchParams,
+}: {
+	searchParams: SearchParams;
+}) {
+	const [search, setSearch] = useState(searchParams.q);
 	const [page, setPage] = useState(1);
-	const [selected, setSelected] = useState<Status>("SUBMITTED");
+	const [selected, setSelected] = useState<Status>(
+		searchParams.status !== ""
+			? (searchParams.status.toUpperCase() as Status)
+			: "SUBMITTED",
+	);
 	const [newApplicationModalVisible, setNewApplicationModalVisible] =
 		useState(false);
 	const { data: applications, isLoading } = api.applications.getAll.useQuery({
@@ -104,7 +116,7 @@ export default function ApplicationList() {
 	const options = [
 		{
 			label: "All",
-			value: "all",
+			value: "ALL",
 		},
 		{
 			label: "Submitted",
@@ -157,6 +169,7 @@ export default function ApplicationList() {
 					value: application.user?.name,
 					label: application.user?.name,
 				}))}
+				value={search}
 				onSearch={handleSearch}
 				onSelect={handleSearch}
 				placeholder="Search for a student by their name or GUID"
