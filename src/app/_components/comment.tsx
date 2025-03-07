@@ -59,7 +59,7 @@ const Comment = ({
 	showSenderInfo?: boolean;
 	lastComment?: boolean;
 }) => {
-	const [hidden, setHidden] = useState(true);
+	const [hidden, setHidden] = useState(false);
 	const [hover, setHover] = useState(false);
 
 	const onHover = () => {
