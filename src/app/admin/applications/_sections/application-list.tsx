@@ -1,8 +1,15 @@
 "use client";
-import { AutoComplete, Button, Segmented, Table } from "antd";
+import {
+	AutoComplete,
+	Button,
+	Popconfirm,
+	Segmented,
+	Table,
+	Tooltip,
+} from "antd";
 import { api } from "@/trpc/react";
 import Link from "next/link";
-import { Download, Plus } from "lucide-react";
+import { Download, Eye, Link2, Plus, Trash } from "lucide-react";
 import { useState } from "react";
 import { debounce } from "lodash";
 import { z } from "zod";
@@ -24,6 +31,7 @@ export default function ApplicationList({
 }) {
 	const [search, setSearch] = useState(searchParams.q);
 	const [page, setPage] = useState(1);
+	const utils = api.useUtils();
 	const [selected, setSelected] = useState<Status>(
 		searchParams.status !== ""
 			? (searchParams.status.toUpperCase() as Status)
@@ -38,13 +46,26 @@ export default function ApplicationList({
 		filter: selected,
 	});
 
+	const deleteApplication = api.applications.adminDelete.useMutation();
+	const handleDelete = async (id: number) => {
+		await deleteApplication.mutate(
+			{
+				applicationId: id,
+			},
+			{
+				onSuccess: () => {
+					utils.applications.invalidate();
+				},
+			},
+		);
+	};
+
 	const { exportApplications } = useExportApplications();
 
 	const handleSearch = debounce((value: string) => {
 		setSearch(value);
 		setPage(1);
 	}, 500);
-	const utils = api.useUtils();
 
 	const statusColor = (status: string) => {
 		switch (status) {
@@ -102,12 +123,29 @@ export default function ApplicationList({
 			key: "actions",
 			render: (record: any) => {
 				return (
-					<Link
-						href={`/admin/applications/${record.id}`}
-						className="text-blue-500"
-					>
-						View
-					</Link>
+					<div className="flex items-center gap-1">
+						<Tooltip title="View">
+							<Button className="text-blue-500">
+								<Link
+									href={`/admin/applications/${record.id}`}
+									className="text-blue-500"
+								>
+									<Eye size={16} />
+								</Link>
+							</Button>
+						</Tooltip>
+
+						<Tooltip title="Delete">
+							<Popconfirm
+								title="Are you sure you want to delete this application?"
+								onConfirm={() => handleDelete(record.id)}
+							>
+								<Button className="text-red-500">
+									<Trash size={16} />
+								</Button>
+							</Popconfirm>
+						</Tooltip>
+					</div>
 				);
 			},
 		},
@@ -180,6 +218,11 @@ export default function ApplicationList({
 				dataSource={applications?.applications}
 				columns={columns}
 				loading={!applications}
+				pagination={{
+					current: page,
+					onChange: (page) => setPage(page),
+					total: applications?.total,
+				}}
 			/>
 			<CreateApplicationModal
 				open={newApplicationModalVisible}
