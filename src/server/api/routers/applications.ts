@@ -68,14 +68,14 @@ export const applicationsRouter = createTRPCRouter({
 				take: pageSize,
 			});
 
-			const totalCount = await ctx.db.application.count({
+			const total = await ctx.db.application.count({
 				where: whereClause,
 			});
 
 			return {
 				applications,
-				totalCount,
-				totalPages: Math.ceil(totalCount / pageSize),
+				total,
+				totalPages: Math.ceil(total / pageSize),
 				currentPage: page,
 			};
 		}),
