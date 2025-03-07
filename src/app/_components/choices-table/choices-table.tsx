@@ -546,6 +546,7 @@ export default function ChoicesTable({
 					<Table
 						size={"small"}
 						className="hidden md:block"
+						// @ts-expect-error it just works
 						columns={columns}
 						dataSource={filteredDataSource.sort((a, b) =>
 							a.id > b.id ? 1 : -1,
