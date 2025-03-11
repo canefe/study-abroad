@@ -1,12 +1,24 @@
 "use client";
 import VerifiedBadge from "@/app/_components/choices-table/verified-badge";
-import { useDeleteCourse, useUnverifyCourse } from "@/hooks/useCourses";
+import {
+	useDeleteCourse,
+	useUnflagCourse,
+	useUnverifyCourse,
+} from "@/hooks/useCourses";
 import { useVerifyCourse } from "@/hooks/useCourses";
 import { yearToString } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { Year } from "@prisma/client";
-import { Button, Table, Tag, Tooltip } from "antd";
-import { FolderX, PauseIcon, Pen, StopCircle, Trash } from "lucide-react";
+import { AutoComplete, Button, Table, Tag, Tooltip } from "antd";
+import {
+	Flag,
+	FlagOffIcon,
+	FolderX,
+	PauseIcon,
+	Pen,
+	StopCircle,
+	Trash,
+} from "lucide-react";
 import { title } from "process";
 import { useState } from "react";
 import EditCourseModal from "../../_sections/edit-course-modal";
@@ -14,17 +26,26 @@ import EditCourseModal from "../../_sections/edit-course-modal";
 type ListProps = {
 	filter?: [key: string, value: string];
 };
+type CourseStatus = "flagged" | "verified";
+
 export default function CoursesList({ filter }: ListProps) {
 	const [editCourse, setEditCourse] = useState(false);
 	const [course, setCourse] = useState<any>();
-	const getCoursesApi = api.courses.getCourses;
-	const { data, error } = getCoursesApi.useQuery({
+	const [search, setSearch] = useState("");
+	const [page, setPage] = useState(1);
+	const utils = api.useUtils();
+	const { data: courses } = api.courses.getAll.useQuery({
+		q: search,
+		page: page,
+		pageSize: 10,
 		flagged: filter?.[0] === "flagged" ? filter[1] === "true" : undefined,
 		verified: filter?.[0] === "verified" ? filter[1] === "true" : undefined,
 	});
+
 	const { verifyCourse, isLoading } = useVerifyCourse();
 	const { deleteCourse } = useDeleteCourse();
 	const { unverifyCourse } = useUnverifyCourse();
+	const { unflagCourse } = useUnflagCourse();
 
 	const handleVerify = async (courseId: number) => {
 		await verifyCourse(courseId);
@@ -36,6 +57,10 @@ export default function CoursesList({ filter }: ListProps) {
 
 	const handleUnverify = async (courseId: number) => {
 		await unverifyCourse(courseId);
+	};
+
+	const handleUnflag = async (courseId: number) => {
+		await unflagCourse(courseId);
 	};
 
 	const columns = [
@@ -165,6 +190,29 @@ export default function CoursesList({ filter }: ListProps) {
 							</Button>
 						</Tooltip>
 					)}
+					{record.flagged ? (
+						<Tooltip title="Unflag">
+							<Button
+								className="text-blue-500"
+								onClick={() => handleUnflag(record.id)}
+							>
+								<FlagOffIcon
+									size={16}
+									fill="#ef4444"
+									className="cursor-pointer text-red-500 hover:text-red-700"
+								/>
+							</Button>
+						</Tooltip>
+					) : (
+						<Tooltip title="Flag">
+							<Button
+								className="text-red-500"
+								onClick={() => handleUnflag(record.id)}
+							>
+								<Flag size={16} />
+							</Button>
+						</Tooltip>
+					)}
 					<Tooltip title="Edit">
 						<Button
 							className="text-orange-500"
@@ -182,13 +230,28 @@ export default function CoursesList({ filter }: ListProps) {
 	];
 	return (
 		<div className="container">
+			<div className="flex items-center gap-2">
+				<AutoComplete
+					options={courses?.courses.map((course) => ({
+						value: course.name,
+						label: course.name,
+					}))}
+					onSearch={setSearch}
+					onSelect={setSearch}
+					placeholder="Search for a course by its name"
+					className="w-full"
+				/>
+			</div>
 			<Table
-				dataSource={data}
+				dataSource={courses?.courses}
 				columns={columns}
 				size="small"
 				rowKey="id"
+				loading={!courses}
 				pagination={{
-					hideOnSinglePage: true,
+					current: page,
+					onChange: (page) => setPage(page),
+					total: courses?.total,
 				}}
 			/>
 			<EditCourseModal

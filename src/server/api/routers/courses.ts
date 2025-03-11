@@ -69,6 +69,60 @@ export const coursesRouter = createTRPCRouter({
 		return courses;
 	}),
 
+	getAll: adminProcedure
+		.input(
+			z.object({
+				q: z.string().optional(),
+				page: z.number().default(1),
+				pageSize: z.number().default(10),
+				verified: z.boolean().optional(),
+				flagged: z.boolean().optional(),
+			}),
+		)
+		.query(async ({ input, ctx }) => {
+			const { q, page, pageSize, verified, flagged } = input;
+			const skip = (page - 1) * pageSize;
+
+			// Construct the where clause
+			const whereClause: any = {
+				...(q && {
+					name: {
+						contains: q,
+						mode: "insensitive",
+					},
+				}),
+			};
+
+			// Conditionally add the status filter
+			if (verified !== undefined) {
+				whereClause.verified = verified;
+			}
+
+			if (flagged !== undefined) {
+				whereClause.flagged = flagged;
+			}
+
+			const courses = await ctx.db.course.findMany({
+				where: whereClause,
+				include: {
+					university: true,
+				},
+				skip,
+				take: pageSize,
+			});
+
+			const total = await ctx.db.course.count({
+				where: whereClause,
+			});
+
+			return {
+				courses,
+				total,
+				totalPages: Math.ceil(total / pageSize),
+				currentPage: page,
+			};
+		}),
+
 	getCourses: protectedProcedure
 		.input(
 			z.object({
