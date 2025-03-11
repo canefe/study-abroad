@@ -22,6 +22,18 @@ export const applicationsRouter = createTRPCRouter({
 		});
 		return applications;
 	}),
+	getCount: adminProcedure
+		.input(z.enum(["ALL", "SUBMITTED", "DRAFT", "REVISE", "APPROVED"]))
+		.query(async ({ input, ctx }) => {
+			const whereClause: any = {};
+			if (input !== "ALL") {
+				whereClause.status = input as Status;
+			}
+			const total = await ctx.db.application.count({
+				where: whereClause,
+			});
+			return total;
+		}),
 	getAll: adminProcedure
 		.input(
 			z.object({
