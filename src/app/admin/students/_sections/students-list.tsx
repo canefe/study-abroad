@@ -50,6 +50,7 @@ export default function StudentList() {
 
 	return (
 		<div className="flex w-full flex-col gap-2">
+			<h1 className="text-xl">Students</h1>
 			<div className="flex items-center gap-2">
 				<AutoComplete
 					options={users?.users.map((user) => ({
