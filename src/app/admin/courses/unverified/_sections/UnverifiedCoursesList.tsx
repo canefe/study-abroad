@@ -72,7 +72,12 @@ export default function CoursesList({ filter }: ListProps) {
 				<div className="flex flex-col gap-1">
 					{record?.link ? (
 						<a
-							href={record.link}
+							href={
+								record.link.startsWith("http://") ||
+								record.link.startsWith("https://")
+									? record.link
+									: `http://${record.link}`
+							}
 							target="_blank"
 							rel="noreferrer"
 							className="text-blue-500"

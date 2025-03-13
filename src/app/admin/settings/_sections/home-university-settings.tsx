@@ -123,6 +123,13 @@ export default function HomeUniversitySettings() {
 												label: course.name,
 												value: course.id,
 											}))}
+											filterOption={(input, option) =>
+												option
+													? option.label
+															.toLowerCase()
+															.includes(input.toLowerCase())
+													: false
+											}
 											open={selectedYear != undefined}
 											showAction={["focus"]}
 											onSelect={(value) => {
@@ -161,7 +168,9 @@ export default function HomeUniversitySettings() {
 										<X
 											color="red"
 											className="mr-2 cursor-pointer hover:scale-110 hover:text-blue-500"
-											onClick={() => setYearOfCourse(course.id, undefined)}
+											onClick={() =>
+												setYearOfCourse(course.id, undefined, true)
+											}
 										/>
 									</Tooltip>
 								</li>

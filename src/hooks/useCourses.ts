@@ -13,6 +13,7 @@ export const useCourses = () => {
 	const deleteCourse = useDeleteCourseMutation();
 	const setYearOfCourse = useSetYearOfCourseMutation();
 	const editCourse = useEditCourseMutation();
+	const utils = api.useUtils();
 
 	return {
 		addCourseWithYear: async (
@@ -22,11 +23,18 @@ export const useCourses = () => {
 			link?: string,
 		) => {
 			await toast.promise(
-				addCourseWithYear.mutateAsync({ name, universityId, year, link }),
+				addCourseWithYear.mutateAsync(
+					{ name, universityId, year, link },
+					{
+						onSuccess: () => {
+							utils.courses.invalidate();
+						},
+					},
+				),
 				{
 					loading: "Adding course...",
 					success: "Course added successfully",
-					error: "Failed to add course",
+					error: (error) => error.message,
 				},
 			);
 		},
@@ -37,10 +45,16 @@ export const useCourses = () => {
 				error: "Failed to delete course",
 			});
 		},
-		setYearOfCourse: async (courseId: number, year: Year | undefined) => {
+		setYearOfCourse: async (
+			courseId: number,
+			year: Year | undefined,
+			remove = false,
+		) => {
 			await toast.promise(setYearOfCourse.mutateAsync({ id: courseId, year }), {
 				loading: "Setting year...",
-				success: "Year set successfully",
+				success: remove
+					? "Course removed from the year successfully"
+					: "Course added to the year successfully",
 				error: "Failed to set year",
 			});
 		},

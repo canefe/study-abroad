@@ -186,6 +186,17 @@ export const coursesRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
+			// check if a course with same name exists first
+			const existingCourse = await ctx.db.course.findFirst({
+				where: {
+					name: input.name,
+				},
+			});
+
+			if (existingCourse) {
+				throw new Error("Course with same name already exists.");
+			}
+
 			const course = await ctx.db.course.create({
 				data: {
 					name: input.name,

@@ -30,6 +30,7 @@ export default function CreateCourseModal({
 			return Promise.reject("University not found");
 		}
 		await addCourseWithYear(name, abroadUniversityId, year, link);
+		setOpen(false);
 	};
 
 	const onFinish = (values: any) => {
