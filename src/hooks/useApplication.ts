@@ -74,11 +74,25 @@ export const useApplication = ({
 	};
 
 	const submitApplication = (applicationId: number) => {
-		submitApplicationMutation.mutate({ applicationId });
+		submitApplicationMutation.mutate(
+			{ applicationId },
+			{
+				onSuccess: () => {
+					utils.applications.invalidate();
+				},
+			},
+		);
 	};
 
 	const withdrawApplication = (applicationId: number) => {
-		withdrawApplicationMutation.mutate({ applicationId });
+		withdrawApplicationMutation.mutate(
+			{ applicationId },
+			{
+				onSuccess: () => {
+					utils.applications.invalidate();
+				},
+			},
+		);
 	};
 
 	const addCourse = (
