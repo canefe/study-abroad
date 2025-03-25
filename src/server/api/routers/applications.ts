@@ -7,6 +7,8 @@ import {
 } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { Status, Year } from "@prisma/client";
+import { getHomeUniversity } from "../lib/getHomeUniversity";
+import { getSetting } from "../lib/getSetting";
 
 export const applicationsRouter = createTRPCRouter({
 	getList: protectedProcedure.query(async ({ ctx }) => {
@@ -104,22 +106,11 @@ export const applicationsRouter = createTRPCRouter({
 		)
 		.mutation(async ({ input, ctx }) => {
 			const session = ctx.session;
-			const homeUniversitySetting = await ctx.db.setting.findFirst({
-				where: {
-					key: "home_university",
-				},
-			});
-
-			if (!homeUniversitySetting) {
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "Home university not set",
-				});
-			}
+			const homeUniversityId = await getHomeUniversity(ctx.db);
 
 			const homeUniversityCourses = await ctx.db.course.findMany({
 				where: {
-					universityId: parseInt(homeUniversitySetting?.value),
+					universityId: homeUniversityId,
 					year: {
 						has: input.year as Year,
 					},
@@ -154,23 +145,17 @@ export const applicationsRouter = createTRPCRouter({
 			}
 
 			// check if a deadline is set
-			const deadlineSetting = await ctx.db.setting.findFirst({
-				where: {
-					key: "deadline_date",
-				},
-			});
+			const deadline = await getSetting("deadline_date", ctx.db);
 
 			// if deadline is set, check if the current date is before the deadline
-			if (deadlineSetting) {
-				if (deadlineSetting.value) {
-					const deadline = new Date(deadlineSetting.value);
-					const currentDate = new Date();
-					if (currentDate > deadline) {
-						throw new TRPCError({
-							code: "FORBIDDEN",
-							message: "Deadline has passed",
-						});
-					}
+			if (deadline) {
+				const deadlineDate = new Date(deadline);
+				const currentDate = new Date();
+				if (currentDate > deadlineDate) {
+					throw new TRPCError({
+						code: "FORBIDDEN",
+						message: "Deadline has passed",
+					});
 				}
 			}
 
@@ -188,9 +173,7 @@ export const applicationsRouter = createTRPCRouter({
 				await ctx.db.courseChoice.create({
 					data: {
 						homeCourseId: course.id,
-						userId: session.user.id,
 						applicationId: application.id,
-						year: input.year as Year,
 					},
 				});
 			});
@@ -212,9 +195,7 @@ export const applicationsRouter = createTRPCRouter({
 				await ctx.db.courseChoice.create({
 					data: {
 						homeCourseId: cs1fCourse.id,
-						userId: session.user.id,
 						applicationId: application.id,
-						year: input.year as Year,
 					},
 				});
 			}
@@ -234,9 +215,7 @@ export const applicationsRouter = createTRPCRouter({
 				await ctx.db.courseChoice.create({
 					data: {
 						homeCourseId: additionalCourse.id,
-						userId: session.user.id,
 						applicationId: application.id,
-						year: input.year as Year,
 					},
 				});
 			}
@@ -268,22 +247,11 @@ export const applicationsRouter = createTRPCRouter({
 				});
 			}
 
-			const homeUniversitySetting = await ctx.db.setting.findFirst({
-				where: {
-					key: "home_university",
-				},
-			});
-
-			if (!homeUniversitySetting) {
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "Home university not set",
-				});
-			}
+			const homeUniversityId = await getHomeUniversity(ctx.db);
 
 			const homeUniversityCourses = await ctx.db.course.findMany({
 				where: {
-					universityId: parseInt(homeUniversitySetting?.value),
+					universityId: homeUniversityId,
 					year: {
 						has: input.year as Year,
 					},
@@ -304,9 +272,7 @@ export const applicationsRouter = createTRPCRouter({
 				await ctx.db.courseChoice.create({
 					data: {
 						homeCourseId: course.id,
-						userId: input.userId,
 						applicationId: application.id,
-						year: input.year as Year,
 					},
 				});
 			});
@@ -328,9 +294,7 @@ export const applicationsRouter = createTRPCRouter({
 				await ctx.db.courseChoice.create({
 					data: {
 						homeCourseId: cs1fCourse.id,
-						userId: input.userId,
 						applicationId: application.id,
-						year: input.year as Year,
 					},
 				});
 			}
@@ -350,9 +314,7 @@ export const applicationsRouter = createTRPCRouter({
 				await ctx.db.courseChoice.create({
 					data: {
 						homeCourseId: additionalCourse.id,
-						userId: input.userId,
 						applicationId: application.id,
-						year: input.year as Year,
 					},
 				});
 			}

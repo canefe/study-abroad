@@ -31,11 +31,16 @@ export const useApplication = ({
 
 	let application;
 	let isLoading;
+	let isFetching;
 	let abroadCourses;
 	let isLoadingAbroadCourses;
 
 	if (applicationId) {
-		({ data: application, isLoading } = admin
+		({
+			data: application,
+			isFetching,
+			isLoading,
+		} = admin
 			? useGetApplicationAdminQuery(applicationId)
 			: useGetApplicationQuery(applicationId));
 
@@ -151,6 +156,7 @@ export const useApplication = ({
 		removeApplicationMutation,
 		application,
 		isLoading,
+		isFetching,
 		submitApplication,
 		withdrawApplication,
 		withdrawApplicationMutation,

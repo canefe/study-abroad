@@ -29,32 +29,91 @@ export function useExportApplications() {
 				Status: app.status,
 			};
 
-			// Loop through courses and assign them dynamically
-			app.courseChoices.forEach((course, index) => {
-				row[`HomeCourse_${index + 1}`] = course.homeCourse?.name || "No course";
-				row[`FirstChoice_${index + 1}`] =
-					course.primaryCourse?.name || "No choice";
-				row[`SecondChoice_${index + 1}`] =
-					course.alternativeCourse1?.name || "No choice";
-				row[`ThirdChoice_${index + 1}`] =
-					course.alternativeCourse2?.name || "No choice";
-			});
-
-			// Fill remaining columns if some applications have fewer courses
-			for (let i = app.courseChoices.length; i < maxCourses; i++) {
-				row[`HomeCourse_${i + 1}`] = "No course";
-				row[`FirstChoice_${i + 1}`] = "No choice";
-				row[`SecondChoice_${i + 1}`] = "No choice";
-				row[`ThirdChoice_${i + 1}`] = "No choice";
-			}
-
 			return row;
 		});
 
+		const courseChoicesData: Record<string, string | null>[] = [];
+		data.applications.forEach((app) => {
+			app.courseChoices.forEach((course, index) => {
+				courseChoicesData.push({
+					Student: app.user.name,
+					GUID: app.user.guid,
+					HomeCourse: course.homeCourse?.name || "No course",
+					"1st Choice": course.primaryCourse?.name || "No choice",
+					"2nd Choice": course.alternativeCourse1?.name || "No choice",
+					"3rd Choice": course.alternativeCourse2?.name || "No choice",
+				});
+			});
+			// Add gaps between each application
+			courseChoicesData.push({
+				Student: null,
+				GUID: null,
+				HomeCourse: null,
+				"1st Choice": null,
+				"2nd Choice": null,
+				"3rd Choice": null,
+			});
+		});
+
 		// Generate Excel file
-		const worksheet = XLSX.utils.json_to_sheet(worksheetData);
 		const workbook = XLSX.utils.book_new();
-		XLSX.utils.book_append_sheet(workbook, worksheet, "Applications");
+
+		// Main sheet
+		const mainWorksheet = XLSX.utils.json_to_sheet(worksheetData);
+
+		// Set column widths based on content
+		const mainColumnWidths = Object.keys(worksheetData[0] || {}).map((key) => ({
+			wch: Math.max(
+				key.length,
+				...worksheetData.map((row) => row[key]?.toString().length || 0),
+			),
+		}));
+		mainWorksheet["!cols"] = mainColumnWidths;
+
+		XLSX.utils.book_append_sheet(workbook, mainWorksheet, "Applications");
+
+		// Course choices sheet
+		const courseChoicesWorksheet = XLSX.utils.json_to_sheet(courseChoicesData);
+		const courseChoicesColumnWidths = Object.keys(
+			courseChoicesData[0] || {},
+		).map((key) => ({
+			wch: Math.max(
+				key.length,
+				...courseChoicesData.map((row) => row[key]?.toString().length || 0),
+			),
+		}));
+		courseChoicesWorksheet["!cols"] = courseChoicesColumnWidths;
+
+		// Apply background color to the first row (header row) in the main sheet
+		Object.keys(mainWorksheet).forEach((cell) => {
+			if (cell.match(/^A1|B1|C1|D1|E1/)) {
+				// Adjust based on the number of columns
+				mainWorksheet[cell].s = {
+					fill: {
+						patternType: "solid",
+						fgColor: { rgb: "D9EAD3" }, // Light green background
+					},
+				};
+			}
+		});
+
+		// Apply background color to the first row (header row) in the course choices sheet
+		Object.keys(courseChoicesWorksheet).forEach((cell) => {
+			if (cell.match(/^A1|B1|C1|D1|E1|F1/)) {
+				// Adjust based on the number of columns
+				courseChoicesWorksheet[cell].s = {
+					fill: {
+						patternType: "solid",
+						fgColor: { rgb: "FCE5CD" }, // Light orange background
+					},
+				};
+			}
+		});
+		XLSX.utils.book_append_sheet(
+			workbook,
+			courseChoicesWorksheet,
+			"Course Choices",
+		);
 
 		// Convert to file and download
 		const excelBuffer = XLSX.write(workbook, {

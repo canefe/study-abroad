@@ -1,6 +1,7 @@
 "use client";
 import { api } from "@/trpc/react";
 import {
+	Alert,
 	AutoComplete,
 	Button,
 	Form,
@@ -40,6 +41,8 @@ import { useComments } from "@/hooks/useComments";
 import { useApplication } from "@/hooks/useApplication";
 import FlaggedBadge from "./flagged-badge";
 import { Status, Year } from "@prisma/client";
+import _ from "lodash";
+import { motion } from "framer-motion";
 
 interface Choice {
 	primary: number | null;
@@ -61,6 +64,7 @@ export default function ChoicesTable({
 	const {
 		application,
 		isLoading,
+		isFetching,
 		abroadCourses,
 		isLoadingAbroadCourses,
 		submitApplication,
@@ -100,8 +104,14 @@ export default function ChoicesTable({
 
 	const [addCourseModalOpen, setAddCourseModalOpen] = useState(false); // State to track if the add course modal is open
 
+	const [initialChoices, setInitialChoices] = useState<Choices | undefined>(
+		undefined,
+	); // this is to fix unsaved changes going away on application data refreshes
 	const [choices, setChoices] = useState<Choices>({}); // Tracks the selected choices for each home course
-	const [initialEffectRun, setInitialEffectRun] = useState(false); // this is to fix unsaved changes going away on application data refreshes
+
+	// Show alert if someone has modified the application
+	const [showAlert, setShowAlert] = useState(false);
+
 	// Prepare the table data
 
 	const dataSource =
@@ -217,22 +227,74 @@ export default function ChoicesTable({
 		(course) => !selectedCourseIds.has(course.id),
 	);
 
-	// update choices according to applications.courseChoices
-	useEffect(() => {
-		if (application && !initialEffectRun) {
-			const newChoices = {};
-			application.courseChoices?.forEach((choice) => {
-				newChoices[choice.homeCourse.id] = {
-					primary: choice.primaryCourse?.id,
-					alt1: choice.alternativeCourse1?.id,
-					alt2: choice.alternativeCourse2?.id,
-				};
-			});
-			setChoices(newChoices);
-			setInitialEffectRun(true);
-		}
-	}, [application, initialEffectRun]);
+	// a function that updates client-side choices and sends a request to the server to update the choices
+	const updateChoices = async () => {
+		const newChoices = {};
+		application?.courseChoices?.forEach((choice) => {
+			newChoices[choice.homeCourse.id] = {
+				primary: choice.primaryCourse?.id ?? null,
+				alt1: choice.alternativeCourse1?.id ?? null,
+				alt2: choice.alternativeCourse2?.id ?? null,
+			};
+		});
+		setChoices(newChoices);
+		setInitialChoices(newChoices);
+		setShowAlert(false);
+		console.log("updated initial choices");
+	};
 
+	// update choices according to applications.courseChoices at initial page load
+	useEffect(() => {
+		if (application && !initialChoices) {
+			updateChoices();
+		}
+	}, [application, initialChoices]);
+
+	useEffect(() => {
+		// freshly fetched choices from the server
+		const freshChoices = {};
+		application?.courseChoices?.forEach((choice) => {
+			freshChoices[choice.homeCourse.id] = {
+				primary: choice.primaryCourse?.id ?? null,
+				alt1: choice.alternativeCourse1?.id ?? null,
+				alt2: choice.alternativeCourse2?.id ?? null,
+			};
+		});
+
+		// set every null in choices (clientside var) back to undefined, so that it can be compared to freshChoices
+		const tempChoices = {};
+		Object.entries(choices).forEach(([homeCourseId, choice]) => {
+			tempChoices[homeCourseId] = {
+				primary: choice.primary,
+				alt1: choice.alt1,
+				alt2: choice.alt2,
+			};
+		});
+
+		if (
+			choices !== undefined &&
+			initialChoices !== undefined &&
+			!_.isEqual(freshChoices, tempChoices) &&
+			!_.isEqual(freshChoices, initialChoices) &&
+			!_.isEqual(initialChoices, tempChoices)
+		) {
+			setShowAlert(true);
+			console.log(tempChoices);
+			console.log(freshChoices);
+			console.log(tempChoices !== initialChoices);
+			console.log(initialChoices);
+		} else {
+			// only if there are no unsaved changes, update the choices with the fresh choices
+			if (_.isEqual(tempChoices, initialChoices)) {
+				updateChoices();
+			} else if (
+				_.isEqual(tempChoices, freshChoices) &&
+				!_.isEqual(tempChoices, initialChoices)
+			) {
+				updateChoices();
+			}
+		}
+	}, [application?.courseChoices]);
 	const updateSidebarHeight = () => {
 		if (tableRef.current) {
 			//@ts-expect-error it just works
@@ -279,19 +341,20 @@ export default function ChoicesTable({
 			// list of promises
 			const promises: Promise<void>[] = [];
 			await Promise.all(
-				Object.entries(choices).map(async ([homeCourseId, choice]) => {
-					if (application) {
-						// @ts-expect-error it just works
-						await saveChoices({
-							userId: application?.userId,
-							homeCourseId: parseInt(homeCourseId),
-							abroadUniversityId: application?.abroadUniversityId,
-							primaryCourseId: (choice as any).primary,
-							alternativeCourse1Id: (choice as any).alt1,
-							alternativeCourse2Id: (choice as any).alt2,
-						});
-					}
-				}),
+				Object.entries(choices).map(
+					async ([homeCourseId, choice]: [string, Choice]) => {
+						if (application) {
+							saveChoices({
+								applicationId: application?.id,
+								homeCourseId: parseInt(homeCourseId),
+								abroadUniversityId: application?.abroadUniversityId,
+								primaryCourseId: choice.primary ?? null,
+								alternativeCourse1Id: choice.alt1 ?? null,
+								alternativeCourse2Id: choice.alt2 ?? null,
+							});
+						}
+					},
+				),
 			);
 			// wait for all promises to resolve check if there is an error
 			await Promise.all(promises);
@@ -452,9 +515,16 @@ export default function ChoicesTable({
 	return (
 		<DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
 			<div className="flex w-full flex-col items-center justify-between gap-2 md:flex-row">
-				<h2 className="text-xl font-medium">
-					{application?.abroadUniversity.name} -{" "}
-					{yearToString(application?.year) || "Unknown year"}
+				<div className="div flex items-center gap-1">
+					<h2 className="text-xl font-medium">
+						{application?.abroadUniversity.name} -{" "}
+						{yearToString(application?.year) || "Unknown year"}
+						<Tour
+							open={tourOpen}
+							onClose={() => setTourOpen(false)}
+							steps={tourSteps}
+						/>
+					</h2>
 					<Tooltip title="Start Tour">
 						<div onClick={() => setTourOpen(true)}>
 							<MessageCircleQuestion
@@ -463,12 +533,7 @@ export default function ChoicesTable({
 							/>
 						</div>
 					</Tooltip>
-					<Tour
-						open={tourOpen}
-						onClose={() => setTourOpen(false)}
-						steps={tourSteps}
-					/>
-				</h2>
+				</div>
 				{application?.user && (
 					<h2>
 						{application?.user?.name} -{" "}
@@ -540,9 +605,58 @@ export default function ChoicesTable({
 					)}
 				</div>
 			</div>
+			<div className="flex flex-col gap-2">
+				{/* Alert for unsaved changes */}
+				{!_.isEqual(choices, initialChoices) && (
+					<Alert
+						type="warning"
+						className="my-2"
+						showIcon
+						closable
+						message={"Unsaved changes"}
+					/>
+				)}
+				{/* Alert for someone has updated the application */}
+				{showAlert && (
+					<Alert
+						type="error"
+						showIcon
+						closable
+						message={
+							<>
+								This application has been updated by another user. You have
+								unsaved progress. You can lose your changes if you refresh the
+								page.
+								<p>
+									<a
+										href={
+											admin
+												? `/admin/applications/${applicationId}`
+												: `/dashboard/my-choices/${applicationId}`
+										}
+										className="underline"
+										target="_blank"
+										rel="noreferrer"
+									>
+										{" "}
+										Click here to see the changes in a new tab without losing
+										your changes.
+									</a>
+								</p>
+							</>
+						}
+					/>
+				)}
+			</div>
+			{/* Table for Home Courses */}
 			<div className="mt-4 flex flex-col space-x-5 md:flex-row">
 				{/* Table for Home Courses */}
-				<div ref={tableRef} className="flex h-fit flex-1 flex-col gap-2">
+				<motion.div
+					ref={tableRef}
+					className="flex h-fit flex-1 flex-col gap-2"
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1, transition: { duration: 0.5 } }}
+				>
 					<Table
 						size={"small"}
 						className="hidden md:block"
@@ -551,10 +665,11 @@ export default function ChoicesTable({
 						dataSource={filteredDataSource.sort((a, b) =>
 							a.id > b.id ? 1 : -1,
 						)}
-						loading={isLoading}
+						loading={isFetching}
 						bordered
 						pagination={false}
 					/>
+
 					{/* Mobile version of the table */}
 					<div className="md:hidden">
 						<MobileChoicesTable
@@ -568,7 +683,7 @@ export default function ChoicesTable({
 							}
 						/>
 					</div>
-				</div>
+				</motion.div>
 				{/* Sidebar for Available Courses */}
 				<div ref={ref2} className="min-w-52 max-w-xl">
 					<div
@@ -794,6 +909,7 @@ const DraggedCourse = ({ title }) => {
 const ChoiceSlot = ({
 	id,
 	choice,
+	courseName,
 	onDrop,
 	onRemove,
 	universityId,

@@ -39,7 +39,7 @@ export const useSaveChoicesMutation = () => {
 	const utils = api.useUtils();
 	return api.choices.saveChoiceChanges.useMutation({
 		onSuccess: () => {
-			utils.choices.getList.invalidate();
+			utils.applications.invalidate();
 		},
 	});
 };
@@ -48,7 +48,7 @@ export const useSaveChoicesAdminMutation = () => {
 	const utils = api.useUtils();
 	return api.choices.saveChoicesAdmin.useMutation({
 		onSuccess: () => {
-			utils.choices.getList.invalidate();
+			utils.applications.invalidate();
 		},
 	});
 };

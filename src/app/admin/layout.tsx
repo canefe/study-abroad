@@ -21,11 +21,22 @@ export default async function DashboardLayout({
 		redirect("/dashboard");
 	}
 
+	//
+
 	if (session?.user) {
 		void api.notifications.getList.prefetch();
-		//void api.applications.getAll.prefetch({});
+		//void api.applications.getCount.prefetch("SUBMITTED");
+		//void api.applications.getCount.prefetch("ALL");
+		void api.settings.getList.prefetch();
 		void api.students.me.prefetch();
 		void api.students.getCount.prefetch();
+		void api.applications.getAll.prefetch({
+			q: "",
+			page: 1,
+			pageSize: 10,
+			filter: "SUBMITTED",
+		});
+
 		void api.universities.getList.prefetch();
 	}
 

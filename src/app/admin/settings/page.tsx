@@ -1,9 +1,10 @@
 "use client";
 import { Segmented } from "antd";
-import { Clock, Home } from "lucide-react";
+import { Clock, GraduationCap, Home } from "lucide-react";
 import { useState } from "react";
 import HomeUniversitySettings from "./_sections/home-university-settings";
 import DeadlineSettings from "./_sections/deadline-settings";
+import YearRequirementsSettings from "./_sections/year-requirements-settings";
 
 export default function Settings() {
 	const [selected, setSelected] = useState("homeUni");
@@ -30,11 +31,21 @@ export default function Settings() {
 						),
 						value: "deadline",
 					},
+					{
+						label: (
+							<div className="flex items-center gap-1">
+								<GraduationCap size={16} />
+								<span>Year Requirements</span>
+							</div>
+						),
+						value: "yearRequirements",
+					},
 				]}
 			/>
 
 			{selected === "homeUni" && <HomeUniversitySettings />}
 			{selected === "deadline" && <DeadlineSettings />}
+			{selected === "yearRequirements" && <YearRequirementsSettings />}
 		</div>
 	);
 }

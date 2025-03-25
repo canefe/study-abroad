@@ -9,7 +9,7 @@ import { Filter } from "lucide-react";
 export default function StudentList() {
 	const [search, setSearch] = useState("");
 	const [page, setPage] = useState(1);
-	const { data: users, isLoading } = api.students.getList.useQuery({
+	const [users] = api.students.getList.useSuspenseQuery({
 		q: search,
 		page: page,
 		pageSize: 10,
@@ -78,7 +78,7 @@ export default function StudentList() {
 					},
 				}}
 				columns={columns}
-				loading={!users || isLoading}
+				//loading={!users || isLoading}
 			/>
 		</div>
 	);

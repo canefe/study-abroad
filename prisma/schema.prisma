@@ -72,7 +72,6 @@ model User {
     sessions          Session[]
     applications      Application[]
     posts             Post[]
-    courseChoices     CourseChoice[]
     messages          Message[]
     mutedUsers        User[]         @relation("MutedUsers")
     mutedBy           User[]         @relation("MutedUsers")
@@ -89,13 +88,12 @@ model VerificationToken {
 }
 
 model University {
-    id            Int            @id @default(autoincrement())
-    name          String         @unique
-    location      String
-    courses       Course[]
-    applications  Application[]
-    school        School[]
-    courseChoices CourseChoice[]
+    id           Int           @id @default(autoincrement())
+    name         String        @unique
+    location     String
+    courses      Course[]
+    applications Application[]
+    school       School[]
 }
 
 // A model for University's Schools, every school will have its own courses and applications
@@ -130,16 +128,11 @@ model CourseChoice {
     primaryCourseId      Int?
     alternativeCourse1Id Int?
     alternativeCourse2Id Int?
-    year                 Year?
     application          Application @relation(fields: [applicationId], references: [id])
     homeCourse           Course      @relation("HomeCourse", fields: [homeCourseId], references: [id])
     primaryCourse        Course?     @relation("PrimaryCourse", fields: [primaryCourseId], references: [id])
     alternativeCourse1   Course?     @relation("AlternativeCourse1", fields: [alternativeCourse1Id], references: [id])
     alternativeCourse2   Course?     @relation("AlternativeCourse2", fields: [alternativeCourse2Id], references: [id])
-    user                 User?       @relation(fields: [userId], references: [id])
-    userId               String?
-    university           University? @relation(fields: [universityId], references: [id])
-    universityId         Int?
 }
 
 enum Status {

@@ -39,7 +39,7 @@ export default function ApplicationList({
 	);
 	const [newApplicationModalVisible, setNewApplicationModalVisible] =
 		useState(false);
-	const { data: applications, isLoading } = api.applications.getAll.useQuery({
+	const [applications] = api.applications.getAll.useSuspenseQuery({
 		q: search,
 		page: page,
 		pageSize: 10,

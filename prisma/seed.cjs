@@ -119,6 +119,18 @@ async function main() {
 		},
 	});
 
+	await prisma.setting.upsert({
+		where: { key: "deadline_date" },
+		// set to one month from now
+		update: {
+			value: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+		},
+		create: {
+			key: "deadline_date",
+			value: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+		},
+	});
+
 	// Generate default home courses for each year
 	await prisma.course.createMany({
 		data: [
@@ -237,7 +249,77 @@ Match all of ALG1, SP, PSD, TP
 		],
 		skipDuplicates: true,
 	});
+	const randomElement = (arr) => arr[Math.floor(Math.random() * arr.length)];
+	const randomCourseName = (universityId) => {
+		const prefixes = [
+			"Advanced",
+			"Intro to",
+			"Intermediate",
+			"Network",
+			"Web",
+			"Mobile",
+			"Cloud",
+			"Cyber",
+			"Software",
+			"Computer",
+			"Digital",
+		];
 
+		const suffixes = [
+			"Programming",
+			"Algorithms",
+			"Data Structures",
+			"Design",
+			"Security",
+			"Engineering",
+			"Development",
+			"Systems",
+			"Applications",
+		];
+
+		return `C10${universityId} - ${randomElement(prefixes)} ${randomElement(suffixes)}`;
+	};
+
+	async function generateRandomCourses(universityId) {
+		const courses = [];
+		for (let i = 0; i < 25; i++) {
+			let name;
+			let course;
+			do {
+				name = randomCourseName(universityId);
+				// check if course already exists
+				course = await prisma.course.findFirst({
+					where: { name, universityId },
+				});
+				if (course) {
+					console.log(`Course ${name} already exists`);
+				}
+			} while (course);
+			courses.push({
+				universityId,
+				name,
+				year: [],
+			});
+		}
+		await prisma.course.createMany({
+			data: courses,
+			skipDuplicates: true,
+		});
+		console.log(
+			`Created ${courses.length} courses for university ID ${universityId}`,
+		);
+	}
+
+	const sortedUniversities = universities.sort((a, b) => a.id - b.id);
+	for (const university of sortedUniversities) {
+		const uni = await prisma.university.findFirst({
+			where: { name: university.name },
+		});
+		if (uni) {
+			//console.log(`Generating random courses for #${uni.id} ${uni.name}`);
+			//await generateRandomCourses(uni.id);
+		}
+	}
 	// guid is 7 random numbers and surname first letter
 
 	// a random user generator
@@ -255,20 +337,28 @@ Match all of ALG1, SP, PSD, TP
 	}
 
 	// Create 100 random users
-	const randomUsers = Array.from({ length: 20 }, generateRandomUser);
-	await prisma.user.createMany({
-		data: randomUsers,
-		skipDuplicates: true,
-	});
+	//const randomUsers = Array.from({ length: 20 }, generateRandomUser);
+	//await prisma.user.createMany({
+	//	data: randomUsers,
+	//	skipDuplicates: true,
+	//});
 
 	// Create Users
 	await prisma.user.createMany({
 		data: [
-			{ id: "u1", name: "Alice", email: "alice@example.com", role: "STUDENT" },
+			{
+				id: "u1",
+				name: "Alice",
+				email: "alice@example.com",
+				role: "STUDENT",
+				guid: "1234567A",
+			},
 			{ id: "u2", name: "Bob", email: "bob@example.com", role: "ADMIN" },
 		],
 		skipDuplicates: true,
 	});
+
+	// Create Pre-defined Evaluation-ready state. (with applications and all)
 }
 
 main()

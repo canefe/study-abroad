@@ -7,33 +7,16 @@ import {
 } from "@/server/api/trpc";
 
 export const choicesRouter = createTRPCRouter({
-	getList: protectedProcedure.query(async ({ ctx }) => {
-		// get the session from the context
-		const session = ctx.session;
-		// get user's coursechoices
-		const courseChoices = await ctx.db.courseChoice.findMany({
-			where: {
-				userId: session.user.id,
-			},
-			include: {
-				homeCourse: true,
-				primaryCourse: true,
-				alternativeCourse1: true,
-				alternativeCourse2: true,
-			},
-		});
-		return courseChoices;
-	}),
-
 	// only change the choices and not other fields
 	saveChoiceChanges: protectedProcedure
 		.input(
 			z.object({
+				applicationId: z.number(),
 				homeCourseId: z.number(),
 				abroadUniversityId: z.number(),
-				primaryCourseId: z.number().nullable().optional(),
-				alternativeCourse1Id: z.number().nullable().optional(),
-				alternativeCourse2Id: z.number().nullable().optional(),
+				primaryCourseId: z.number().nullable(),
+				alternativeCourse1Id: z.number().nullable(),
+				alternativeCourse2Id: z.number().nullable(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -43,7 +26,7 @@ export const choicesRouter = createTRPCRouter({
 			console.log(input);
 			const result = await ctx.db.courseChoice.updateMany({
 				where: {
-					userId: ctx.session.user.id,
+					applicationId: input.applicationId,
 					homeCourseId: input.homeCourseId,
 				},
 				data: {
@@ -62,17 +45,17 @@ export const choicesRouter = createTRPCRouter({
 	saveChoicesAdmin: adminProcedure
 		.input(
 			z.object({
-				userId: z.string(),
+				applicationId: z.number(),
 				homeCourseId: z.number(),
-				primaryCourseId: z.number().nullable().optional(),
-				alternativeCourse1Id: z.number().nullable().optional(),
-				alternativeCourse2Id: z.number().nullable().optional(),
+				primaryCourseId: z.number().nullable(),
+				alternativeCourse1Id: z.number().nullable(),
+				alternativeCourse2Id: z.number().nullable(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
 			const result = await ctx.db.courseChoice.updateMany({
 				where: {
-					userId: input.userId,
+					applicationId: input.applicationId,
 					homeCourseId: input.homeCourseId,
 				},
 				data: {
