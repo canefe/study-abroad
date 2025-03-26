@@ -6,10 +6,7 @@ import { api, HydrateClient } from "@/trpc/server";
 import { redirect } from "next/navigation";
 
 export default async function Home() {
-	const hello = await api.post.hello({ text: "from tRPC" });
 	const session = await getServerAuthSession();
-
-	void api.post.getLatest.prefetch();
 
 	// redirect to /dashboard if user is logged in
 	if (session?.user) {
@@ -29,10 +26,6 @@ export default async function Home() {
 						UofG Study Abroad Portal
 					</h1>
 					<div className="flex flex-col items-center gap-2">
-						<p className="text-2xl text-white">
-							{hello ? hello.greeting : "Loading tRPC query..."}
-						</p>
-
 						<div className="flex flex-col items-center justify-center gap-4">
 							<p className="text-center text-2xl text-white">
 								{session && (
@@ -49,8 +42,6 @@ export default async function Home() {
 							</Link>
 						</div>
 					</div>
-
-					{session?.user && <LatestPost />}
 				</div>
 			</main>
 		</HydrateClient>
