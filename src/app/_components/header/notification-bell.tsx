@@ -12,15 +12,15 @@ import { generateRandomColor } from "@/lib/randomUtils";
 import { useNotifications } from "@/hooks/useNotifications";
 
 import { useDropdown } from "./dropdown-context";
+import { Session } from "next-auth";
 
 const relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
 
-export default function NotificationBell() {
+export default function NotificationBell({ session }: { session: Session }) {
 	const [notifications] = api.notifications.getList.useSuspenseQuery(void 0, {
 		refetchInterval: 5000,
 	});
-	const [user] = api.students.me.useSuspenseQuery();
 	const copyNotifications = [...notifications];
 	const unreadNotifications = notifications?.filter((n) => !n.read);
 	const [cachedNotifications, setCachedNotifications] = useState<
@@ -40,6 +40,8 @@ export default function NotificationBell() {
 	} = useNotifications();
 
 	const controls = useAnimation();
+
+	const user = session.user;
 
 	useEffect(() => {
 		// on first load dont animate
