@@ -27,6 +27,10 @@ export default function UserAvatar({ user }: { user: any }) {
 				<div className="flex h-full flex-col justify-between gap-2 p-2">
 					<div className="flex h-full w-full flex-col justify-between gap-2 p-2 pt-3">
 						<span className="text-lg font-bold">My Account</span>
+						<div className="flex gap-1">
+							<span className="text-sm font-semibold">{user?.name}</span>
+							<span className="text-sm font-semibold">{`<${user?.email}>`}</span>
+						</div>
 						<Button onClick={redirect}>Log out</Button>
 					</div>
 				</div>
