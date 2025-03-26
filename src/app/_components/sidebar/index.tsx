@@ -1,3 +1,4 @@
+"use client";
 import Image from "next/image";
 import Logo from "@/app/assets/logo.png";
 
@@ -13,16 +14,20 @@ import {
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
-import { getServerAuthSession } from "@/server/auth";
 import useNavData from "@/hooks/useNavData";
 
 // Menu items. That checks ROLE and displays the menu items accordingly
 
-export default async function AppSidebar() {
-	const session = await getServerAuthSession();
+type AppSidebarProps = {
+	session: {
+		user: {
+			role: string;
+		};
+	};
+};
 
+export default function AppSidebar({ session }: AppSidebarProps) {
 	const { filteredItems } = useNavData(session);
-
 	// Group items by category
 	const groupedItems = filteredItems.reduce((acc, item) => {
 		if (!acc[item.category]) {
