@@ -1,17 +1,12 @@
-import { SidebarProvider } from "@/components/ui/sidebar";
-import Header from "@/app/_components/header/header";
-import AppSidebar from "@/app/_components/sidebar";
 import { getServerAuthSession } from "@/server/auth";
 import { redirect } from "next/navigation";
-
-import { Toaster } from "react-hot-toast";
 import { api, HydrateClient } from "@/trpc/server";
+import SharedLayout from "../_components/shared-layout";
 
 export default async function DashboardLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
 	const session = await getServerAuthSession();
-
 	if (!session?.user) {
 		redirect("/");
 	}
@@ -25,10 +20,7 @@ export default async function DashboardLayout({
 
 	if (session?.user) {
 		void api.notifications.getList.prefetch();
-		//void api.applications.getCount.prefetch("SUBMITTED");
-		//void api.applications.getCount.prefetch("ALL");
 		void api.settings.getList.prefetch();
-		void api.students.me.prefetch();
 		void api.students.getCount.prefetch();
 		void api.applications.getAll.prefetch({
 			q: "",
@@ -42,16 +34,7 @@ export default async function DashboardLayout({
 
 	return (
 		<HydrateClient>
-			<SidebarProvider>
-				<AppSidebar />
-				<main className="flex w-full flex-col items-center px-4 py-6">
-					{session?.user && <Header />}
-					<div className="mt-4 flex w-full items-center justify-center">
-						{session?.user && <div className="container">{children}</div>}
-					</div>
-				</main>
-			</SidebarProvider>
-			<Toaster />
+			<SharedLayout session={session}>{children}</SharedLayout>
 		</HydrateClient>
 	);
 }

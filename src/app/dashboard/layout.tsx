@@ -5,6 +5,7 @@ import { getServerAuthSession } from "@/server/auth";
 import { redirect } from "next/navigation";
 import { Toaster } from "react-hot-toast";
 import { api, HydrateClient } from "@/trpc/server";
+import SharedLayout from "../_components/shared-layout";
 
 export default async function DashboardLayout({
 	children,
@@ -23,23 +24,12 @@ export default async function DashboardLayout({
 	if (session?.user) {
 		void api.notifications.getList.prefetch();
 		void api.applications.getList.prefetch();
-		void api.students.me.prefetch();
 		void api.universities.getList.prefetch();
 	}
 
 	return (
 		<HydrateClient>
-			<SidebarProvider>
-				<AppSidebar />
-				<main className="flex w-full flex-col items-center px-4 py-6">
-					{session?.user && <Header />}
-					<div className="mt-4 flex w-full items-center justify-center">
-						{session?.user && <div className="container">{children}</div>}
-					</div>
-				</main>
-			</SidebarProvider>
-
-			<Toaster />
+			<SharedLayout session={session}>{children}</SharedLayout>
 		</HydrateClient>
 	);
 }
