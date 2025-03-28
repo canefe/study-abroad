@@ -9,66 +9,6 @@ import {
 import { Year } from "@prisma/client";
 
 export const coursesRouter = createTRPCRouter({
-	hello: publicProcedure
-		.input(z.object({ text: z.string() }))
-		.query(({ input }) => {
-			return {
-				greeting: `Hello ${input.text}`,
-			};
-		}),
-
-	getFlaggedList: adminProcedure.query(async ({ ctx }) => {
-		// get the session from the context
-		const courses = await ctx.db.course.findMany({
-			where: {
-				flagged: true,
-			},
-			include: {
-				university: {
-					select: {
-						name: true,
-					},
-				},
-			},
-		});
-
-		return courses;
-	}),
-
-	getVerifiedList: adminProcedure.query(async ({ ctx }) => {
-		const courses = await ctx.db.course.findMany({
-			where: {
-				verified: true,
-			},
-			include: {
-				university: {
-					select: {
-						name: true,
-					},
-				},
-			},
-		});
-
-		return courses;
-	}),
-
-	getUnverifiedList: adminProcedure.query(async ({ ctx }) => {
-		const courses = await ctx.db.course.findMany({
-			where: {
-				verified: false,
-			},
-			include: {
-				university: {
-					select: {
-						name: true,
-					},
-				},
-			},
-		});
-
-		return courses;
-	}),
-
 	getAll: adminProcedure
 		.input(
 			z.object({
@@ -356,5 +296,32 @@ export const coursesRouter = createTRPCRouter({
 				},
 			});
 			return course;
+		}),
+
+	//getCourseCount takes in optional enum "FLAGGED", "VERIFIED", "UNVERIFIED" and returns the count of courses
+	getCourseCount: adminProcedure
+		.input(
+			z
+				.object({
+					filter: z.enum(["FLAGGED", "VERIFIED", "UNVERIFIED"]).optional(),
+				})
+				.optional(),
+		)
+		.query(async ({ input, ctx }) => {
+			const whereClause: any = {};
+
+			if (input.filter === "FLAGGED") {
+				whereClause.flagged = true;
+			} else if (input.filter === "VERIFIED") {
+				whereClause.verified = true;
+			} else if (input.filter === "UNVERIFIED") {
+				whereClause.verified = false;
+			}
+
+			const count = await ctx.db.course.count({
+				where: whereClause,
+			});
+
+			return count;
 		}),
 });

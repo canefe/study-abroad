@@ -9,6 +9,8 @@ import { TRPCError } from "@trpc/server";
 import { Status, Year } from "@prisma/client";
 import { getHomeUniversity } from "../lib/getHomeUniversity";
 import { getSetting } from "../lib/getSetting";
+import { getHomeCourses } from "../lib/getHomeCourses";
+import { applicationService } from "../services/applicationService";
 
 export const applicationsRouter = createTRPCRouter({
 	getList: protectedProcedure.query(async ({ ctx }) => {
@@ -106,16 +108,18 @@ export const applicationsRouter = createTRPCRouter({
 		)
 		.mutation(async ({ input, ctx }) => {
 			const session = ctx.session;
-			const homeUniversityId = await getHomeUniversity(ctx.db);
 
-			const homeUniversityCourses = await ctx.db.course.findMany({
-				where: {
-					universityId: homeUniversityId,
-					year: {
-						has: input.year as Year,
-					},
-				},
-			});
+			const homeUniversityCourses = await getHomeCourses(
+				ctx.db,
+				input.year as Year,
+			);
+
+			if (!homeUniversityCourses) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Home university courses not found",
+				});
+			}
 
 			// Check if count of applications is less than 3
 			const applicationsCount = await ctx.db.application.count({
@@ -123,7 +127,11 @@ export const applicationsRouter = createTRPCRouter({
 					userId: session.user.id,
 				},
 			});
-			if (applicationsCount >= 3) {
+			const maxApplications = parseInt(
+				(await getSetting(ctx.db, "max_applications")) || "3",
+				10,
+			);
+			if (applicationsCount >= maxApplications) {
 				throw new TRPCError({
 					code: "FORBIDDEN",
 					message: "Maximum number of applications reached",
@@ -145,7 +153,7 @@ export const applicationsRouter = createTRPCRouter({
 			}
 
 			// check if a deadline is set
-			const deadline = await getSetting("deadline_date", ctx.db);
+			const deadline = await getSetting(ctx.db, "deadline_date");
 
 			// if deadline is set, check if the current date is before the deadline
 			if (deadline) {
@@ -160,64 +168,32 @@ export const applicationsRouter = createTRPCRouter({
 			}
 
 			// create an application
-			const application = await ctx.db.application.create({
-				data: {
-					userId: session.user.id,
-					abroadUniversityId: input.abroadUniversityId,
-					status: Status.DRAFT,
-					year: input.year as Year,
-				},
-			});
+			const application = await applicationService.createApplication(
+				ctx,
+				session.user.id,
+				input.abroadUniversityId,
+				input.year as Year,
+			);
+
 			// create course choices
-			homeUniversityCourses.forEach(async (course) => {
-				await ctx.db.courseChoice.create({
-					data: {
-						homeCourseId: course.id,
-						applicationId: application.id,
-					},
-				});
-			});
+			await applicationService.addCourseChoices(
+				ctx,
+				application.id,
+				homeUniversityCourses,
+			);
 
 			// if alternate route is selected, add additional course (CS1F)
 			// find CS1F home course first
 			if (input.alternateRoute) {
-				const cs1fCourse = await ctx.db.course.findFirst({
-					where: {
-						name: "CS1F",
-					},
-				});
-				if (!cs1fCourse) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "CS1F course not found",
-					});
-				}
-				await ctx.db.courseChoice.create({
-					data: {
-						homeCourseId: cs1fCourse.id,
-						applicationId: application.id,
-					},
-				});
+				await applicationService.addAlternateRouteCourse(ctx, application.id);
 			}
 			// if additional course is selected, add additional course ( find the course first )
 			if (input.additionalCourse) {
-				const additionalCourse = await ctx.db.course.findFirst({
-					where: {
-						name: input.additionalCourse,
-					},
-				});
-				if (!additionalCourse) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "Additional course not found",
-					});
-				}
-				await ctx.db.courseChoice.create({
-					data: {
-						homeCourseId: additionalCourse.id,
-						applicationId: application.id,
-					},
-				});
+				await applicationService.addAdditionalCourse(
+					ctx,
+					application.id,
+					input.additionalCourse,
+				);
 			}
 			return { applicationId: application.id };
 		}),
@@ -259,64 +235,31 @@ export const applicationsRouter = createTRPCRouter({
 			});
 
 			// create an application
-			const application = await ctx.db.application.create({
-				data: {
-					userId: input.userId,
-					abroadUniversityId: input.abroadUniversityId,
-					status: Status.DRAFT,
-					year: input.year as Year,
-				},
-			});
+			const application = await applicationService.createApplication(
+				ctx,
+				user.id,
+				input.abroadUniversityId,
+				input.year as Year,
+			);
 			// create course choices
-			homeUniversityCourses.forEach(async (course) => {
-				await ctx.db.courseChoice.create({
-					data: {
-						homeCourseId: course.id,
-						applicationId: application.id,
-					},
-				});
-			});
+			await applicationService.addCourseChoices(
+				ctx,
+				application.id,
+				homeUniversityCourses,
+			);
 
-			// if alternate route is selected, add additional course (CS1F)
-			// find CS1F home course first
+			// if alternate route is selected, add CS1F course
 			if (input.alternateRoute) {
-				const cs1fCourse = await ctx.db.course.findFirst({
-					where: {
-						name: "CS1F",
-					},
-				});
-				if (!cs1fCourse) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "CS1F course not found",
-					});
-				}
-				await ctx.db.courseChoice.create({
-					data: {
-						homeCourseId: cs1fCourse.id,
-						applicationId: application.id,
-					},
-				});
+				await applicationService.addAlternateRouteCourse(ctx, application.id);
 			}
-			// if additional course is selected, add additional course ( find the course first )
+
+			// if additional course is selected, add it
 			if (input.additionalCourse) {
-				const additionalCourse = await ctx.db.course.findFirst({
-					where: {
-						name: input.additionalCourse,
-					},
-				});
-				if (!additionalCourse) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "Additional course not found",
-					});
-				}
-				await ctx.db.courseChoice.create({
-					data: {
-						homeCourseId: additionalCourse.id,
-						applicationId: application.id,
-					},
-				});
+				await applicationService.addAdditionalCourse(
+					ctx,
+					application.id,
+					input.additionalCourse,
+				);
 			}
 			return { applicationId: application.id };
 		}),
@@ -337,51 +280,14 @@ export const applicationsRouter = createTRPCRouter({
 				return new Response("Forbidden", { status: 403 });
 			}
 
-			// remove course choices
-			await ctx.db.courseChoice.deleteMany({
-				where: {
-					applicationId: input.applicationId,
-				},
-			});
-
-			// delete messages
-			await ctx.db.message.deleteMany({
-				where: {
-					applicationId: input.applicationId,
-				},
-			});
-
-			// remove application
-			await ctx.db.application.delete({
-				where: {
-					id: input.applicationId,
-				},
-			});
+			// delete application
+			await applicationService.deleteApplication(ctx, application.id);
 			return "Success";
 		}),
 	adminDelete: adminProcedure
 		.input(z.object({ applicationId: z.number() }))
 		.mutation(async ({ input, ctx }) => {
-			// remove course choices
-			await ctx.db.courseChoice.deleteMany({
-				where: {
-					applicationId: input.applicationId,
-				},
-			});
-
-			// delete messages
-			await ctx.db.message.deleteMany({
-				where: {
-					applicationId: input.applicationId,
-				},
-			});
-
-			// remove application
-			await ctx.db.application.delete({
-				where: {
-					id: input.applicationId,
-				},
-			});
+			await applicationService.deleteApplication(ctx, input.applicationId);
 			return "Success";
 		}),
 	get: protectedProcedure

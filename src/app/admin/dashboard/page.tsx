@@ -4,14 +4,9 @@ import ApplicationsCard from "./_sections/dashboard/stats-card/applications-card
 import SubmittedApplicationsCard from "./_sections/dashboard/stats-card/submitted-applications-card";
 import FlaggedCoursesCard from "./_sections/dashboard/stats-card/flagged-card";
 import DeadlineCard from "./_sections/dashboard/stats-card/deadline-card";
-import { api } from "@/trpc/server";
 
 export default async function Dashboard() {
 	const session = await getServerSession();
-
-	if (session?.user) {
-		void api.courses.getFlaggedList.prefetch();
-	}
 
 	return (
 		<div className="container flex flex-col gap-4">

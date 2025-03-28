@@ -1,14 +1,16 @@
 "use client";
 import { api } from "@/trpc/react";
 import StatsCard from ".";
-import { getFlaggedCoursesCount } from "@/lib/coursesUtils";
 
 export default function FlaggedCoursesCard() {
+	const [flaggedCoursesCount] = api.courses.getCourseCount.useSuspenseQuery({
+		filter: "FLAGGED",
+	});
 	return (
 		<StatsCard
 			title="Flagged Courses"
-			statClassName={getFlaggedCoursesCount() || 0 > 0 ? "text-red-500" : ""}
-			value={getFlaggedCoursesCount() || 0}
+			statClassName={flaggedCoursesCount || 0 > 0 ? "text-red-500" : ""}
+			value={flaggedCoursesCount || 0}
 		/>
 	);
 }

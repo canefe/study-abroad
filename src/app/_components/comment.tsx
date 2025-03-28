@@ -194,12 +194,12 @@ const Comment = ({
 							</p>
 						</div>
 					)}
-					<div
-						className="pl-10"
+					<p
+						className="w-full flex-grow break-words pl-10"
 						style={showSenderInfo ? { marginTop: "0.5rem" } : {}}
 					>
 						{message.content}
-					</div>
+					</p>
 				</div>
 				{((lastComment && replyTo == message.parentId) ||
 					(!lastComment &&

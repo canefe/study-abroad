@@ -1,3 +1,4 @@
+import { yearToString } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
@@ -26,6 +27,7 @@ export function useExportApplications() {
 				Student: app.user.name,
 				GUID: app.user.guid,
 				University: app.abroadUniversity.name,
+				Year: yearToString(app.year!),
 				Status: app.status,
 			};
 
@@ -36,8 +38,11 @@ export function useExportApplications() {
 		data.applications.forEach((app) => {
 			app.courseChoices.forEach((course, index) => {
 				courseChoicesData.push({
+					ApplicationID: app.id.toString(),
 					Student: app.user.name,
 					GUID: app.user.guid,
+					University: app.abroadUniversity.name,
+					Year: yearToString(app.year!),
 					HomeCourse: course.homeCourse?.name || "No course",
 					"1st Choice": course.primaryCourse?.name || "No choice",
 					"2nd Choice": course.alternativeCourse1?.name || "No choice",
@@ -46,8 +51,11 @@ export function useExportApplications() {
 			});
 			// Add gaps between each application
 			courseChoicesData.push({
+				ApplicationID: null,
 				Student: null,
 				GUID: null,
+				University: null,
+				Year: null,
 				HomeCourse: null,
 				"1st Choice": null,
 				"2nd Choice": null,
@@ -123,8 +131,10 @@ export function useExportApplications() {
 		const blob = new Blob([excelBuffer], {
 			type: "application/octet-stream",
 		});
+		const timestamp = new Date().toISOString().split("T")[0];
+		const fileName = `applications_${status || "ALL"}_${timestamp}.xlsx`;
 
-		saveAs(blob, `applications_${status}.xlsx`);
+		saveAs(blob, fileName);
 	};
 
 	return { exportApplications };

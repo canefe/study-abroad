@@ -15,46 +15,35 @@ datasource db {
     directUrl = env("DIRECT_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    createdBy   User   @relation(fields: [createdById], references: [id])
-    createdById String
-
-    @@index([name])
-}
-
-// Necessary for Next auth
-model Account {
-    id                       String  @id @default(cuid())
-    userId                   String
-    type                     String
-    provider                 String
-    providerAccountId        String
-    refresh_token            String? // @db.Text
-    access_token             String? // @db.Text
-    expires_at               Int?
-    token_type               String?
-    scope                    String?
-    id_token                 String? // @db.Text
-    session_state            String?
-    user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-    refresh_token_expires_in Int?
-
-    @@unique([provider, providerAccountId])
-}
-
-model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
+/**
+ * These models are not required since we use "JWT" strategy for NextAuth.js
+ * But in the future, to integrate University of Glasgow's SSO, we have to switch to "database" strategy.
+ * NextAuth.js supports Azure AD provider, which can be used to integrate with University of Glasgow's SSO.
+ * model Account {
+ * id                       String  @id @default(cuid())
+ * userId                   String
+ * type                     String
+ * provider                 String
+ * providerAccountId        String
+ * refresh_token            String? // @db.Text
+ * access_token             String? // @db.Text
+ * expires_at               Int?
+ * token_type               String?
+ * scope                    String?
+ * id_token                 String? // @db.Text
+ * session_state            String?
+ * user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+ * refresh_token_expires_in Int?
+ * @@unique([provider, providerAccountId])
+ * }
+ * model Session {
+ * id           String   @id @default(cuid())
+ * sessionToken String   @unique
+ * userId       String
+ * expires      DateTime
+ * user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+ * }
+ */
 enum Role {
     STUDENT
     ADMIN
@@ -68,23 +57,14 @@ model User {
     image             String?
     role              Role           @default(STUDENT)
     guid              String?        @unique
-    accounts          Account[]
-    sessions          Session[]
+    //accounts          Account[]
+    //sessions          Session[]
     applications      Application[]
-    posts             Post[]
     messages          Message[]
     mutedUsers        User[]         @relation("MutedUsers")
     mutedBy           User[]         @relation("MutedUsers")
     notifications     Notification[] @relation("UserRelation")
     sentNotifications Notification[] @relation("SenderRelation")
-}
-
-model VerificationToken {
-    identifier String
-    token      String   @unique
-    expires    DateTime
-
-    @@unique([identifier, token])
 }
 
 model University {
@@ -93,19 +73,20 @@ model University {
     location     String
     courses      Course[]
     applications Application[]
-    school       School[]
+    //school       School[]
 }
 
 // A model for University's Schools, every school will have its own courses and applications
-model School {
-    id           Int           @id @default(autoincrement())
-    name         String
-    universityId Int
-    university   University    @relation(fields: [universityId], references: [id])
-    courses      Course[]
-    applications Application[]
-}
-
+/**
+ * model School {
+ * id           Int           @id @default(autoincrement())
+ * name         String
+ * universityId Int
+ * university   University    @relation(fields: [universityId], references: [id])
+ * courses      Course[]
+ * applications Application[]
+ * }
+ */
 enum Year {
     // SECOND YEAR SINGLE COURSES
     SECOND_YEAR_SINGLE_FULL_YEAR
@@ -151,7 +132,7 @@ model Application {
     courseChoices      CourseChoice[]
     year               Year?
     schoolId           Int?
-    school             School?        @relation(fields: [schoolId], references: [id])
+    //school             School?        @relation(fields: [schoolId], references: [id])
     // If the student is on an alternate route
     alternateRoute     Boolean        @default(false)
     // Store a text note for optional courses
@@ -185,7 +166,7 @@ model Course {
     year                      Year[]
     link                      String?
     schoolId                  Int?
-    school                    School?        @relation(fields: [schoolId], references: [id])
+    //school                    School?        @relation(fields: [schoolId], references: [id])
     homeCourseChoices         CourseChoice[] @relation("HomeCourse")
     primaryCourseChoices      CourseChoice[] @relation("PrimaryCourse")
     alternativeCourse1Choices CourseChoice[] @relation("AlternativeCourse1")

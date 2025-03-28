@@ -1,5 +1,5 @@
-import "@/styles/globals.css";
 import "antd/dist/reset.css";
+import "@/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";

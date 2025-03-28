@@ -21,7 +21,6 @@ export const parseNotificationMessage = (n: Notification) => {
 	// n.message=NEW_MESSAGE_IN_APPLICATION_1 -> senderName sent a new message in application 1
 	// string into two halves, where end _[int] is seperated
 	const [type, id] = n.message.split(/_(?=\d+$)/);
-	console.log("notification", type, id);
 	const senderName = n.sender?.name || "Someone";
 
 	switch (type) {
@@ -38,7 +37,7 @@ export const parseNotificationMessage = (n: Notification) => {
 			return (
 				<>
 					<b>{senderName}</b> sent a new feedback in{" "}
-					<Link className="text-blue-500" href={`/dashboard/my-choices/${id}`}>
+					<Link className="text-blue-500" href={`/my-choices/${id}`}>
 						Application #{id}
 					</Link>
 				</>

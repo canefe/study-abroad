@@ -3,7 +3,7 @@ import { Button, Segmented } from "antd";
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import CreateCourseModal from "./_sections/create-course-modal";
-import CoursesList from "./unverified/_sections/UnverifiedCoursesList";
+import CoursesList from "./_sections/courses-list";
 
 export default function Courses() {
 	const [selected, setSelected] = useState("all");

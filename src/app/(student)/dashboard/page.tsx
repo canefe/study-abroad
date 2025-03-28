@@ -282,7 +282,7 @@ export default function Dashboard() {
 										render: (text, record) => (
 											<Tooltip title="View Course Matching">
 												<Link
-													href={"/dashboard/my-choices/" + record.id}
+													href={"/my-choices/" + record.id}
 													ref={ref2}
 													onClick={() => {
 														if (open) {

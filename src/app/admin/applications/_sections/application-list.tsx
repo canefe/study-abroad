@@ -125,14 +125,14 @@ export default function ApplicationList({
 				return (
 					<div className="flex items-center gap-1">
 						<Tooltip title="View">
-							<Button className="text-blue-500">
-								<Link
-									href={`/admin/applications/${record.id}`}
-									className="text-blue-500"
-								>
+							<Link
+								href={`/admin/applications/${record.id}`}
+								className="text-blue-500"
+							>
+								<Button className="text-blue-500">
 									<Eye size={16} />
-								</Link>
-							</Button>
+								</Button>
+							</Link>
 						</Tooltip>
 
 						<Tooltip title="Delete">

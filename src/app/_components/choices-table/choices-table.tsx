@@ -526,10 +526,13 @@ export default function ChoicesTable({
 						/>
 					</h2>
 					<Tooltip title="Start Tour">
-						<div onClick={() => setTourOpen(true)}>
+						<div
+							className="flex items-center justify-center"
+							onClick={() => setTourOpen(true)}
+						>
 							<MessageCircleQuestion
-								size={32}
-								className="cursor-pointer fill-blue-500 text-blue-200 hover:scale-110 hover:fill-blue-600 hover:text-blue-300"
+								size={24}
+								className="size-6 cursor-pointer fill-blue-500 text-blue-200 hover:scale-110 hover:fill-blue-600 hover:text-blue-300"
 							/>
 						</div>
 					</Tooltip>
@@ -632,7 +635,7 @@ export default function ChoicesTable({
 										href={
 											admin
 												? `/admin/applications/${applicationId}`
-												: `/dashboard/my-choices/${applicationId}`
+												: `/my-choices/${applicationId}`
 										}
 										className="underline"
 										target="_blank"
@@ -972,7 +975,7 @@ const ChoiceSlot = ({
 				<p
 					className={`min-w-32 text-wrap ${choice ? "font-regular" : "text-red-500"}`}
 				>
-					{shortenText(name, 15)}
+					{shortenText(name, 30)}
 					{isOver ? " (Drop here)" : ""}
 				</p>
 			</div>

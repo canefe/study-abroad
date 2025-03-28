@@ -2,7 +2,7 @@ import { api } from "@/trpc/react";
 
 // get all settings
 export const useGetSettingsQuery = () => {
-	return api.settings.getList.useQuery(undefined, {
+	return api.settings.getList.useSuspenseQuery(undefined, {
 		refetchInterval: 5000,
 	});
 };

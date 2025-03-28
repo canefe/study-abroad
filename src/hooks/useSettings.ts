@@ -4,7 +4,7 @@ import { api } from "@/trpc/react";
 
 export const useSettings = () => {
 	const utils = api.useUtils();
-	const { data: settings, isLoading } = useGetSettingsQuery();
+	const [settings] = useGetSettingsQuery();
 
 	const setSettingMutation = useSetSettingMutation();
 
@@ -22,7 +22,6 @@ export const useSettings = () => {
 
 	return {
 		settings,
-		isLoading,
 		getSetting,
 		setSetting,
 		setSettingMutation,

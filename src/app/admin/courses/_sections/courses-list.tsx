@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { title } from "process";
 import { useState } from "react";
-import EditCourseModal from "../../_sections/edit-course-modal";
+import EditCourseModal from "./edit-course-modal";
 
 type ListProps = {
 	filter?: [key: string, value: string];

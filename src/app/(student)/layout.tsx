@@ -1,13 +1,11 @@
-import { SidebarProvider } from "@/components/ui/sidebar";
-import Header from "@/app/_components/header/header";
-import AppSidebar from "@/app/_components/sidebar";
+import "@/styles/globals.css";
 import { getServerAuthSession } from "@/server/auth";
 import { redirect } from "next/navigation";
 import { Toaster } from "react-hot-toast";
 import { api, HydrateClient } from "@/trpc/server";
 import SharedLayout from "../_components/shared-layout";
 
-export default async function DashboardLayout({
+export default async function StudentLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
 	const session = await getServerAuthSession();
@@ -22,6 +20,7 @@ export default async function DashboardLayout({
 	}
 
 	if (session?.user) {
+		void api.settings.getList.prefetch();
 		void api.notifications.getList.prefetch();
 		void api.applications.getList.prefetch();
 		void api.universities.getList.prefetch();

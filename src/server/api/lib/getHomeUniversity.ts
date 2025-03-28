@@ -9,7 +9,12 @@ export async function getHomeUniversity(db: PrismaClient) {
 	if (!setting) {
 		// create the setting, set to the first university available if any.
 		const university = await db.university.findFirst({
-			select: { id: true },
+			where: {
+				name: "University of Glasgow",
+			},
+			select: {
+				id: true,
+			},
 		});
 
 		if (!university) {

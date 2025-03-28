@@ -1,4 +1,7 @@
-import { FlaggedCoursesCount } from "@/app/_components/sidebar/courses-count";
+"use client";
+import { SubmittedApplicationsCount } from "@/app/_components/sidebar/applications-count";
+import { FlaggedCoursesCount } from "@/app/_components/sidebar/flagged-courses-count";
+import SubmittedApplicationsCard from "@/app/admin/dashboard/_sections/dashboard/stats-card/submitted-applications-card";
 import { Tag } from "antd";
 import {
 	Book,
@@ -12,8 +15,9 @@ import {
 	User,
 	Verified,
 } from "lucide-react";
+import { Session } from "next-auth";
 
-export default function useNavData(session: any) {
+export default function useNavData(session: Session) {
 	const items = [
 		/* 
       ADMIN MENU ITEMS START
@@ -24,6 +28,14 @@ export default function useNavData(session: any) {
 			icon: Home,
 			role: "admin",
 			category: "Main",
+		},
+		{
+			title: "Applications",
+			url: "/admin/applications",
+			icon: Paperclip,
+			role: "admin",
+			category: "General",
+			suffix: <SubmittedApplicationsCount />,
 		},
 		{
 			title: "Students",
@@ -40,13 +52,6 @@ export default function useNavData(session: any) {
 			role: "admin",
 			category: "General",
 		},
-		{
-			title: "Applications",
-			url: "/admin/applications",
-			icon: Paperclip,
-			role: "admin",
-			category: "General",
-		},
 		/* 
             Courses
         */
@@ -56,11 +61,7 @@ export default function useNavData(session: any) {
 			icon: Book,
 			role: "admin",
 			category: "Courses",
-			suffix: (
-				<Tag color="red" className="rounded-full">
-					<FlaggedCoursesCount />
-				</Tag>
-			),
+			suffix: <FlaggedCoursesCount />,
 		},
 		{
 			title: "Settings",
