@@ -1,3 +1,5 @@
+import "dotenv/config"; // loads .env into process.env
+
 /*
 This file seeds the database with current School of Computing Science study abroad requirements such as:
 * Dynamic Year Requirements

@@ -1,9 +1,13 @@
 import { TRPCError } from "@trpc/server";
 import { Status, Year } from "@prisma/client";
+import { type createTRPCContext } from "@/server/api/trpc";
+
+// Use modern TypeScript syntax instead of the deprecated inferAsyncReturnType
+type Context = Awaited<ReturnType<typeof createTRPCContext>>;
 
 export const applicationService = {
 	createApplication: async (
-		ctx: any,
+		ctx: Context,
 		userId: string,
 		abroadUniversityId: number,
 		year: Year,
@@ -19,7 +23,7 @@ export const applicationService = {
 	},
 
 	addCourseChoices: async (
-		ctx: any,
+		ctx: Context,
 		applicationId: number,
 		courses: Array<{ id: number }>,
 	) => {
@@ -37,7 +41,7 @@ export const applicationService = {
 	},
 
 	applyRequirements: async (
-		ctx: any,
+		ctx: Context,
 		{
 			applicationId,
 			alternateRoute,
@@ -121,7 +125,7 @@ export const applicationService = {
 		}
 	},
 
-	deleteApplication: async (ctx: any, applicationId: number) => {
+	deleteApplication: async (ctx: Context, applicationId: number) => {
 		// remove course choices
 		await ctx.db.courseChoice.deleteMany({
 			where: {
