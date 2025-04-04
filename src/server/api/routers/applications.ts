@@ -358,6 +358,14 @@ export const applicationsRouter = createTRPCRouter({
 					abroadUniversity: true,
 				},
 			});
+
+			if (!application) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Application not found",
+				});
+			}
+
 			return application;
 		}),
 	getAdmin: adminProcedure
