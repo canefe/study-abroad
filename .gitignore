@@ -45,10 +45,10 @@ yarn-error.log*
 # idea files
 .idea
 
-# These are temporary dissertation files
-*.png
+#! These are temporary evaluation files
 *.py
 *.xlsx
 cseed.js
 export.js
 clone.js
+
