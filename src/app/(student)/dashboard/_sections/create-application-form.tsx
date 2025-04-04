@@ -30,6 +30,10 @@ export default function CreateApplicationForm({
 	const selectedYear = useWatch("year", form);
 
 	const onFinish = async (values: z.infer<typeof createApplicationSchema>) => {
+		// if additionalCourse does not exist, set it to null
+		if (!values.additionalCourse) {
+			values.additionalCourse = null;
+		}
 		// Validate form values with Zod.
 		const result = createApplicationSchema.safeParse(values);
 		if (!result.success) {
@@ -42,7 +46,7 @@ export default function CreateApplicationForm({
 					}),
 				),
 			);
-			toast.error("Please fill all required fields");
+			toast.error("Please fill in all required fields correctly.");
 			return;
 		}
 		// Call the create application function with form values.
@@ -61,6 +65,7 @@ export default function CreateApplicationForm({
 			layout="vertical"
 			initialValues={{
 				alternateRoute: false,
+				additionalCourse: null,
 			}}
 			className="w-full"
 		>
