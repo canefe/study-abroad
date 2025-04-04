@@ -1,6 +1,5 @@
 "use client";
 
-import { useGetAbroadCoursesQuery } from "@/app/api/queries/application";
 import { useCourses } from "@/hooks/useCourses";
 import { useSettings } from "@/hooks/useSettings";
 import { yearToString } from "@/lib/utils";
@@ -28,11 +27,10 @@ export default function HomeUniversitySettings() {
 		(uni) => uni.id.toString() === setting?.value,
 	);
 
-	const { addCourseWithYear, deleteCourse, setYearOfCourse } = useCourses();
+	const { addCourseWithYear, deleteCourse, setYearOfCourse, getHomeCourses } =
+		useCourses();
 
-	const { data: courses, isLoading } = useGetAbroadCoursesQuery(
-		parseInt(setting?.value as string) || 0,
-	);
+	const { data: courses, isLoading } = getHomeCourses({});
 
 	// Function to add a course
 	function addCourse(year: Year) {

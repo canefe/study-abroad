@@ -36,18 +36,21 @@ export function useExportApplications() {
 
 		const courseChoicesData: Record<string, string | null>[] = [];
 		data.applications.forEach((app) => {
+			let first = false;
+			const last = false;
 			app.courseChoices.forEach((course, index) => {
 				courseChoicesData.push({
-					ApplicationID: app.id.toString(),
-					Student: app.user.name,
-					GUID: app.user.guid,
-					University: app.abroadUniversity.name,
-					Year: yearToString(app.year!),
+					ApplicationID: !first || last ? app.id.toString() : "",
+					Student: !first || last ? app.user.name : null,
+					GUID: !first || last ? app.user.guid : null,
+					University: !first || last ? app.abroadUniversity.name : null,
+					Year: !first || last ? yearToString(app.year!) : null,
 					HomeCourse: course.homeCourse?.name || "No course",
 					"1st Choice": course.primaryCourse?.name || "No choice",
 					"2nd Choice": course.alternativeCourse1?.name || "No choice",
 					"3rd Choice": course.alternativeCourse2?.name || "No choice",
 				});
+				first = true;
 			});
 			// Add gaps between each application
 			courseChoicesData.push({

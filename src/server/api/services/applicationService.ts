@@ -36,49 +36,91 @@ export const applicationService = {
 		);
 	},
 
-	addAlternateRouteCourse: async (ctx: any, applicationId: number) => {
-		const cs1fCourse = await ctx.db.course.findFirst({
-			where: {
-				name: "CS1F",
-			},
+	applyRequirements: async (
+		ctx: any,
+		{
+			applicationId,
+			alternateRoute,
+			additionalCourse,
+		}: {
+			applicationId: number;
+			alternateRoute: boolean;
+			additionalCourse?: string;
+		},
+	) => {
+		// Retrieve the application to obtain its year.
+		const application = await ctx.db.application.findUnique({
+			where: { id: applicationId },
 		});
-		if (!cs1fCourse) {
+		if (!application) {
 			throw new TRPCError({
 				code: "NOT_FOUND",
-				message: "CS1F course not found",
+				message: "Application not found",
 			});
 		}
-		await ctx.db.courseChoice.create({
-			data: {
-				homeCourseId: cs1fCourse.id,
-				applicationId,
-			},
+		const year: string = application.year; // assuming year stored as string (matching enum)
+
+		// Retrieve the year_requirements setting.
+		const settingRecord = await ctx.db.setting.findUnique({
+			where: { key: "year_requirements" },
 		});
+		if (!settingRecord) {
+			throw new TRPCError({
+				code: "INTERNAL_SERVER_ERROR",
+				message: "Year requirements setting not found",
+			});
+		}
+		const yearReqConfig = JSON.parse(settingRecord.value);
+		const yearConfig = yearReqConfig[year];
+		if (!yearConfig) {
+			throw new TRPCError({
+				code: "BAD_REQUEST",
+				message: `No configuration found for year ${year}`,
+			});
+		}
+
+		// Process alternate route: add course choices for each course in alternateCourses.
+		if (
+			alternateRoute &&
+			yearConfig.alternateCourses &&
+			Array.isArray(yearConfig.alternateCourses)
+		) {
+			for (const courseCode of yearConfig.alternateCourses) {
+				const course = await ctx.db.course.findUnique({
+					where: { name: courseCode },
+				});
+				if (course) {
+					await ctx.db.courseChoice.create({
+						data: {
+							homeCourseId: course.id,
+							applicationId,
+						},
+					});
+				}
+			}
+		}
+
+		// Process additional course: look it up by name and add if provided.
+		if (additionalCourse) {
+			const course = await ctx.db.course.findUnique({
+				where: { name: additionalCourse },
+			});
+			if (course) {
+				await ctx.db.courseChoice.create({
+					data: {
+						homeCourseId: course.id,
+						applicationId,
+					},
+				});
+			} else {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: `Additional course "${additionalCourse}" not found`,
+				});
+			}
+		}
 	},
 
-	addAdditionalCourse: async (
-		ctx: any,
-		applicationId: number,
-		courseName: string,
-	) => {
-		const additionalCourse = await ctx.db.course.findFirst({
-			where: {
-				name: courseName,
-			},
-		});
-		if (!additionalCourse) {
-			throw new TRPCError({
-				code: "NOT_FOUND",
-				message: "Additional course not found",
-			});
-		}
-		await ctx.db.courseChoice.create({
-			data: {
-				homeCourseId: additionalCourse.id,
-				applicationId,
-			},
-		});
-	},
 	deleteApplication: async (ctx: any, applicationId: number) => {
 		// remove course choices
 		await ctx.db.courseChoice.deleteMany({

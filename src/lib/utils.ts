@@ -55,3 +55,12 @@ export function useCombinedRefs(...refs) {
 		});
 	}, refs);
 }
+
+// Link Correctifier if starting with www. -> add https://
+export const correctLink = (link: string | undefined) => {
+	if (!link) return undefined;
+	if (link.startsWith("www.")) {
+		return `https://${link}`;
+	}
+	return link;
+};

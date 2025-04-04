@@ -13,9 +13,15 @@ export const useCourses = () => {
 	const deleteCourse = useDeleteCourseMutation();
 	const setYearOfCourse = useSetYearOfCourseMutation();
 	const editCourse = useEditCourseMutation();
+	// New mutations for verification and flagging
+	const verifyCourseMutation = api.courses.verifyCourse.useMutation();
+	const unverifyCourseMutation = api.courses.unverifyCourse.useMutation();
+	const unflagCourseMutation = api.courses.unflagCourse.useMutation();
+
 	const utils = api.useUtils();
 
 	return {
+		getHomeCourses: api.courses.getHomeCourses.useQuery,
 		addCourseWithYear: async (
 			name: string,
 			universityId: number,
@@ -44,6 +50,7 @@ export const useCourses = () => {
 				success: "Course deleted successfully",
 				error: "Failed to delete course",
 			});
+			utils.courses.invalidate();
 		},
 		setYearOfCourse: async (
 			courseId: number,
@@ -80,65 +87,32 @@ export const useCourses = () => {
 				},
 			);
 		},
+		verifyCourse: async (courseId: number) => {
+			await toast.promise(verifyCourseMutation.mutateAsync({ id: courseId }), {
+				loading: "Verifying course...",
+				success: "Course verified successfully",
+				error: "Failed to verify course",
+			});
+			utils.courses.invalidate();
+		},
+		unverifyCourse: async (courseId: number) => {
+			await toast.promise(
+				unverifyCourseMutation.mutateAsync({ id: courseId }),
+				{
+					loading: "Unverifying course...",
+					success: "Course unverified successfully",
+					error: "Failed to unverify course",
+				},
+			);
+			utils.courses.invalidate();
+		},
+		unflagCourse: async (courseId: number) => {
+			await toast.promise(unflagCourseMutation.mutateAsync({ id: courseId }), {
+				loading: "Unflagging course...",
+				success: "Course unflagged successfully",
+				error: "Failed to unflag course",
+			});
+			utils.courses.invalidate();
+		},
 	};
-};
-
-export const useVerifyCourse = () => {
-	const verifyCourseApi = api.courses.verifyCourse.useMutation();
-	const utils = api.useUtils();
-	const verifyCourse = async (courseId: number) => {
-		await toast.promise(verifyCourseApi.mutateAsync({ id: courseId }), {
-			loading: "Verifying course...",
-			success: "Course verified successfully",
-			error: "Failed to verify course",
-		});
-		utils.courses.invalidate();
-	};
-
-	return { verifyCourse, isLoading: utils.courses.verifyCourse.isMutating };
-};
-
-export const useUnverifyCourse = () => {
-	const unverifyCourseApi = api.courses.unverifyCourse.useMutation();
-	const utils = api.useUtils();
-	const unverifyCourse = async (courseId: number) => {
-		await toast.promise(unverifyCourseApi.mutateAsync({ id: courseId }), {
-			loading: "Unverifying course...",
-			success: "Course unverified successfully",
-			error: "Failed to unverify course",
-		});
-		utils.courses.invalidate();
-	};
-
-	return { unverifyCourse, isLoading: utils.courses.unverifyCourse.isMutating };
-};
-
-export const useUnflagCourse = () => {
-	const unflagCourseApi = api.courses.unflagCourse.useMutation();
-	const utils = api.useUtils();
-	const unflagCourse = async (courseId: number) => {
-		await toast.promise(unflagCourseApi.mutateAsync({ id: courseId }), {
-			loading: "Unflagging course...",
-			success: "Course unflagged successfully",
-			error: "Failed to unflag course",
-		});
-		utils.courses.invalidate();
-	};
-
-	return { unflagCourse, isLoading: utils.courses.unflagCourse.isMutating };
-};
-
-export const useDeleteCourse = () => {
-	const deleteCourseApi = api.courses.deleteCourse.useMutation();
-	const utils = api.useUtils();
-	const deleteCourse = async (courseId: number) => {
-		await toast.promise(deleteCourseApi.mutateAsync({ id: courseId }), {
-			loading: "Deleting course...",
-			success: "Course deleted successfully",
-			error: "Failed to delete course",
-		});
-		utils.courses.invalidate();
-	};
-
-	return { deleteCourse, isLoading: utils.courses.deleteCourse.isMutating };
 };

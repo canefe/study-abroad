@@ -1,9 +1,7 @@
-import { postRouter } from "@/server/api/routers/post";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { studentsRouter } from "./routers/students";
 import { coursesRouter } from "./routers/courses";
 import { universitiesRouter } from "./routers/universities";
-import { choicesRouter } from "./routers/choices";
 import { applicationsRouter } from "./routers/applications";
 import { notificationsRouter } from "./routers/notifications";
 import { commentsRouter } from "./routers/comment";
@@ -15,11 +13,9 @@ import { settingsRouter } from "./routers/settings";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-	post: postRouter,
 	students: studentsRouter,
 	courses: coursesRouter,
 	universities: universitiesRouter,
-	choices: choicesRouter,
 	applications: applicationsRouter,
 	notifications: notificationsRouter,
 	comments: commentsRouter,

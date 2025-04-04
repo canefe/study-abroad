@@ -14,3 +14,19 @@ export const generateRandomColor = (sender: string, timestamp: string) => {
 	const hash = generateHash(`${sender}-${timestamp}`);
 	return hashToColor(hash);
 };
+
+// Application status color mapping
+export const statusColor = (status: string) => {
+	switch (status) {
+		case "SUBMITTED":
+			return "#3182ce";
+		case "DRAFT":
+			return "#7f8c8d";
+		case "REVISE":
+			return "red";
+		case "APPROVED":
+			return "green";
+		default:
+			return "red";
+	}
+};

@@ -49,3 +49,6 @@ yarn-error.log*
 *.png
 *.py
 *.xlsx
+cseed.js
+export.js
+clone.js

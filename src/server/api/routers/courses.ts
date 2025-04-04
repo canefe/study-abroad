@@ -7,39 +7,50 @@ import {
 	publicProcedure,
 } from "@/server/api/trpc";
 import { Year } from "@prisma/client";
+import { getHomeCourses } from "../lib/getHomeCourses";
 
 export const coursesRouter = createTRPCRouter({
 	getAll: adminProcedure
 		.input(
 			z.object({
-				q: z.string().optional(),
+				filter: z.object({
+					q: z.string().optional(),
+					universities: z.array(z.number()).optional(),
+					verified: z.boolean().optional(),
+					flagged: z.boolean().optional(),
+				}),
 				page: z.number().default(1),
 				pageSize: z.number().default(10),
-				verified: z.boolean().optional(),
-				flagged: z.boolean().optional(),
 			}),
 		)
 		.query(async ({ input, ctx }) => {
-			const { q, page, pageSize, verified, flagged } = input;
+			const { page, pageSize } = input;
+			const { filter } = input;
 			const skip = (page - 1) * pageSize;
 
 			// Construct the where clause
 			const whereClause: any = {
-				...(q && {
+				...(filter.q && {
 					name: {
-						contains: q,
+						contains: filter.q,
 						mode: "insensitive",
 					},
 				}),
 			};
 
 			// Conditionally add the status filter
-			if (verified !== undefined) {
-				whereClause.verified = verified;
+			if (filter.verified !== undefined) {
+				whereClause.verified = filter.verified;
 			}
 
-			if (flagged !== undefined) {
-				whereClause.flagged = flagged;
+			if (filter.flagged !== undefined) {
+				whereClause.flagged = filter.flagged;
+			}
+
+			if (filter.universities && filter.universities.length > 0) {
+				whereClause.universityId = {
+					in: filter.universities.map((u) => u),
+				};
 			}
 
 			const courses = await ctx.db.course.findMany({
@@ -91,6 +102,22 @@ export const coursesRouter = createTRPCRouter({
 			return course;
 		}),
 
+	getHomeCourses: protectedProcedure
+		.input(
+			z
+				.object({
+					year: z
+						.enum([...Object.values(Year)] as [string, ...string[]])
+						.optional(),
+				})
+				.optional(),
+		)
+		.query(async ({ input, ctx }) => {
+			// get home university
+			const homeCourses = await getHomeCourses(ctx.db, input?.year as Year);
+			return homeCourses;
+		}),
+
 	// input: the abroad university id, name of the course creates an abroad course
 	addCourse: protectedProcedure
 		.input(
@@ -98,6 +125,7 @@ export const coursesRouter = createTRPCRouter({
 				name: z.string(),
 				abroadUniversityId: z.number(),
 				link: z.string().optional(),
+				description: z.string().optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -108,6 +136,7 @@ export const coursesRouter = createTRPCRouter({
 					createdAt: new Date(),
 					createdBy: ctx.session?.user.guid || ctx.session?.user.name,
 					link: input.link,
+					description: input.description,
 				},
 			});
 			return course;
@@ -310,11 +339,11 @@ export const coursesRouter = createTRPCRouter({
 		.query(async ({ input, ctx }) => {
 			const whereClause: any = {};
 
-			if (input.filter === "FLAGGED") {
+			if (input?.filter === "FLAGGED") {
 				whereClause.flagged = true;
-			} else if (input.filter === "VERIFIED") {
+			} else if (input?.filter === "VERIFIED") {
 				whereClause.verified = true;
-			} else if (input.filter === "UNVERIFIED") {
+			} else if (input?.filter === "UNVERIFIED") {
 				whereClause.verified = false;
 			}
 

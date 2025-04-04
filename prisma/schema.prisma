@@ -17,7 +17,7 @@ datasource db {
 
 /**
  * These models are not required since we use "JWT" strategy for NextAuth.js
- * But in the future, to integrate University of Glasgow's SSO, we have to switch to "database" strategy.
+ * But in the future, to integrate University of Glasgow's SSO, we might have to switch to "database" strategy.
  * NextAuth.js supports Azure AD provider, which can be used to integrate with University of Glasgow's SSO.
  * model Account {
  * id                       String  @id @default(cuid())
@@ -53,10 +53,9 @@ model User {
     id                String         @id @default(cuid())
     name              String?
     email             String?        @unique
-    emailVerified     DateTime?
-    image             String?
     role              Role           @default(STUDENT)
     guid              String?        @unique
+    // Sessions and Accounts are not required since we use JWT strategy for NextAuth.js
     //accounts          Account[]
     //sessions          Session[]
     applications      Application[]
@@ -73,20 +72,8 @@ model University {
     location     String
     courses      Course[]
     applications Application[]
-    //school       School[]
 }
 
-// A model for University's Schools, every school will have its own courses and applications
-/**
- * model School {
- * id           Int           @id @default(autoincrement())
- * name         String
- * universityId Int
- * university   University    @relation(fields: [universityId], references: [id])
- * courses      Course[]
- * applications Application[]
- * }
- */
 enum Year {
     // SECOND YEAR SINGLE COURSES
     SECOND_YEAR_SINGLE_FULL_YEAR
@@ -96,7 +83,6 @@ enum Year {
     SECOND_YEAR_JOINT_FULL_YEAR
     SECOND_YEAR_JOINT_FIRST_SEMESTER
     SECOND_YEAR_JOINT_SECOND_SEMESTER
-
     // THIRD YEAR
     THIRD_YEAR_SINGLE_FULL_YEAR
     THIRD_YEAR_JOINT_FULL_YEAR
@@ -130,9 +116,7 @@ model Application {
     status             Status
     messages           Message[]
     courseChoices      CourseChoice[]
-    year               Year?
-    schoolId           Int?
-    //school             School?        @relation(fields: [schoolId], references: [id])
+    year               Year
     // If the student is on an alternate route
     alternateRoute     Boolean        @default(false)
     // Store a text note for optional courses
@@ -157,6 +141,7 @@ model Message {
 model Course {
     id                        Int            @id @default(autoincrement())
     name                      String         @unique
+    description               String?
     universityId              Int
     university                University     @relation(fields: [universityId], references: [id])
     flagged                   Boolean        @default(false) // Flagged courses are courses that need to be reviewed by an admin
@@ -165,8 +150,6 @@ model Course {
     verified                  Boolean        @default(false) // Verified courses are courses that have been reviewed by an admin
     year                      Year[]
     link                      String?
-    schoolId                  Int?
-    //school                    School?        @relation(fields: [schoolId], references: [id])
     homeCourseChoices         CourseChoice[] @relation("HomeCourse")
     primaryCourseChoices      CourseChoice[] @relation("PrimaryCourse")
     alternativeCourse1Choices CourseChoice[] @relation("AlternativeCourse1")

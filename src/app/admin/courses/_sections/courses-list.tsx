@@ -1,15 +1,17 @@
 "use client";
 import VerifiedBadge from "@/app/_components/choices-table/verified-badge";
-import {
-	useDeleteCourse,
-	useUnflagCourse,
-	useUnverifyCourse,
-} from "@/hooks/useCourses";
-import { useVerifyCourse } from "@/hooks/useCourses";
 import { yearToString } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { Year } from "@prisma/client";
-import { AutoComplete, Button, Table, Tag, Tooltip } from "antd";
+import {
+	AutoComplete,
+	Button,
+	Popconfirm,
+	Select,
+	Table,
+	Tag,
+	Tooltip,
+} from "antd";
 import {
 	Flag,
 	FlagOffIcon,
@@ -22,6 +24,8 @@ import {
 import { title } from "process";
 import { useState } from "react";
 import EditCourseModal from "./edit-course-modal";
+import { useCourses } from "@/hooks/useCourses";
+import { debounce } from "lodash";
 
 type ListProps = {
 	filter?: [key: string, value: string];
@@ -29,23 +33,37 @@ type ListProps = {
 type CourseStatus = "flagged" | "verified";
 
 export default function CoursesList({ filter }: ListProps) {
+	const [universities] = api.universities.getList.useSuspenseQuery();
+
 	const [editCourse, setEditCourse] = useState(false);
 	const [course, setCourse] = useState<any>();
 	const [search, setSearch] = useState("");
+	const [universityFilter, setUniversityFilter] = useState<number[]>([]);
 	const [page, setPage] = useState(1);
 	const utils = api.useUtils();
 	const { data: courses } = api.courses.getAll.useQuery({
-		q: search,
+		filter: {
+			q: search,
+			universities: universityFilter,
+			flagged: filter?.[0] === "flagged" ? filter[1] === "true" : undefined,
+			verified: filter?.[0] === "verified" ? filter[1] === "true" : undefined,
+		},
 		page: page,
 		pageSize: 10,
-		flagged: filter?.[0] === "flagged" ? filter[1] === "true" : undefined,
-		verified: filter?.[0] === "verified" ? filter[1] === "true" : undefined,
 	});
 
-	const { verifyCourse, isLoading } = useVerifyCourse();
-	const { deleteCourse } = useDeleteCourse();
-	const { unverifyCourse } = useUnverifyCourse();
-	const { unflagCourse } = useUnflagCourse();
+	const handleSearch = debounce((value: string) => {
+		setSearch(value);
+		setPage(1);
+	}, 500);
+
+	const handleUniversityFilter = debounce((value: number[]) => {
+		setUniversityFilter(value);
+		setPage(1);
+	}, 500);
+
+	const { verifyCourse, deleteCourse, unverifyCourse, unflagCourse } =
+		useCourses();
 
 	const handleVerify = async (courseId: number) => {
 		await verifyCourse(courseId);
@@ -165,12 +183,18 @@ export default function CoursesList({ filter }: ListProps) {
 			render: (_, record) => (
 				<div className="flex gap-2">
 					<Tooltip title="Delete">
-						<Button
-							className="text-red-500"
-							onClick={() => handleDelete(record.id)}
+						<Popconfirm
+							title="Are you sure to delete this course?"
+							onConfirm={() => handleDelete(record.id)}
+							okText="Yes"
+							cancelText="No"
+							placement="top"
+							className="w-fit"
 						>
-							<Trash size={16} />
-						</Button>
+							<Button className="text-red-500">
+								<Trash size={16} />
+							</Button>
+						</Popconfirm>
 					</Tooltip>
 					{!record.verified ? (
 						<Tooltip title="Verify">
@@ -241,14 +265,34 @@ export default function CoursesList({ filter }: ListProps) {
 						value: course.name,
 						label: course.name,
 					}))}
-					onSearch={setSearch}
-					onSelect={setSearch}
+					onSearch={handleSearch}
+					onSelect={handleSearch}
 					placeholder="Search for a course by its name"
 					className="w-full"
 				/>
+				{/* University Filter */}
+				<Select
+					showSearch
+					mode="multiple"
+					maxTagCount={"responsive"}
+					placeholder="Select a university"
+					filterOption={(input, option) =>
+						String(option?.value ?? "")
+							.toLowerCase()
+							.includes(input.toLowerCase())
+					}
+					style={{ width: 300 }}
+					onChange={handleUniversityFilter}
+					options={universities?.map((university) => ({
+						label: university.name,
+						value: university.id,
+					}))}
+					className="w-1/3"
+				></Select>
 			</div>
 			<Table
 				dataSource={courses?.courses}
+				className="mt-2"
 				columns={columns}
 				size="small"
 				rowKey="id"

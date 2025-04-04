@@ -3,11 +3,12 @@ import {
 	useCreateApplicationMutation,
 	useFlagCourseMutation,
 	useRemoveApplicationMutation,
-	useSaveChoicesMutation,
 	useSubmitApplicationMutation,
 	useWithdrawApplicationMutation,
-	useSaveChoicesAdminMutation,
 	useAdminCreateApplicationMutation,
+	useUpdateCourseChoicesMutation,
+	useAskForReviseApplicationMutation,
+	useApproveApplicationMutation,
 } from "@/app/api/mutations/application";
 import {
 	useGetAbroadCoursesQuery,
@@ -15,7 +16,7 @@ import {
 	useGetApplicationQuery,
 } from "@/app/api/queries/application";
 import { api } from "@/trpc/react";
-import { Year } from "@prisma/client";
+import { Prisma, Year } from "@prisma/client";
 import toast from "react-hot-toast";
 
 type useApplicationProps = {
@@ -23,17 +24,32 @@ type useApplicationProps = {
 	admin?: boolean;
 };
 
+export type ApplicationWithChoices = Prisma.ApplicationGetPayload<{
+	include: {
+		courseChoices: {
+			include: {
+				homeCourse: true;
+				primaryCourse: true;
+				alternativeCourse1: true;
+				alternativeCourse2: true;
+			};
+		};
+		abroadUniversity: true;
+		user: true;
+	};
+}>;
+
 export const useApplication = ({
 	applicationId,
 	admin,
 }: useApplicationProps) => {
 	const utils = api.useUtils();
 
-	let application;
-	let isLoading;
-	let isFetching;
-	let abroadCourses;
-	let isLoadingAbroadCourses;
+	let application: ApplicationWithChoices | null | undefined;
+	let isFetching = false;
+	let isLoading = false;
+	let abroadCourses: any = undefined;
+	let isLoadingAbroadCourses = false;
 
 	if (applicationId) {
 		({
@@ -54,11 +70,11 @@ export const useApplication = ({
 	const withdrawApplicationMutation = useWithdrawApplicationMutation();
 	const addCourseMutation = useAddNewCourseMutation();
 	const flagCourseMutation = useFlagCourseMutation();
-	const saveChoicesMutation = admin
-		? useSaveChoicesAdminMutation()
-		: useSaveChoicesMutation();
+	const updateCourseChoicesMutation = useUpdateCourseChoicesMutation();
 
 	const adminCreateApplicationMutation = useAdminCreateApplicationMutation();
+	const approveApplicationMutation = useApproveApplicationMutation();
+	const askForReviseApplicationMutation = useAskForReviseApplicationMutation();
 
 	const createApplication = async (
 		abroadUniversityId: number,
@@ -75,7 +91,11 @@ export const useApplication = ({
 	};
 
 	const removeApplication = (applicationId: number) => {
-		removeApplicationMutation.mutate({ applicationId });
+		toast.promise(removeApplicationMutation.mutateAsync({ applicationId }), {
+			loading: "Removing application...",
+			success: "Application removed successfully",
+			error: "Failed to remove application",
+		});
 	};
 
 	const submitApplication = (applicationId: number) => {
@@ -100,17 +120,24 @@ export const useApplication = ({
 		);
 	};
 
-	const addCourse = (
-		name: string,
-		abroadUniversityId: number,
-		link: string,
-	) => {
-		addCourseMutation.mutate(
-			{ name, abroadUniversityId, link },
+	const approveApplication = async (applicationId: number) => {
+		await toast.promise(
+			approveApplicationMutation.mutateAsync({ applicationId }),
 			{
-				onSuccess: () => {
-					utils.courses.invalidate();
-				},
+				loading: "Approving application...",
+				success: "Application approved successfully",
+				error: "Failed to approve application",
+			},
+		);
+	};
+
+	const askForReviseApplication = async (applicationId: number) => {
+		await toast.promise(
+			askForReviseApplicationMutation.mutateAsync({ applicationId }),
+			{
+				loading: "Asking for revision...",
+				success: "Application revision requested successfully",
+				error: "Failed to request application revision",
 			},
 		);
 	};
@@ -150,8 +177,31 @@ export const useApplication = ({
 		);
 	};
 
+	// add couse to abroad courses
+	const addCourse = async (
+		name: string,
+		abroadUniversityId: number,
+		link?: string,
+		description?: string,
+	) => {
+		await toast.promise(
+			addCourseMutation.mutateAsync({
+				name,
+				abroadUniversityId,
+				link,
+				description,
+			}),
+			{
+				loading: "Adding course...",
+				success: "Course added successfully",
+				error: "Failed to add course",
+			},
+		);
+	};
+
 	return {
 		createApplication,
+		createApplicationMutation,
 		removeApplication,
 		removeApplicationMutation,
 		application,
@@ -160,12 +210,16 @@ export const useApplication = ({
 		submitApplication,
 		withdrawApplication,
 		withdrawApplicationMutation,
+		approveApplication,
+		askForReviseApplication,
 		abroadCourses,
 		isLoadingAbroadCourses,
 		addCourse,
 		flagCourse,
-		saveChoices: saveChoicesMutation.mutate,
-		saveChoicesMutation,
+		updateCourseChoices: updateCourseChoicesMutation.mutateAsync,
+		updateCourseChoicesMutation,
 		createApplicationAdmin,
+		isPendingCreateAdmin: adminCreateApplicationMutation.isPending,
+		isPendingCreate: createApplicationMutation.isPending,
 	};
 };

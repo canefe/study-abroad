@@ -2,6 +2,7 @@
 import { useApplication } from "@/hooks/useApplication";
 import { useSettings } from "@/hooks/useSettings";
 import { parseNotificationMessage } from "@/lib/notificationUtils";
+import { statusColor } from "@/lib/randomUtils";
 import { shortenText } from "@/lib/textUtils";
 import { yearToString } from "@/lib/utils";
 import { api } from "@/trpc/react";
@@ -19,10 +20,11 @@ import {
 	TourProps,
 } from "antd";
 import dayjs from "dayjs";
-import { MessageCircleQuestion } from "lucide-react";
+import { MessageCircleQuestion, Trash } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
+import CreateApplicationForm from "./_sections/create-application-form";
 
 export default function Dashboard() {
 	const [applications] = api.applications.getList.useSuspenseQuery();
@@ -30,13 +32,6 @@ export default function Dashboard() {
 	const [notifications] = api.notifications.getList.useSuspenseQuery(void 0, {
 		refetchInterval: 5000,
 	});
-	const [selectedUni, setSelectedUni] = useState("");
-	const [selectedYear, setSelectedYear] = useState<Year>(
-		"SECOND_YEAR_SINGLE_FULL_YEAR",
-	);
-	const [alternateRoute, setAlternateRoute] = useState(false);
-	const [selectedAdditionalCourse, setSelectedAdditionalCourse] = useState("");
-	const [acknowledged, setAcknowledged] = useState(false);
 
 	// Tour
 	const ref1 = useRef(null);
@@ -47,16 +42,20 @@ export default function Dashboard() {
 
 	const [open, setOpen] = useState<boolean>(false);
 
-	const { createApplication, removeApplication, removeApplicationMutation } =
-		useApplication({});
+	const {
+		createApplication,
+		createApplicationMutation,
+		removeApplication,
+		removeApplicationMutation,
+	} = useApplication({});
 
 	const { getSetting } = useSettings();
 
-	const homeUniversitySetting = getSetting("home_university");
+	const homeUniversity = getSetting("home_university")?.value;
 
-	const deadlineSetting = getSetting("deadline_date");
+	const deadline = getSetting("deadline_date")?.value;
 
-	const deadline = deadlineSetting?.value;
+	const maxApplications = getSetting("max_applications")?.value || 3;
 
 	const dummyApplications = [
 		{
@@ -96,10 +95,10 @@ export default function Dashboard() {
 
 	// remove (home uni)
 	let filteredUniversities = universities?.filter((university) => {
-		return university.id !== parseInt(homeUniversitySetting?.value || "0");
+		return university.id !== parseInt(homeUniversity || "0");
 	});
 
-	if (!applications || !universities || !homeUniversitySetting) {
+	if (!applications || !universities || !homeUniversity) {
 		return <Skeleton active />;
 	}
 
@@ -109,76 +108,6 @@ export default function Dashboard() {
 			return application.abroadUniversityId === university.id;
 		});
 	});
-
-	function onYearChange(value: Year) {
-		setSelectedYear(value);
-		setAlternateRoute(false);
-		setSelectedAdditionalCourse("");
-	}
-
-	function validateApplication() {
-		if (selectedUni == "" || selectedUni == "Select a university") {
-			toast.error("Please select a university");
-			return false;
-		}
-
-		if (!universities) {
-			toast.error("Universities data is not available");
-			return false;
-		}
-
-		const selectedUniversity = universities.find(
-			(university) => university.name === selectedUni,
-		);
-		if (!selectedUniversity) {
-			toast.error("Selected university not found");
-			return false;
-		}
-
-		if (
-			(selectedYear === "SECOND_YEAR_JOINT_FULL_YEAR" ||
-				selectedYear === "SECOND_YEAR_JOINT_FIRST_SEMESTER") &&
-			selectedAdditionalCourse === ""
-		) {
-			toast.error("Please select an additional course");
-			return false;
-		}
-
-		return true;
-	}
-
-	const onCreate = async () => {
-		if (!validateApplication()) {
-			return;
-		}
-
-		const selectedUniversity = universities.find(
-			(university) => university.name === selectedUni,
-		);
-
-		if (selectedUniversity == undefined) {
-			toast.error("Selected university not found");
-			return;
-		}
-
-		await toast.promise(
-			createApplication(
-				selectedUniversity!.id,
-				selectedYear,
-				alternateRoute,
-				selectedAdditionalCourse,
-			),
-			{
-				loading: "Creating application...",
-				success: "Application created successfully",
-				error: (error) => {
-					return error instanceof Error
-						? error.message
-						: "Failed to create application";
-				},
-			},
-		);
-	};
 
 	const steps: TourProps["steps"] = [
 		{
@@ -243,8 +172,8 @@ export default function Dashboard() {
 					</div>
 				</Tooltip>
 			</div>
-			<h2 className="text-xl font-semibold text-gray-500">
-				Deadline for applications{" "}
+			<h2 className="text-xl font-medium text-red-600">
+				⏰ Deadline for applications{" "}
 				<Tooltip title={dayjs(deadline).format("DD/MM/YYYY")}>
 					{dayjs(deadline).fromNow()}
 				</Tooltip>
@@ -302,18 +231,7 @@ export default function Dashboard() {
 										key: "status",
 										render: (text, record) => (
 											<Tooltip title={statusDescription(record.status)}>
-												<Tag
-													ref={ref3}
-													color={
-														record.status === "DRAFT"
-															? "yellow"
-															: record.status === "SUBMITTED"
-																? "blue"
-																: record.status === "APPROVED"
-																	? "green"
-																	: "red"
-													}
-												>
+												<Tag ref={ref3} color={statusColor(record.status)}>
 													{record.status}
 												</Tag>
 											</Tooltip>
@@ -360,10 +278,10 @@ export default function Dashboard() {
 													<Button
 														loading={removeApplicationMutation.isPending}
 														ref={ref4}
-														type="text"
+														type={"text"}
 														danger
 													>
-														Remove
+														<Trash size={16} />
 													</Button>
 												</Popconfirm>
 											</Tooltip>
@@ -380,102 +298,24 @@ export default function Dashboard() {
 							applications.
 						</p>
 					) : (
-						<>
-							{open || applications.length < 3 ? (
-								<div ref={ref5} className="flex flex-col items-start gap-3">
-									<h2 className="text-xl font-semibold">
-										Create a new application
-									</h2>
-									<p>
-										You can make up to 3 choices. You have made{" "}
-										{applications.length} choices.
-									</p>
-									<div className="flex w-full flex-col items-center gap-1 xl:flex-row">
-										<Select
-											showSearch
-											defaultValue={"Select a university"}
-											className="w-full"
-											filterOption={(input, option) =>
-												String(option?.value ?? "")
-													.toLowerCase()
-													.includes(input.toLowerCase())
-											}
-											onSelect={(value) => {
-												setSelectedUni(value);
-											}}
-										>
-											{filteredUniversities?.map((university) => (
-												<Select.Option
-													key={university.id}
-													value={university.name}
-												>
-													{university.name}
-												</Select.Option>
-											))}
-										</Select>
-										<Select
-											defaultValue={yearToString(selectedYear)}
-											className="w-full"
-											options={Object.values(Year).map((year) => ({
-												label: yearToString(year),
-												value: year,
-											}))}
-											onChange={(value) => {
-												onYearChange(value as Year);
-											}}
-										/>
-									</div>
-									{/* iF second_year_joint_full_Year or joint_first_semester, show a select with 3 options: AF2,WAD2,CS1F (semester 1 doesnt have wad2) */}
-									{selectedYear === "SECOND_YEAR_JOINT_FULL_YEAR" ||
-									selectedYear === "SECOND_YEAR_JOINT_FIRST_SEMESTER" ? (
-										<Select
-											defaultValue="Select an additional course"
-											className="w-full"
-											onChange={(value) => {
-												setSelectedAdditionalCourse(value);
-											}}
-										>
-											<Select.Option value="AF2">AF2</Select.Option>
-											{/* semester 1 doesnt have WAD2 */}
-											{selectedYear !== "SECOND_YEAR_JOINT_FIRST_SEMESTER" ? (
-												<Select.Option value="WAD2">WAD2</Select.Option>
-											) : null}
-											<Select.Option value="CS1F">
-												CS1F (if not already taken)
-											</Select.Option>
-										</Select>
-									) : null}
-									{/* If the year is YEAR 2 FULL YEAR OR YEAR 2 SEMESTER 1 SHOW ALTERNATE ROUTE */}
-									{selectedYear === "SECOND_YEAR_SINGLE_FULL_YEAR" ||
-									selectedYear === "SECOND_YEAR_SINGLE_FIRST_SEMESTER" ? (
-										<Popconfirm
-											open={!(selectedUni == "") && !acknowledged}
-											title="Make sure to check this if you are on the alternate route"
-											okText="I am on the alternate route"
-											cancelText="I am not on the alternate route"
-											onConfirm={() => {
-												setAlternateRoute(true);
-												setAcknowledged(true);
-											}}
-											onCancel={() => {
-												setAlternateRoute(false);
-												setAcknowledged(true);
-											}}
-										>
-											<Checkbox
-												checked={alternateRoute}
-												onChange={(e) => setAlternateRoute(e.target.checked)}
-											>
-												Alternate Route
-											</Checkbox>
-										</Popconfirm>
-									) : null}
-									<Button onClick={onCreate}>Create Application</Button>
-								</div>
+						<div ref={ref5} className="flex flex-col items-start gap-3">
+							<h2 className="text-xl font-semibold">
+								Create a new application
+							</h2>
+							<p>
+								You can make up to {maxApplications} choices. You have made{" "}
+								{applications.length} choices.
+							</p>
+							{open || applications.length < maxApplications ? (
+								<CreateApplicationForm
+									filteredUniversities={filteredUniversities}
+									createApplication={createApplication}
+									isPending={createApplicationMutation.isPending}
+								/>
 							) : (
 								<p>You have made the maximum number of choices.</p>
 							)}
-						</>
+						</div>
 					)}
 				</div>
 				<div className="flex w-full flex-col gap-2">

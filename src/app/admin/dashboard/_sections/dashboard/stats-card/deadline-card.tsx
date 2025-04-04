@@ -10,5 +10,7 @@ export default function DeadlineCard() {
 
 	const deadline = getSetting("deadline_date", null);
 	const day = dayjs(deadline?.value).fromNow();
-	return <StatsCard title={`Deadline`} value={day} />;
+	return (
+		<StatsCard title={"Deadline"} value={day} statClassName="text-orange-600" />
+	);
 }

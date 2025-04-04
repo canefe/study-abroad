@@ -1,12 +1,13 @@
 import { Card } from "antd";
+import { ReactNode } from "react";
 
 export default function StatsCard({
 	title,
 	value,
 	statClassName,
 }: {
-	title: string;
-	value: number | string;
+	title: ReactNode | string;
+	value: number | string | ReactNode;
 	statClassName?: string;
 }) {
 	return (

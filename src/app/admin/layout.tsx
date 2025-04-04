@@ -1,5 +1,3 @@
-import { getServerAuthSession } from "@/server/auth";
-import { redirect } from "next/navigation";
 import { api, HydrateClient } from "@/trpc/server";
 import SharedLayout from "../_components/shared-layout";
 import { authorizeRole } from "@/lib/auth";

@@ -1,10 +1,12 @@
 "use client";
-import { AutoComplete, Button, Table } from "antd";
+import { AutoComplete, Button, Table, Tooltip, Tag } from "antd";
 import { api } from "@/trpc/react";
+import { Eye } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { debounce } from "lodash";
 import { Filter } from "lucide-react";
+import { statusColor } from "@/lib/randomUtils";
 
 export default function StudentList() {
 	const [search, setSearch] = useState("");
@@ -20,6 +22,47 @@ export default function StudentList() {
 		setPage(1);
 	}, 500);
 
+	const renderApplicationTags = (applications: any[]) => {
+		if (applications.length > 2) {
+			const firstThree = applications.slice(0, 2).map((application: any) => (
+				<Tag color={statusColor(application.status)} key={application.id}>
+					{application.abroadUniversity?.name || "N/A"} - {application.status}
+				</Tag>
+			));
+			const remaining = applications.length - 2;
+			return (
+				<>
+					{firstThree}
+					<Tag>... {remaining} more applications</Tag>
+				</>
+			);
+		}
+
+		return applications.map((application: any) => (
+			<Tag color={statusColor(application.status)} key={application.id}>
+				{application.abroadUniversity?.name || "N/A"} - {application.status}
+			</Tag>
+		));
+	};
+
+	const renderApplications = (applications: any[], guid: string) => {
+		const hasApplications = applications.length > 0;
+		if (!hasApplications)
+			return <span className="text-gray-500">No Applications</span>;
+		return (
+			<div className="flex items-center gap-1">
+				<Tooltip title="View Applications">
+					<Link
+						href={"/admin/applications?status=all&q=" + guid}
+						className="flex cursor-pointer items-center text-blue-500"
+					>
+						{renderApplicationTags(applications)}
+					</Link>
+				</Tooltip>
+			</div>
+		);
+	};
+
 	const columns = [
 		{
 			title: "Name",
@@ -33,17 +76,10 @@ export default function StudentList() {
 		},
 		{
 			title: "Applications",
-			dataIndex: "applications",
 			key: "applications",
+			dataIndex: "applications",
 			render: (applications: any, record: any) => {
-				return (
-					<Link
-						href={"/admin/applications?status=all&q=" + record.guid}
-						className="flex cursor-pointer items-center text-blue-500"
-					>
-						{applications.length}
-					</Link>
-				);
+				return renderApplications(applications, record.guid);
 			},
 		},
 	];

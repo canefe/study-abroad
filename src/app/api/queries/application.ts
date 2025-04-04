@@ -1,4 +1,5 @@
 import { api } from "@/trpc/react";
+import { Year } from "@prisma/client";
 
 export const useGetApplicationQuery = (applicationId: number) => {
 	return api.applications.get.useQuery(
@@ -26,6 +27,15 @@ export const useGetAbroadCoursesQuery = (abroadUniversityId: number) => {
 		},
 		{
 			enabled: !!abroadUniversityId,
+		},
+	);
+};
+
+export const useGetHomeCoursesQuery = (year?: Year[]) => {
+	return api.courses.getHomeCourses.useQuery(
+		{ year: year ? year.join(",") : undefined },
+		{
+			refetchInterval: 10000,
 		},
 	);
 };

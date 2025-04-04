@@ -15,7 +15,9 @@ import { debounce } from "lodash";
 import { z } from "zod";
 import CreateApplicationModal from "./create-application-modal";
 import { useExportApplications } from "@/hooks/useExportApplications";
-
+import { Suspense } from "react";
+import ApplicationTable from "./application-table";
+import { statusColor } from "@/lib/randomUtils";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const StatusEnum = z.enum(["ALL", "SUBMITTED", "DRAFT", "REVISE", "APPROVED"]);
 type Status = z.infer<typeof StatusEnum>;
@@ -39,12 +41,6 @@ export default function ApplicationList({
 	);
 	const [newApplicationModalVisible, setNewApplicationModalVisible] =
 		useState(false);
-	const [applications] = api.applications.getAll.useSuspenseQuery({
-		q: search,
-		page: page,
-		pageSize: 10,
-		filter: selected,
-	});
 
 	const deleteApplication = api.applications.adminDelete.useMutation();
 	const handleDelete = async (id: number) => {
@@ -66,21 +62,6 @@ export default function ApplicationList({
 		setSearch(value);
 		setPage(1);
 	}, 500);
-
-	const statusColor = (status: string) => {
-		switch (status) {
-			case "SUBMITTED":
-				return "orange";
-			case "DRAFT":
-				return "blue";
-			case "REVISE":
-				return "red";
-			case "APPROVED":
-				return "green";
-			default:
-				return "red";
-		}
-	};
 
 	const columns = [
 		{
@@ -202,28 +183,40 @@ export default function ApplicationList({
 					Export
 				</Button>
 			</div>
-			<AutoComplete
-				options={applications?.applications.map((application) => ({
-					value: application.user?.name,
-					label: application.user?.name,
-				}))}
-				value={search}
-				onSearch={handleSearch}
-				onSelect={handleSearch}
-				placeholder="Search for a student by their name or GUID"
-				className="w-full"
-			/>
-			<Table
-				size={"middle"}
-				dataSource={applications?.applications}
-				columns={columns}
-				loading={!applications}
-				pagination={{
-					current: page,
-					onChange: (page) => setPage(page),
-					total: applications?.total,
-				}}
-			/>
+			<Suspense
+				fallback={
+					<>
+						<AutoComplete
+							options={[]}
+							value={search}
+							onSearch={handleSearch}
+							onSelect={handleSearch}
+							placeholder="Search for a student by their name or GUID"
+							className="w-full"
+						/>
+						<Table
+							size="middle"
+							loading
+							dataSource={[]}
+							columns={columns}
+							pagination={{
+								current: page,
+								total: 0,
+							}}
+						/>
+					</>
+				}
+			>
+				<ApplicationTable
+					search={search}
+					handleSearch={handleSearch}
+					page={page}
+					selected={selected}
+					columns={columns}
+					setPage={setPage}
+				/>
+			</Suspense>
+
 			<CreateApplicationModal
 				open={newApplicationModalVisible}
 				setOpen={setNewApplicationModalVisible}

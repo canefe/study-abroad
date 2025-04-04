@@ -65,7 +65,7 @@ async function main() {
 	const applicationIdMap = {};
 	for (let i = 0; i < sortedOldApps.length; i++) {
 		const cloneKey = sortedOldApps[i].cloneIndex;
-		applicationIdMap[cloneKey] = newApplications[i].id;
+		applicationIdMap[cloneKey] = newApplications[i]?.id;
 	}
 	console.log("Application ID Map:", applicationIdMap);
 
@@ -96,6 +96,10 @@ async function main() {
 		({ id, applicationCloneIndex, ...choice }) => ({
 			...choice,
 			applicationId: applicationIdMap[applicationCloneIndex],
+			// remove year and userId
+			year: undefined,
+			userId: undefined,
+			universityId: undefined,
 		}),
 	);
 	await prisma.courseChoice.createMany({

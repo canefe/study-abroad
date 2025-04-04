@@ -1,46 +1,125 @@
 "use client";
 
-import { useGetAbroadCoursesQuery } from "@/app/api/queries/application";
-import { useCourses } from "@/hooks/useCourses";
-import { useSettings } from "@/hooks/useSettings";
-import { yearToString } from "@/lib/utils";
-import { api } from "@/trpc/react";
+import { useEffect, useState } from "react";
+import {
+	Button,
+	Checkbox,
+	ConfigProvider,
+	Form,
+	List,
+	Select,
+	Tooltip,
+} from "antd";
+import { Folder, X } from "lucide-react";
 import { Year } from "@prisma/client";
-import { Button, Checkbox, ConfigProvider, List, Select, Tooltip } from "antd";
-import { Folder, Plus, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { yearToString } from "@/lib/utils";
+import { useSettings } from "@/hooks/useSettings";
+import { api } from "@/trpc/react";
+import { useGetAbroadCoursesQuery } from "@/app/api/queries/application";
+import toast from "react-hot-toast";
 
 export default function YearRequirementsSettings() {
+	// Selected year from the Year enum
 	const [selectedYear, setSelectedYear] = useState<Year>(
 		Year.SECOND_YEAR_JOINT_FIRST_SEMESTER,
 	);
-	const [toggled, setToggled] = useState(false);
 
-	const selectRef = useRef<typeof Select>(null);
+	// Get and update settings related to year requirements
+	const { getSetting, setSetting } = useSettings();
 
-	const { getSetting, setSetting, setSettingMutation } = useSettings();
+	// Toggle state for showing the "add course" Select dropdown.
+	const [toggledAlternateCourseSelect, setToggledAlternateCourseSelect] =
+		useState(false);
+	const [toggledAdditionalCourseSelect, setToggledAdditionalCourseSelect] =
+		useState(false);
 
+	// Parse the "year_requirements" setting saved as JSON string.
+	const yearReqSetting = getSetting("year_requirements");
+	const initialReqConfig = yearReqSetting
+		? JSON.parse(yearReqSetting.value)
+		: {};
+	// Local state for the config; this would be updated on change.
+	const [yearReqConfigState, setYearReqConfigState] =
+		useState(initialReqConfig);
+
+	// Retrieve current requirements for the selected year.
+	const currentReq = yearReqConfigState[selectedYear] || {
+		alternateCourses: [],
+		additionalCourses: [],
+		optionalCourses: false,
+	};
+
+	// Initialize local toggle state from the config.
+	const [alternateToggle, setAlternateToggle] = useState(
+		currentReq.alternateCourses.length > 0,
+	);
+
+	// Initialize local toggle state from the config.
+	const [additionalToggle, setAdditionalToggle] = useState(
+		currentReq.additionalCourses.length > 0,
+	);
+
+	useEffect(() => {
+		setAlternateToggle(currentReq.alternateCourses.length > 0);
+		setAdditionalToggle(currentReq.additionalCourses.length > 0);
+		setToggledAlternateCourseSelect(false);
+		setToggledAdditionalCourseSelect(false);
+	}, [selectedYear, yearReqConfigState]);
+
+	// Get home courses from existing query.
 	const [universities] = api.universities.getList.useSuspenseQuery();
-
-	const setting = getSetting("application_rules_by_year");
-	const applicationRulesByYear = JSON.parse(setting?.value || "{}");
+	const homeSetting = getSetting("home_university");
 	const selectedUni = universities?.find(
-		(uni) => uni.id.toString() === setting?.value,
+		(uni) => uni.id.toString() === homeSetting?.value,
 	);
-
-	const { addCourseWithYear, deleteCourse, setYearOfCourse } = useCourses();
-
 	const { data: courses, isLoading } = useGetAbroadCoursesQuery(
-		parseInt(setting?.value as string) || 0,
+		parseInt(homeSetting?.value as string) || 0,
 	);
 
-	// Function to add a course
-	function addCourse(year: Year) {
-		const name = prompt("Enter course name");
-		if (name) {
-			addCourseWithYear(name, parseInt(setting?.value || "0"), year);
+	// Utility to update config for the selected year and persist via setSetting.
+	const updateYearReq = (newValues: Partial<typeof currentReq>) => {
+		const updated = { ...currentReq, ...newValues };
+		const newConfig = { ...yearReqConfigState, [selectedYear]: updated };
+		setYearReqConfigState(newConfig);
+		// Persist the updated config as a JSON string.
+		setSetting("year_requirements", JSON.stringify(newConfig));
+	};
+
+	// Disable Requirement
+	// call for example: updateYearReq({ additionalCourses: [] });
+	const disableRequirement = (
+		type: "alternateCourses" | "additionalCourses",
+	) => {
+		updateYearReq({ [type]: [] });
+		toast.success(`Disabled ${type} requirement.`);
+	};
+
+	// Remove a course from the given type.
+	const removeCourse = (
+		type: "alternateCourses" | "additionalCourses",
+		courseName: string,
+	) => {
+		const updatedCourses = currentReq[type].filter(
+			(name: string) => name !== courseName,
+		);
+		updateYearReq({ [type]: updatedCourses });
+		toast.success(
+			`Removed course ${courses?.find((c) => c.name === courseName)?.name} from ${type}.`,
+		);
+	};
+
+	// Add a course to the given type.
+	const addCourseToRequirements = (
+		type: "alternateCourses" | "additionalCourses",
+		courseName: string,
+	) => {
+		if (!currentReq[type].includes(courseName)) {
+			updateYearReq({ [type]: [...currentReq[type], courseName] });
 		}
-	}
+		toast.success(
+			`Added course ${courses?.find((c) => c.name === courseName)?.name} to ${type}.`,
+		);
+	};
 
 	return (
 		<>
@@ -49,9 +128,23 @@ export default function YearRequirementsSettings() {
 				<p className="text-sm text-gray-500">
 					Here you can set additional conditions for each year.
 				</p>
+				<ul className="list-disc pl-4 text-sm text-gray-500">
+					<li>
+						Alternate Route courses are added if a student declares they are on
+						the Alternate Route.
+					</li>
+					<li>
+						Additional Courses are selected one at a time (by the student) and
+						added to the matching.
+					</li>
+					<li>
+						Optional Courses are noted; this adds a text area in the matching
+						interface.
+					</li>
+				</ul>
 			</div>
 			<div className="flex h-full">
-				{/* year selector */}
+				{/* Year selector */}
 				<div className="w-1/4 min-w-[200px] border-r pr-2">
 					<p className="mb-2 text-lg font-medium">Select Year</p>
 					<div className="flex flex-col gap-1">
@@ -59,7 +152,6 @@ export default function YearRequirementsSettings() {
 							<Button
 								key={year}
 								type={selectedYear === year ? "primary" : "text"}
-								block
 								className="justify-start text-left"
 								onClick={() => setSelectedYear(year)}
 							>
@@ -69,102 +161,211 @@ export default function YearRequirementsSettings() {
 					</div>
 				</div>
 
-				{/* courses for the year */}
+				{/* Requirements for the selected year */}
 				<div className="flex flex-1 flex-col p-4">
-					<div className="flex items-center justify-between">
-						<h2 className="text-xl font-medium">
-							{yearToString(selectedYear)}
-						</h2>
-						<div className="flex gap-2">
-							<Tooltip title="Add an existing course">
-								<div className="relative">
-									<Button
-										type="default"
-										icon={<Folder size={16} />}
-										disabled={!selectedUni}
-										size="small"
-										onClick={() => setToggled(!toggled)}
-									>
-										Add Course
-									</Button>
-									{toggled && (
-										<Select
-											showSearch
-											className="absolute left-0 right-0 top-5 z-10 mx-auto mt-1 w-fit"
-											placeholder="Select an existing course to add"
-											options={courses?.map((course) => ({
-												label: course.name,
-												value: course.id,
-											}))}
-											filterOption={(input, option) =>
-												option
-													? option.label
-															.toLowerCase()
-															.includes(input.toLowerCase())
-													: false
-											}
-											open={selectedYear != undefined}
-											showAction={["focus"]}
-											onSelect={(value) => {
-												setYearOfCourse(value as number, selectedYear);
-												setToggled(false);
-											}}
-										/>
-									)}
-								</div>
-							</Tooltip>
-							<Tooltip title="Create new course">
-								<Button
-									type="default"
-									icon={<Plus size={16} />}
-									disabled={!selectedUni}
-									size="small"
-									onClick={() => addCourse(selectedYear)}
+					<h2 className="text-xl font-medium">{yearToString(selectedYear)}</h2>
+					<div className="mt-4 space-y-4">
+						{/* Alternate Route Section */}
+						<div className="rounded-md border p-4">
+							<div className="flex items-center justify-between">
+								<Checkbox
+									checked={alternateToggle}
+									onChange={(e) => {
+										const checked = e.target.checked;
+										setAlternateToggle(checked);
+										if (!checked) {
+											disableRequirement("alternateCourses");
+										}
+									}}
 								>
-									Create Course
-								</Button>
-							</Tooltip>
-						</div>
-					</div>
-
-					<div className="flex w-full flex-col gap-2">
-						In here you can select conditional courses for this year.
-						{/*Alternate Route*/}
-						{/*Declare a year as an alternate route, allowing inputing additional courses that will be added if the student is an alternate route*/}
-						<div className="flex flex-col gap-2">
-							<Checkbox
-							//checked={alternateRoute}
-							//onChange={(e) => setAlternateRoute(e.target.checked)}
-							>
-								Enable Alternate Route for this year
-							</Checkbox>
-							{/* courses List */}
-							Select the courses that will be added if the student is an
-							alternate route.
-							<ConfigProvider renderEmpty={() => <div>No courses</div>}>
-								<List
-									loading={isLoading}
-									dataSource={courses?.filter((course) =>
-										course.year.includes(selectedYear),
-									)}
-									renderItem={(course) => (
-										<li className="m-0 my-1 flex w-full justify-between border-b p-2">
-											<span className="ml-4">{course.name}</span>
-											<Tooltip title="Remove course from year">
+									Enable Alternate Route
+								</Checkbox>
+								{alternateToggle && (
+									<Tooltip title="Add an existing course">
+										<div className="relative">
+											<Button
+												type="default"
+												icon={<Folder size={16} />}
+												disabled={!selectedUni}
+												size="small"
+												onClick={() =>
+													setToggledAlternateCourseSelect(
+														!toggledAlternateCourseSelect,
+													)
+												}
+											>
+												Add Course
+											</Button>
+											{toggledAlternateCourseSelect && (
+												<Select
+													showSearch
+													className="absolute left-0 right-0 top-9 z-10 mx-auto mt-1 w-fit"
+													placeholder="Select an existing course to add"
+													options={
+														courses?.map((course) => ({
+															label: course.name,
+															value: course.name,
+														})) || []
+													}
+													filterOption={(input, option) =>
+														option
+															? (option.label as string)
+																	.toLowerCase()
+																	.includes(input.toLowerCase())
+															: false
+													}
+													open={true}
+													onSelect={(value) => {
+														addCourseToRequirements("alternateCourses", value);
+														setToggledAlternateCourseSelect(false);
+													}}
+												/>
+											)}
+										</div>
+									</Tooltip>
+								)}
+							</div>
+							{currentReq.alternateCourses.length > 0 && (
+								<ConfigProvider
+									renderEmpty={() => <div>No alternate courses</div>}
+								>
+									<List
+										className="mt-2"
+										dataSource={currentReq.alternateCourses.map(
+											(name: string) => {
+												const course = courses?.find((c) => c.name === name);
+												return { name: course ? course.name : name };
+											},
+										)}
+										renderItem={(item: { name: string }) => (
+											<List.Item className="flex items-center justify-between border-b p-2">
+												<span>{item.name}</span>
 												<X
-													color="red"
-													className="mr-2 cursor-pointer hover:scale-110 hover:text-blue-500"
+													className="cursor-pointer text-red-500"
 													onClick={() =>
-														setYearOfCourse(course.id, undefined, true)
+														removeCourse("alternateCourses", item.name)
 													}
 												/>
-											</Tooltip>
-										</li>
-									)}
-								/>
-							</ConfigProvider>
+											</List.Item>
+										)}
+									/>
+								</ConfigProvider>
+							)}
 						</div>
-						<div className="flex w-full flex-col gap-2">additional courses</div>
+
+						{/* Additional Courses Section */}
+						<div className="rounded-md border p-4">
+							<div className="flex items-center justify-between">
+								<Checkbox
+									checked={additionalToggle}
+									onChange={(e) => {
+										const checked = e.target.checked;
+										setAdditionalToggle(checked);
+										if (!checked) {
+											// Clear the courses if unchecked.
+											disableRequirement("additionalCourses");
+										}
+									}}
+								>
+									Enable Additional Courses
+								</Checkbox>
+								{additionalToggle && (
+									<Tooltip title="Add an existing course">
+										<div className="relative">
+											<Button
+												type="default"
+												icon={<Folder size={16} />}
+												disabled={!selectedUni}
+												size="small"
+												onClick={() =>
+													setToggledAdditionalCourseSelect(
+														!toggledAdditionalCourseSelect,
+													)
+												}
+											>
+												Add Course
+											</Button>
+											{toggledAdditionalCourseSelect && (
+												<Select
+													showSearch
+													className="absolute left-0 right-0 top-9 z-10 mx-auto mt-1 w-fit"
+													placeholder="Select an existing course to add"
+													options={
+														courses?.map((course) => ({
+															label: course.name,
+															value: course.name,
+														})) || []
+													}
+													filterOption={(input, option) =>
+														option
+															? (option.label as string)
+																	.toLowerCase()
+																	.includes(input.toLowerCase())
+															: false
+													}
+													open={true}
+													onSelect={(value) => {
+														addCourseToRequirements("additionalCourses", value);
+														setToggledAdditionalCourseSelect(false);
+													}}
+												/>
+											)}
+										</div>
+									</Tooltip>
+								)}
+							</div>
+							{currentReq.additionalCourses.length > 0 && (
+								<ConfigProvider
+									renderEmpty={() => <div>No additional courses</div>}
+								>
+									<List
+										className="mt-2"
+										dataSource={currentReq.additionalCourses.map(
+											(name: string) => {
+												const course = courses?.find((c) => c.name === name);
+												return { name: course ? course.name : name };
+											},
+										)}
+										renderItem={(item: { name: string }) => (
+											<List.Item className="flex items-center justify-between border-b p-2">
+												<span>{item.name}</span>
+												<X
+													className="cursor-pointer text-red-500"
+													onClick={() =>
+														removeCourse("additionalCourses", item.name)
+													}
+												/>
+											</List.Item>
+										)}
+									/>
+								</ConfigProvider>
+							)}
+						</div>
+
+						{/* Optional Courses Section */}
+						<div className="rounded-md border p-4">
+							<Checkbox
+								checked={currentReq.optionalCourses}
+								onChange={(e) => {
+									updateYearReq({ optionalCourses: e.target.checked });
+									switch (e.target.checked) {
+										case true:
+											toast.success("Enabled optional courses.");
+											break;
+										case false:
+											toast.success("Disabled optional courses.");
+											break;
+									}
+								}}
+							>
+								Enable Optional Courses
+							</Checkbox>
+							{currentReq.optionalCourses && (
+								<p className="mt-2 text-sm text-gray-500">
+									Optional courses will be noted.
+								</p>
+							)}
+						</div>
 					</div>
 				</div>
 			</div>

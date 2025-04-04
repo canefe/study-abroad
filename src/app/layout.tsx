@@ -1,4 +1,3 @@
-import "antd/dist/reset.css";
 import "@/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
@@ -19,9 +18,7 @@ export default function RootLayout({
 	return (
 		<html lang="en" className={`${GeistSans.variable}`}>
 			<body>
-				<AntdRegistry>
-					<TRPCReactProvider>{children}</TRPCReactProvider>
-				</AntdRegistry>
+				<TRPCReactProvider>{children}</TRPCReactProvider>
 			</body>
 		</html>
 	);

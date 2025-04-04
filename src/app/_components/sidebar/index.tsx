@@ -12,18 +12,16 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
+	SidebarTrigger,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import useNavData from "@/hooks/useNavData";
+import { Session } from "next-auth";
 
 // Menu items. That checks ROLE and displays the menu items accordingly
 
 type AppSidebarProps = {
-	session: {
-		user: {
-			role: string;
-		};
-	};
+	session: Session;
 };
 
 export default function AppSidebar({ session }: AppSidebarProps) {

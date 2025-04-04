@@ -1,5 +1,6 @@
 import { api } from "@/trpc/react";
 import { useRouter } from "next/navigation";
+import { util } from "zod";
 
 export const useCreateApplicationMutation = () => {
 	const utils = api.useUtils();
@@ -28,25 +29,21 @@ export const useWithdrawApplicationMutation = () => {
 };
 
 export const useAddNewCourseMutation = () => {
-	return api.courses.addCourse.useMutation();
+	const utils = api.useUtils();
+	return api.courses.addCourse.useMutation({
+		onSuccess: () => {
+			utils.courses.invalidate();
+		},
+	});
 };
 
 export const useFlagCourseMutation = () => {
 	return api.courses.flagCourse.useMutation();
 };
 
-export const useSaveChoicesMutation = () => {
+export const useUpdateCourseChoicesMutation = () => {
 	const utils = api.useUtils();
-	return api.choices.saveChoiceChanges.useMutation({
-		onSuccess: () => {
-			utils.applications.invalidate();
-		},
-	});
-};
-
-export const useSaveChoicesAdminMutation = () => {
-	const utils = api.useUtils();
-	return api.choices.saveChoicesAdmin.useMutation({
+	return api.applications.updateCourseChoices.useMutation({
 		onSuccess: () => {
 			utils.applications.invalidate();
 		},
@@ -61,6 +58,24 @@ export const useAdminCreateApplicationMutation = () => {
 		onSuccess: (data) => {
 			utils.applications.getList.invalidate();
 			router.push(`/admin/applications/${data.applicationId}`);
+		},
+	});
+};
+
+export const useApproveApplicationMutation = () => {
+	const utils = api.useUtils();
+	return api.applications.approve.useMutation({
+		onSuccess: () => {
+			utils.applications.invalidate();
+			utils.courses.invalidate();
+		},
+	});
+};
+export const useAskForReviseApplicationMutation = () => {
+	const utils = api.useUtils();
+	return api.applications.revise.useMutation({
+		onSuccess: () => {
+			utils.applications.invalidate();
 		},
 	});
 };

@@ -13,8 +13,8 @@
 		"postinstall": "prisma generate",
 		"lint": "next lint",
 		"start": "next start",
-		"seed": "node prisma/seed.cjs",
-		"prisma:seed": "ts-node prisma\\seed.ts",
+		"seed": "npx tsx prisma/seed.ts",
+		"prisma:seed": "node --loader ts-node/esm prisma/seed.ts",
 		"test": "vitest"
 	},
 	"dependencies": {

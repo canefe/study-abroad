@@ -6,7 +6,7 @@ import CreateCourseModal from "./_sections/create-course-modal";
 import CoursesList from "./_sections/courses-list";
 
 export default function Courses() {
-	const [selected, setSelected] = useState("all");
+	const [selected, setSelected] = useState("flagged");
 	const [createCourseModalVisible, setCreateCourseModalVisible] =
 		useState(false);
 

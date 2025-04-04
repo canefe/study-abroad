@@ -182,19 +182,11 @@ export const applicationsRouter = createTRPCRouter({
 				homeUniversityCourses,
 			);
 
-			// if alternate route is selected, add additional course (CS1F)
-			// find CS1F home course first
-			if (input.alternateRoute) {
-				await applicationService.addAlternateRouteCourse(ctx, application.id);
-			}
-			// if additional course is selected, add additional course ( find the course first )
-			if (input.additionalCourse) {
-				await applicationService.addAdditionalCourse(
-					ctx,
-					application.id,
-					input.additionalCourse,
-				);
-			}
+			await applicationService.applyRequirements(ctx, {
+				applicationId: application.id,
+				alternateRoute: input.alternateRoute || false,
+				additionalCourse: input.additionalCourse,
+			});
 			return { applicationId: application.id };
 		}),
 
@@ -248,20 +240,74 @@ export const applicationsRouter = createTRPCRouter({
 				homeUniversityCourses,
 			);
 
-			// if alternate route is selected, add CS1F course
-			if (input.alternateRoute) {
-				await applicationService.addAlternateRouteCourse(ctx, application.id);
+			await applicationService.applyRequirements(ctx, {
+				applicationId: application.id,
+				alternateRoute: input.alternateRoute || false,
+				additionalCourse: input.additionalCourse,
+			});
+
+			return { applicationId: application.id };
+		}),
+	// Update Course Choices
+	updateCourseChoices: protectedProcedure
+		.input(
+			z.object({
+				applicationId: z.number(),
+				choices: z.array(
+					z.object({
+						homeCourseId: z.number(),
+						primaryCourseId: z.number().nullable(),
+						alternativeCourse1Id: z.number().nullable(),
+						alternativeCourse2Id: z.number().nullable(),
+					}),
+				),
+				note: z.string().optional(),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			// if student, check if user is owner of application
+			const session = ctx.session;
+			if (session.user.role === "STUDENT") {
+				const application = await ctx.db.application.findFirst({
+					where: {
+						id: input.applicationId,
+						userId: session.user.id,
+					},
+				});
+
+				if (!application) {
+					return new Response("Forbidden", { status: 403 });
+				}
 			}
 
-			// if additional course is selected, add it
-			if (input.additionalCourse) {
-				await applicationService.addAdditionalCourse(
-					ctx,
-					application.id,
-					input.additionalCourse,
-				);
-			}
-			return { applicationId: application.id };
+			// Update all courseChoices in a single transaction.
+			const results = await ctx.db.$transaction(
+				input.choices.map((choice) =>
+					ctx.db.courseChoice.updateMany({
+						where: {
+							applicationId: input.applicationId,
+							homeCourseId: choice.homeCourseId,
+						},
+						data: {
+							primaryCourseId: choice.primaryCourseId,
+							alternativeCourse1Id: choice.alternativeCourse1Id,
+							alternativeCourse2Id: choice.alternativeCourse2Id,
+						},
+					}),
+				),
+			);
+
+			// Update application note
+			await ctx.db.application.update({
+				where: {
+					id: input.applicationId,
+				},
+				data: {
+					note: input.note,
+				},
+			});
+
+			return results;
 		}),
 	// remove an application. Also removes all course choices related to the application
 	remove: protectedProcedure
@@ -308,6 +354,7 @@ export const applicationsRouter = createTRPCRouter({
 							alternativeCourse2: true,
 						},
 					},
+					user: true,
 					abroadUniversity: true,
 				},
 			});
@@ -339,12 +386,17 @@ export const applicationsRouter = createTRPCRouter({
 		.input(z.object({ applicationId: z.number() }))
 		.mutation(async ({ input, ctx }) => {
 			const session = ctx.session;
+
+			const whereClause: any = {
+				id: input.applicationId,
+			};
+			if (session.user.role === "STUDENT") {
+				whereClause.userId = session.user.id;
+			}
+
 			// check if user is owner of application
 			const application = await ctx.db.application.findFirst({
-				where: {
-					id: input.applicationId,
-					userId: session.user.id,
-				},
+				where: whereClause,
 			});
 
 			if (!application) {
@@ -366,16 +418,21 @@ export const applicationsRouter = createTRPCRouter({
 		.input(z.object({ applicationId: z.number() }))
 		.mutation(async ({ input, ctx }) => {
 			const session = ctx.session;
+
+			const whereClause: any = {
+				id: input.applicationId,
+			};
+			if (session.user.role === "STUDENT") {
+				whereClause.userId = session.user.id;
+			}
+
 			// check if user is owner of application
 			const application = await ctx.db.application.findFirst({
-				where: {
-					id: input.applicationId,
-					userId: session.user.id,
-				},
+				where: whereClause,
 			});
 
 			if (!application) {
-				return new Response("Forbidden", { status: 403 });
+				return new Response("Not Found", { status: 404 });
 			}
 
 			// update application status
@@ -389,5 +446,65 @@ export const applicationsRouter = createTRPCRouter({
 			});
 			return "Success";
 		}),
-	// same as function above, but for admin
+	// Approve, revise
+	approve: adminProcedure
+		.input(z.object({ applicationId: z.number() }))
+		.mutation(async ({ input, ctx }) => {
+			await ctx.db.application.update({
+				where: {
+					id: input.applicationId,
+				},
+				data: {
+					status: Status.APPROVED,
+				},
+			});
+
+			// get all host university courses located in course choices of application, verify them all
+			const courseChoices = await ctx.db.courseChoice.findMany({
+				where: {
+					applicationId: input.applicationId,
+				},
+			});
+			const matchedAbroadCourses: number[] = [];
+			for (const courseChoice of courseChoices) {
+				if (courseChoice.primaryCourseId) {
+					matchedAbroadCourses.push(courseChoice.primaryCourseId);
+				}
+				if (courseChoice.alternativeCourse1Id) {
+					matchedAbroadCourses.push(courseChoice.alternativeCourse1Id);
+				}
+				if (courseChoice.alternativeCourse2Id) {
+					matchedAbroadCourses.push(courseChoice.alternativeCourse2Id);
+				}
+			}
+
+			// verify all matched abroad courses db.transaction
+			await ctx.db.$transaction(
+				matchedAbroadCourses.map((courseId) =>
+					ctx.db.course.update({
+						where: {
+							id: courseId,
+						},
+						data: {
+							verified: true,
+						},
+					}),
+				),
+			);
+
+			return "Success";
+		}),
+	revise: adminProcedure
+		.input(z.object({ applicationId: z.number() }))
+		.mutation(async ({ input, ctx }) => {
+			await ctx.db.application.update({
+				where: {
+					id: input.applicationId,
+				},
+				data: {
+					status: Status.REVISE,
+				},
+			});
+			return "Success";
+		}),
 });

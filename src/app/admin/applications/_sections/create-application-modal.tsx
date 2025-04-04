@@ -1,4 +1,5 @@
 "use client";
+import { DynamicYearRequirements } from "@/app/_components/dynamic-year-requirements";
 import { useApplication } from "@/hooks/useApplication";
 import { useSettings } from "@/hooks/useSettings";
 import { yearToString } from "@/lib/utils";
@@ -6,6 +7,8 @@ import { api } from "@/trpc/react";
 import { Year } from "@prisma/client";
 import { Button, Checkbox, Form, Modal, Popconfirm, Select } from "antd";
 import { useState } from "react";
+import toast from "react-hot-toast";
+import { z } from "zod";
 
 export default function CreateApplicationModal({
 	open,
@@ -23,7 +26,7 @@ export default function CreateApplicationModal({
 	// form
 	const [form] = Form.useForm();
 
-	const { createApplicationAdmin } = useApplication({});
+	const { createApplicationAdmin, isPendingCreateAdmin } = useApplication({});
 	const { getSetting } = useSettings();
 
 	const homeUniversitySetting = getSetting("home_university");
@@ -35,37 +38,45 @@ export default function CreateApplicationModal({
 		pageSize: 10,
 	});
 
-	const onCreateApplication = async (
-		user: string,
-		abroadUniversityId: number,
-		year: Year,
-		alternateRoute?: boolean,
-		additionalCourse?: string,
-	) => {
-		//add course
-		if (!user) {
-			return Promise.reject("User is required");
-		}
-		if (!universities?.find((uni) => uni.id === abroadUniversityId)) {
-			return Promise.reject("University not found");
-		}
-		const application = await createApplicationAdmin(
-			user,
-			abroadUniversityId,
-			year,
-			alternateRoute,
-			additionalCourse,
-		);
-		console.log(application);
-	};
+	const createApplicationSchema = z.object({
+		user: z.string().min(1, "Student is required"),
+		university: z.number({ invalid_type_error: "University is required" }),
+		year: z.string().min(1, "Year is required"),
+		alternateRoute: z.boolean().optional(),
+		additionalCourse: z.string().nullable(),
+	});
 
-	const onFinish = (values: any) => {
-		onCreateApplication(
-			values.user,
-			values.university,
-			values.year,
-			values.alternateRoute,
-			values.additionalCourse,
+	const onFinish = async (values: z.infer<typeof createApplicationSchema>) => {
+		// reset form errors
+		const fieldsError = form.getFieldsError();
+		form.setFields(fieldsError.map(({ name }) => ({ name, errors: [] })));
+		// If there is no additional course, set it to null
+		if (!values.additionalCourse) {
+			values.additionalCourse = null;
+		}
+		// Parse and validate values with Zod.
+		const result = createApplicationSchema.safeParse(values);
+		if (!result.success) {
+			console.error(result.error.flatten());
+
+			form.setFields(
+				Object.entries(result.error.formErrors.fieldErrors).map(
+					([name, errors]) => ({
+						name,
+						errors: errors as string[],
+					}),
+				),
+			);
+			toast.error("Please fill all required fields");
+			return;
+		}
+		// If valid, call your create/submit function.
+		createApplicationAdmin(
+			result.data.user,
+			result.data.university,
+			result.data.year as Year,
+			result.data.alternateRoute,
+			result.data.additionalCourse ?? undefined,
 		);
 	};
 
@@ -85,7 +96,12 @@ export default function CreateApplicationModal({
 				onFinish={onFinish}
 				onValuesChange={(changedValues) => {
 					if (changedValues.year) {
+						// clear additional course and alternate route if year changes
 						setSelectedYear(changedValues.year);
+						form.setFieldsValue({
+							alternateRoute: false,
+							additionalCourse: undefined,
+						});
 					}
 				}}
 			>
@@ -138,37 +154,16 @@ export default function CreateApplicationModal({
 							}))}
 					></Select>
 				</Form.Item>
-				{selectedYear === "SECOND_YEAR_JOINT_FULL_YEAR" ||
-				selectedYear === "SECOND_YEAR_JOINT_FIRST_SEMESTER" ? (
-					<Form.Item label="Additional Course" name="additionalCourse">
-						<Select
-							defaultValue="Select an additional course"
-							className="w-full"
-						>
-							<Select.Option value="AF2">AF2</Select.Option>
-							{/* semester 1 doesnt have WAD2 */}
-							{selectedYear !== "SECOND_YEAR_JOINT_FIRST_SEMESTER" ? (
-								<Select.Option value="WAD2">WAD2</Select.Option>
-							) : null}
-							<Select.Option value="CS1F">
-								CS1F (if not already taken)
-							</Select.Option>
-						</Select>
-					</Form.Item>
-				) : null}
-				{/* If the year is YEAR 2 FULL YEAR OR YEAR 2 SEMESTER 1 SHOW ALTERNATE ROUTE */}
-				{selectedYear === "SECOND_YEAR_SINGLE_FULL_YEAR" ||
-				selectedYear === "SECOND_YEAR_SINGLE_FIRST_SEMESTER" ? (
-					<Form.Item
-						label="Alternate Route"
-						name="alternateRoute"
-						valuePropName="checked"
-					>
-						<Checkbox>Alternate Route</Checkbox>
-					</Form.Item>
-				) : null}
+				{selectedYear && (
+					<DynamicYearRequirements selectedYear={selectedYear} />
+				)}
 				<Form.Item className="flex justify-end">
-					<Button size={"large"} type="primary" htmlType="submit">
+					<Button
+						size={"large"}
+						type="primary"
+						htmlType="submit"
+						loading={isPendingCreateAdmin}
+					>
 						Create Application
 					</Button>
 				</Form.Item>
